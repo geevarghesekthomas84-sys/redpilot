@@ -13,7 +13,7 @@ to get a change merged.
 ## Development setup
 
 ```bash
-git clone https://github.com/geevarghesekthomas84-sys/spaf
+git clone https://github.com/geevarghesekthomas84-sys/redpilot
 cd redpilot
 python -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"          # core + pytest

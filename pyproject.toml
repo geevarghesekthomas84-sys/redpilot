@@ -64,10 +64,10 @@ include = ["redpilot*"]
 "redpilot.api" = ["static/*.html"]
 
 [project.urls]
-Homepage = "https://github.com/geevarghesekthomas84-sys/spaf"
-Repository = "https://github.com/geevarghesekthomas84-sys/spaf"
-Issues = "https://github.com/geevarghesekthomas84-sys/spaf/issues"
-Changelog = "https://github.com/geevarghesekthomas84-sys/spaf/blob/master/CHANGELOG.md"
+Homepage = "https://github.com/geevarghesekthomas84-sys/redpilot"
+Repository = "https://github.com/geevarghesekthomas84-sys/redpilot"
+Issues = "https://github.com/geevarghesekthomas84-sys/redpilot/issues"
+Changelog = "https://github.com/geevarghesekthomas84-sys/redpilot/blob/master/CHANGELOG.md"
 
 [project.scripts]
 redpilot = "redpilot.cli.main:entry_point"

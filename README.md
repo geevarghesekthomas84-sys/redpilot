@@ -2,9 +2,9 @@
      matches the CLI + dashboard design system) + a hosted typing ticker. -->
 <div align="center">
 
-<img alt="RedPilot — AI-orchestrated offensive security automation" width="100%" src="https://raw.githubusercontent.com/geevarghesekthomas84-sys/spaf/master/assets/hero.svg" />
+<img alt="RedPilot — AI-orchestrated offensive security automation" width="100%" src="https://raw.githubusercontent.com/geevarghesekthomas84-sys/redpilot/master/assets/hero.svg" />
 
-<a href="https://github.com/geevarghesekthomas84-sys/spaf">
+<a href="https://github.com/geevarghesekthomas84-sys/redpilot">
   <img alt="AI plans → runs → reports"
        src="https://readme-typing-svg.demolab.com?font=JetBrains+Mono&weight=700&size=21&pause=1000&color=E0A82E&center=true&vCenter=true&width=780&height=44&lines=%24+redpilot+agent+target.com;the+AI+plans+%E2%86%92+runs+the+tools+%E2%86%92+writes+it+up;recon+%C2%B7+web+%C2%B7+network+%C2%B7+nuclei+%C2%B7+crawler;drive+it+from+CLI+%C2%B7+API+%C2%B7+MCP+%C2%B7+dashboard" />
 </a>
@@ -14,10 +14,10 @@
 
 <p>
   <a href="https://pypi.org/project/redpilot/"><img alt="PyPI" src="https://img.shields.io/pypi/v/redpilot?style=flat-square&label=pypi&labelColor=0a0e12&color=E0A82E"></a>
-  <a href="https://github.com/geevarghesekthomas84-sys/spaf/actions/workflows/ci.yml"><img alt="ci" src="https://img.shields.io/github/actions/workflow/status/geevarghesekthomas84-sys/spaf/ci.yml?branch=master&style=flat-square&label=ci&labelColor=0a0e12&color=E0A82E"></a>
+  <a href="https://github.com/geevarghesekthomas84-sys/redpilot/actions/workflows/ci.yml"><img alt="ci" src="https://img.shields.io/github/actions/workflow/status/geevarghesekthomas84-sys/redpilot/ci.yml?branch=master&style=flat-square&label=ci&labelColor=0a0e12&color=E0A82E"></a>
   <a href="https://python.org"><img alt="python" src="https://img.shields.io/badge/python-3.11+-E0A82E?style=flat-square&labelColor=0a0e12&logo=python&logoColor=E0A82E"></a>
   <a href="LICENSE"><img alt="license" src="https://img.shields.io/badge/license-MIT-9AA6B2?style=flat-square&labelColor=0a0e12"></a>
-  <a href="https://github.com/geevarghesekthomas84-sys/spaf/stargazers"><img alt="stars" src="https://img.shields.io/github/stars/geevarghesekthomas84-sys/spaf?style=flat-square&labelColor=0a0e12&color=E0A82E"></a>
+  <a href="https://github.com/geevarghesekthomas84-sys/redpilot/stargazers"><img alt="stars" src="https://img.shields.io/github/stars/geevarghesekthomas84-sys/redpilot?style=flat-square&labelColor=0a0e12&color=E0A82E"></a>
   <a href="https://buymeacoffee.com/geevarghes2"><img alt="Buy Me a Coffee" src="https://img.shields.io/badge/Buy_Me_a_Coffee-E0A82E?style=flat-square&labelColor=0a0e12&logo=buymeacoffee&logoColor=0a0e12"></a>
 </p>
 
@@ -258,7 +258,7 @@ pip install "redpilot[ai,intel]"     # everything
 ### From source (for development)
 
 ```bash
-git clone https://github.com/geevarghesekthomas84-sys/spaf.git
+git clone https://github.com/geevarghesekthomas84-sys/redpilot.git
 cd redpilot
 python -m venv venv
 source venv/bin/activate         # Windows: venv\Scripts\activate
