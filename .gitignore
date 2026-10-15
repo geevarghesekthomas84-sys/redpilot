@@ -31,3 +31,7 @@ Thumbs.db
 deploy/certs/
 *.age
 age.key
+
+# Cloudflare / node (landing-page deploy)
+node_modules/
+.wrangler/

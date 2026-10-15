@@ -92,3 +92,10 @@ which is the only writable path — the root filesystem is read-only.
 Full guide — mTLS, rate-limiting, sops+age secrets, the authorized-egress note,
 and a pre-exposure checklist — in
 [`../SECURITY_HARDENING.md`](../SECURITY_HARDENING.md).
+
+## Cloudflare (landing page only)
+
+SPAF's FastAPI backend is Python and **does not run on Cloudflare's Workers
+runtime** — run it via the Docker/Caddy stack above. The repo's `wrangler.toml`
+only publishes the static project **landing page** under `../public`
+(`npx wrangler deploy`). It is a marketing/docs page, not the app.

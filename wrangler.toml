@@ -1,0 +1,14 @@
+# Cloudflare deploy for the SPAF project landing page.
+#
+# SPAF's FastAPI backend is Python and does NOT run on the Workers runtime — the
+# only thing deployed here is a static landing page under ./public (Workers
+# Static Assets). Run the real API via the hardened Docker/Caddy stack in deploy/.
+#
+#   npx wrangler deploy        # publishes ./public as a static site
+name = "spaf"
+compatibility_date = "2026-10-01"
+
+[assets]
+directory = "./public"
+# Serve the single-page site; unknown paths fall back to index.html.
+not_found_handling = "single-page-application"

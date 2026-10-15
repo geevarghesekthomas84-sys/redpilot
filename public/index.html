@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SPAF — Smart Pentesting Automation Framework</title>
+<meta name="description" content="SPAF — an AI-orchestrated offensive-security platform. One target in, a written assessment out. CLI · HTTP API · MCP · dashboard · multi-engagement RBAC. Authorized testing only.">
+<meta property="og:title" content="SPAF — Smart Pentesting Automation Framework">
+<meta property="og:description" content="AI-orchestrated offensive security — one target in, a written assessment out.">
+<meta property="og:image" content="/hero.svg">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230a0e12'/%3E%3Ctext x='16' y='22' font-family='monospace' font-size='15' font-weight='700' text-anchor='middle' fill='%23E0A82E'%3ES%3C/text%3E%3C/svg%3E">
+<style>
+  :root{
+    --bg:#0a0e12; --bg2:#0c1116; --panel:#11161a; --line:#1c2630;
+    --ink:#C6D0DA; --steel:#9AA6B2; --faint:#5B6672;
+    --amber:#E0A82E; --amber2:#F6CE63; --ok:#35C08A;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:
+      radial-gradient(1200px 400px at 50% -80px, rgba(224,168,46,.10), transparent 70%),
+      var(--bg);
+    color:var(--ink);
+    font-family:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+    font-size:15px;line-height:1.65}
+  a{color:var(--amber);text-decoration:none}
+  a:hover{text-decoration:underline}
+  .wrap{max-width:960px;margin:0 auto;padding:0 20px}
+  header{padding:34px 0 10px;text-align:center}
+  header img{width:100%;max-width:900px;border:1px solid var(--line);border-radius:14px}
+  h1{font-size:0;margin:0}
+  .tag{text-align:center;margin:26px 0 6px;font-size:18px;color:var(--ink)}
+  .tag b{color:var(--amber2)}
+  .sub{text-align:center;color:var(--steel);font-size:13px;margin:0 0 22px}
+  .sub b{color:var(--steel)}
+
+  .install{max-width:640px;margin:0 auto 10px;background:#0d1210;border:1px solid var(--line);
+    border-radius:10px;padding:14px 16px;overflow:auto}
+  .install code{color:var(--ink);white-space:pre;font-size:14px}
+  .install .c{color:var(--faint)}
+  .install .a{color:var(--amber)}
+
+  .cta{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:22px 0 8px}
+  .btn{border:1px solid var(--line);border-radius:8px;padding:9px 16px;color:var(--ink);
+    background:var(--panel);font-size:14px}
+  .btn.primary{border-color:var(--amber);color:var(--amber);background:#1a1403}
+  .btn:hover{border-color:var(--amber);text-decoration:none}
+
+  .chips{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:16px 0 6px}
+  .chip{border:1px solid var(--line);border-radius:20px;padding:3px 12px;color:var(--steel);font-size:12.5px}
+
+  h2{font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--steel);
+    margin:48px 0 16px;text-align:center}
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  @media(max-width:760px){.grid{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px}
+  .card h3{margin:0 0 6px;font-size:15px;color:var(--amber)}
+  .card p{margin:0;color:var(--steel);font-size:13.5px;line-height:1.55}
+
+  .flow{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;color:var(--steel);
+    font-size:13.5px;margin-top:4px}
+  .flow span{border:1px solid var(--line);border-radius:8px;padding:6px 12px}
+  .flow .arw{border:none;color:var(--amber);padding:6px 2px}
+
+  footer{margin:56px 0 40px;text-align:center;color:var(--faint);font-size:12.5px;
+    border-top:1px solid var(--line);padding-top:22px}
+  .warn{color:var(--amber);font-weight:600}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>SPAF — Smart Pentesting Automation Framework</h1>
+    <img src="hero.svg" alt="SPAF — Smart Pentesting Automation Framework">
+  </header>
+
+  <p class="tag"><b>AI-orchestrated offensive security</b> — one target in, a written assessment out.</p>
+  <p class="sub">Built for Kali, bug bounty, and red-team work · <b>authorized testing only</b></p>
+
+  <div class="install">
+    <code><span class="c"># CLI + the AI providers</span>
+pip install <span class="a">"spaf[ai]"</span>
+spaf setup
+spaf agent target.com        <span class="c"># AI plans → runs → reports</span></code>
+  </div>
+
+  <div class="cta">
+    <a class="btn primary" href="https://pypi.org/project/spaf/">Install from PyPI</a>
+    <a class="btn" href="https://github.com/geevarghesekthomas84-sys/spaf">GitHub</a>
+    <a class="btn" href="https://github.com/geevarghesekthomas84-sys/spaf/blob/master/CHANGELOG.md">Changelog</a>
+    <a class="btn" href="https://github.com/geevarghesekthomas84-sys/spaf/blob/master/docs/ARCHITECTURE.md">Architecture</a>
+  </div>
+
+  <div class="chips">
+    <span class="chip">CLI</span><span class="chip">HTTP API</span><span class="chip">MCP</span>
+    <span class="chip">Dashboard</span><span class="chip">Metrics</span>
+    <span class="chip">Docker + Caddy</span><span class="chip">multi-engagement RBAC</span>
+  </div>
+
+  <h2>What it does</h2>
+  <div class="grid">
+    <div class="card"><h3>◇ Autonomous agent</h3><p>The AI plans which modules to run, chains them, and writes the assessment — scope-gated, no raw commands.</p></div>
+    <div class="card"><h3>◇ Recon toolkit</h3><p>One pipeline wrapping subfinder, httpx, nuclei, katana, dnsx, ffuf and more.</p></div>
+    <div class="card"><h3>◇ Staged pipeline</h3><p>Deterministic discovery → validation → remediation → report, with strict stage hand-offs.</p></div>
+    <div class="card"><h3>◇ API + dashboard</h3><p>Headless REST + WebSocket, a built-in web console, and Prometheus metrics.</p></div>
+    <div class="card"><h3>◇ MCP + plugins</h3><p>Drive SPAF from Claude Desktop as native tools; add scanners via the plugin SDK.</p></div>
+    <div class="card"><h3>◇ Multi-engagement RBAC</h3><p>Isolated workspaces, viewer/operator/lead roles, and signed engagement authorizations.</p></div>
+  </div>
+
+  <h2>Staged pipeline</h2>
+  <div class="flow">
+    <span>discovery</span><span class="arw">→</span>
+    <span>validation</span><span class="arw">→</span>
+    <span>remediation</span><span class="arw">→</span>
+    <span>report</span>
+  </div>
+
+  <h2>Safety first</h2>
+  <div class="grid">
+    <div class="card"><h3>◇ Scope &amp; authorization</h3><p>Out-of-scope targets refused; overly-broad scans rejected; active runs need a signed authorization.</p></div>
+    <div class="card"><h3>◇ Safe execution</h3><p>No shell execution of untrusted text; AI/target output sanitized; secrets redacted from logs.</p></div>
+    <div class="card"><h3>◇ Audited &amp; observable</h3><p>Every active action is audit-logged; rate-limited API; Trivy + pip-audit + SBOM in CI.</p></div>
+  </div>
+
+  <footer>
+    SPAF is <span class="warn">authorized-testing-only</span> tooling. You are responsible for having
+    written permission for every target.<br>
+    MIT licensed · <a href="https://pypi.org/project/spaf/">pypi.org/project/spaf</a> ·
+    <a href="https://github.com/geevarghesekthomas84-sys/spaf">source on GitHub</a>
+  </footer>
+
+</div>
+</body>
+</html>
