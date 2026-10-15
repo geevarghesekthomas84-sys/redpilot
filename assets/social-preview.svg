@@ -1,63 +1,87 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1280" height="640" viewBox="0 0 1280 640" fill="none" role="img" aria-label="RedPilot — AI-orchestrated offensive security">
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#06080b"/>
+      <stop offset="0" stop-color="#0c1116"/>
       <stop offset="0.55" stop-color="#0a0e12"/>
-      <stop offset="1" stop-color="#0d0705"/>
+      <stop offset="1" stop-color="#070a0d"/>
     </linearGradient>
-    <linearGradient id="amber" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0" stop-color="#ffcf5c"/>
-      <stop offset="0.55" stop-color="#E0A82E"/>
-      <stop offset="1" stop-color="#ff7a3b"/>
-    </linearGradient>
-    <pattern id="grid" width="48" height="48" patternUnits="userSpaceOnUse">
-      <path d="M48 0H0V48" fill="none" stroke="#1b2733" stroke-width="1" stroke-opacity="0.45"/>
-    </pattern>
-    <radialGradient id="vig" cx="0.5" cy="0.42" r="0.8">
-      <stop offset="0.5" stop-color="#000000" stop-opacity="0"/>
-      <stop offset="1" stop-color="#000000" stop-opacity="0.6"/>
+    <radialGradient id="glow" cx="0.5" cy="0.12" r="0.85">
+      <stop offset="0" stop-color="#E0A82E" stop-opacity="0.20"/>
+      <stop offset="0.5" stop-color="#E0A82E" stop-opacity="0.05"/>
+      <stop offset="1" stop-color="#E0A82E" stop-opacity="0"/>
     </radialGradient>
-    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
-      <feGaussianBlur stdDeviation="4" result="b"/>
+    <linearGradient id="amber" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#F6CE63"/>
+      <stop offset="0.5" stop-color="#E0A82E"/>
+      <stop offset="1" stop-color="#C98B1C"/>
+    </linearGradient>
+    <linearGradient id="rule" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#E0A82E" stop-opacity="0"/>
+      <stop offset="0.5" stop-color="#E0A82E" stop-opacity="0.9"/>
+      <stop offset="1" stop-color="#E0A82E" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="6" result="b"/>
       <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
     </filter>
+    <style>
+      .mono { font-family: 'JetBrains Mono','DejaVu Sans Mono','Courier New',monospace; }
+      .wm   { font-family: 'JetBrains Mono','DejaVu Sans Mono','Courier New',monospace; font-weight: 800; }
+    </style>
   </defs>
 
-  <rect width="1280" height="640" fill="url(#bg)"/>
-  <rect width="1280" height="640" fill="url(#grid)"/>
-  <rect width="1280" height="640" fill="url(#vig)"/>
-  <rect x="0" y="0" width="1280" height="6" fill="url(#amber)"/>
-  <rect x="0" y="634" width="1280" height="6" fill="url(#amber)" opacity="0.5"/>
+  <!-- card -->
+  <rect x="16" y="16" width="1248" height="608" rx="22" fill="url(#bg)" stroke="#1c2630" stroke-width="1.5"/>
+  <rect x="16" y="16" width="1248" height="608" rx="22" fill="url(#glow)"/>
+  <rect x="0" y="0" width="1280" height="6" fill="url(#amber)" opacity="0.65"/>
 
-  <text class="m" x="640" y="196" font-family="'JetBrains Mono','Courier New',monospace" font-weight="800" font-size="92" fill="url(#amber)" filter="url(#glow)" text-anchor="middle" letter-spacing="2">RedPilot</text>
-  <text x="640" y="252" font-family="'JetBrains Mono','Courier New',monospace" font-size="24" fill="#c7d0da" text-anchor="middle" letter-spacing="4">AI-ORCHESTRATED OFFENSIVE SECURITY</text>
-  <text x="640" y="306" font-family="'JetBrains Mono','Courier New',monospace" font-size="20" fill="#9AA6B2" text-anchor="middle" letter-spacing="2">AI-orchestrated offensive security — one target in, a written assessment out</text>
+  <!-- faint column grid -->
+  <g stroke="#131c24" stroke-width="1" opacity="0.7">
+    <line x1="340" y1="40" x2="340" y2="600"/>
+    <line x1="640" y1="40" x2="640" y2="600"/>
+    <line x1="940" y1="40" x2="940" y2="600"/>
+  </g>
 
-  <!-- pipeline chips -->
-  <g font-family="'JetBrains Mono','Courier New',monospace" font-size="20" text-anchor="middle">
-    <g transform="translate(360,380)">
-      <rect x="-110" y="-26" width="220" height="52" rx="10" fill="#0e141a" stroke="#1b2733"/>
-      <text y="7" fill="#E0A82E">discovery</text>
-    </g>
-    <text x="500" y="387" fill="#E0A82E" font-size="24">→</text>
-    <g transform="translate(640,380)">
-      <rect x="-110" y="-26" width="220" height="52" rx="10" fill="#0e141a" stroke="#1b2733"/>
-      <text y="7" fill="#E0A82E">validation</text>
-    </g>
-    <text x="780" y="387" fill="#E0A82E" font-size="24">→</text>
-    <g transform="translate(920,380)">
-      <rect x="-110" y="-26" width="220" height="52" rx="10" fill="#0e141a" stroke="#1b2733"/>
-      <text y="7" fill="#E0A82E">report</text>
-    </g>
+  <!-- window chrome -->
+  <g>
+    <circle cx="58" cy="58" r="7" fill="#E5484D"/>
+    <circle cx="84" cy="58" r="7" fill="#E0A82E"/>
+    <circle cx="110" cy="58" r="7" fill="#35C08A"/>
+    <text x="150" y="63" class="mono" font-size="16" fill="#5B6672">redpilot — ~/engagement · authorized testing only</text>
+  </g>
+  <line x1="36" y1="84" x2="1244" y2="84" stroke="#17212b"/>
+
+  <!-- wordmark -->
+  <text x="640" y="236" text-anchor="middle" class="wm" font-size="118" letter-spacing="2"
+        fill="url(#amber)" filter="url(#soft)">RedPilot</text>
+  <text x="640" y="288" text-anchor="middle" class="mono" font-size="25" letter-spacing="7"
+        fill="#9AA6B2">AI-ORCHESTRATED · OFFENSIVE · SECURITY</text>
+
+  <rect x="470" y="314" width="340" height="2" fill="url(#rule)"/>
+
+  <!-- prompt line -->
+  <text x="640" y="362" text-anchor="middle" class="mono" font-size="22" fill="#C6D0DA">
+    <tspan fill="#E0A82E">❯</tspan>  redpilot agent target.com  <tspan fill="#5B6672">→</tspan>  <tspan fill="#9AA6B2">AI plans · runs · reports</tspan>
+  </text>
+
+  <!-- pipeline chips: discovery → validation → remediation → report -->
+  <g class="mono" font-size="19" text-anchor="middle">
+    <g transform="translate(300,430)"><rect x="-86" y="-25" width="172" height="50" rx="10" fill="#0e141a" stroke="#1b2733"/><text y="7" fill="#E0A82E">discovery</text></g>
+    <text x="404" y="437" fill="#5B6672">→</text>
+    <g transform="translate(508,430)"><rect x="-86" y="-25" width="172" height="50" rx="10" fill="#0e141a" stroke="#1b2733"/><text y="7" fill="#E0A82E">validation</text></g>
+    <text x="620" y="437" fill="#5B6672">→</text>
+    <g transform="translate(740,430)"><rect x="-98" y="-25" width="196" height="50" rx="10" fill="#0e141a" stroke="#1b2733"/><text y="7" fill="#E0A82E">remediation</text></g>
+    <text x="862" y="437" fill="#5B6672">→</text>
+    <g transform="translate(960,430)"><rect x="-74" y="-25" width="148" height="50" rx="10" fill="#0e141a" stroke="#1b2733"/><text y="7" fill="#E0A82E">report</text></g>
   </g>
 
   <!-- interfaces -->
-  <g font-family="'JetBrains Mono','Courier New',monospace" font-size="19" text-anchor="middle" fill="#9AA6B2">
-    <text x="640" y="470" letter-spacing="2">CLI  ·  HTTP API  ·  MCP  ·  Dashboard</text>
-    <text x="640" y="508" fill="#6b7682" font-size="17">Gemini · Claude · Ollama · LM Studio · Shodan</text>
+  <g class="mono" text-anchor="middle">
+    <text x="640" y="510" font-size="19" letter-spacing="2" fill="#9AA6B2">CLI  ·  HTTP API  ·  MCP  ·  Dashboard  ·  multi-engagement RBAC</text>
+    <text x="640" y="542" font-size="16" fill="#6b7682">Gemini · Claude · Ollama · LM Studio · Shodan</text>
   </g>
 
-  <!-- footer line -->
-  <text x="640" y="582" font-family="'JetBrains Mono','Courier New',monospace" font-size="18" fill="#E0A82E" text-anchor="middle">$ pip install redpilot</text>
-  <text x="640" y="610" font-family="'JetBrains Mono','Courier New',monospace" font-size="14" fill="#6b7682" text-anchor="middle">github.com/geevarghesekthomas84-sys/redpilot · authorized testing only</text>
+  <!-- footer -->
+  <text x="640" y="586" text-anchor="middle" class="mono" font-size="19" fill="#E0A82E">$ pip install redpilot</text>
+  <text x="640" y="610" text-anchor="middle" class="mono" font-size="14" fill="#6b7682">github.com/geevarghesekthomas84-sys/redpilot · MIT · authorized testing only</text>
 </svg>
