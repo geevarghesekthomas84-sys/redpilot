@@ -17,7 +17,8 @@
     --amber:#E0A82E; --amber2:#F6CE63; --ok:#35C08A;
   }
   *{box-sizing:border-box}
-  html{scroll-behavior:smooth}
+  html{scroll-behavior:smooth;scrollbar-width:none;-ms-overflow-style:none}
+  html::-webkit-scrollbar{width:0;height:0;display:none}
   body{margin:0;background:
       radial-gradient(1200px 400px at 50% -80px, rgba(224,168,46,.10), transparent 70%),
       var(--bg);
