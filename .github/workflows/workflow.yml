@@ -3,7 +3,7 @@ name: Release
 # Publishes RedPilot to PyPI when a version tag is pushed (e.g. v1.0.1).
 # Uses PyPI Trusted Publishing (OIDC) — no API token secret required.
 # One-time setup on PyPI: create the project's trusted publisher pointing at
-# this repository, workflow `release.yml`, environment `pypi`.
+# this repository, workflow `workflow.yml`, environment `pypi`.
 
 on:
   push:

@@ -831,7 +831,7 @@ git push origin v1.0.1        # → builds, checks, and publishes to PyPI
 ```
 
 > One-time setup: on PyPI, add a trusted publisher for this repo pointing at
-> the `release.yml` workflow and the `pypi` environment.
+> the `workflow.yml` workflow and the `pypi` environment.
 
 ---
 
