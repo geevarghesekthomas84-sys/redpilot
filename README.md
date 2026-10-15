@@ -18,6 +18,7 @@
   <a href="https://python.org"><img alt="python" src="https://img.shields.io/badge/python-3.11+-E0A82E?style=flat-square&labelColor=0a0e12&logo=python&logoColor=E0A82E"></a>
   <a href="LICENSE"><img alt="license" src="https://img.shields.io/badge/license-MIT-9AA6B2?style=flat-square&labelColor=0a0e12"></a>
   <a href="https://github.com/geevarghesekthomas84-sys/spaf/stargazers"><img alt="stars" src="https://img.shields.io/github/stars/geevarghesekthomas84-sys/spaf?style=flat-square&labelColor=0a0e12&color=E0A82E"></a>
+  <a href="https://buymeacoffee.com/geevarghes2"><img alt="Buy Me a Coffee" src="https://img.shields.io/badge/Buy_Me_a_Coffee-E0A82E?style=flat-square&labelColor=0a0e12&logo=buymeacoffee&logoColor=0a0e12"></a>
 </p>
 
 <p>
@@ -843,6 +844,16 @@ git push origin v1.0.1        # → builds, checks, and publishes to PyPI
 | `RANDOM_USER_AGENT=true` | Randomise browser User-Agent per request |
 | `NIST_API_KEY=<key>` | NIST NVD API key (10× CVE lookup rate — free signup) |
 | `SHODAN_API_KEY=<key>` | Passive Shodan intel in recon (free tier available) |
+
+---
+
+## ◇ Support
+
+SPAF is free and MIT-licensed. If it saves you time, you can support development:
+
+<a href="https://buymeacoffee.com/geevarghes2"><img alt="Buy Me a Coffee" src="https://img.shields.io/badge/Buy_Me_a_Coffee-%E2%98%95-E0A82E?style=for-the-badge&labelColor=0a0e12&logo=buymeacoffee&logoColor=0a0e12"></a>
+
+[buymeacoffee.com/geevarghes2](https://buymeacoffee.com/geevarghes2)
 
 ---
 
