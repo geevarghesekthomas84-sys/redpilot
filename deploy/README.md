@@ -1,13 +1,13 @@
-# SPAF deploy
+# RedPilot deploy
 
-Run the SPAF API hardened, behind a **Caddy** TLS gateway. Only the gateway is
+Run the RedPilot API hardened, behind a **Caddy** TLS gateway. Only the gateway is
 exposed to the network; the API listens on an internal network and is reached
 only through Caddy. State (SQLite DB, audit logs, AI cache, engagements) lives on
-the `spaf_data` volume under `/data`, so the container itself runs **read-only**.
+the `redpilot_data` volume under `/data`, so the container itself runs **read-only**.
 
 ```
           ┌─────────────┐        internal         ┌───────────────┐
-  :443 ──▶│   Caddy      │ ─────────────────────▶ │  SPAF API      │
+  :443 ──▶│   Caddy      │ ─────────────────────▶ │  RedPilot API      │
   :80  ──▶│  TLS·headers │   http://api:8000       │  (read-only,   │
           │  (opt mTLS)  │                         │   non-root)    │──▶ /data
           └─────────────┘                         └───────────────┘    volume
@@ -17,7 +17,7 @@ the `spaf_data` volume under `/data`, so the container itself runs **read-only**
 
 ```bash
 cd deploy
-cp .env.example .env          # set SPAF_API_KEYS (and SPAF_DOMAIN for real TLS)
+cp .env.example .env          # set REDPILOT_API_KEYS (and REDPILOT_DOMAIN for real TLS)
 docker compose up -d --build  # gateway + API (SQLite, zero-setup)
 curl -k https://localhost/health
 ```
@@ -52,7 +52,7 @@ volume, the `mongo` profile) behaves identically under Podman.
 
 ## What you get
 
-Through the gateway (replace `localhost` with your `SPAF_DOMAIN`):
+Through the gateway (replace `localhost` with your `REDPILOT_DOMAIN`):
 
 | URL | Auth | What |
 |---|---|---|
@@ -66,16 +66,16 @@ Through the gateway (replace `localhost` with your `SPAF_DOMAIN`):
 
 | Variable | Default | Purpose |
 |---|---|---|
-| `SPAF_API_KEYS` | — (required) | comma-separated API keys |
-| `SPAF_DOMAIN` | `localhost` | public domain for automatic Let's Encrypt TLS |
-| `SPAF_ACME_EMAIL` | — | contact e-mail for real-domain ACME |
-| `SPAF_DB_BACKEND` | `sqlite` | `sqlite` (zero-setup) or `mongo` (`--profile mongo`) |
+| `REDPILOT_API_KEYS` | — (required) | comma-separated API keys |
+| `REDPILOT_DOMAIN` | `localhost` | public domain for automatic Let's Encrypt TLS |
+| `REDPILOT_ACME_EMAIL` | — | contact e-mail for real-domain ACME |
+| `REDPILOT_DB_BACKEND` | `sqlite` | `sqlite` (zero-setup) or `mongo` (`--profile mongo`) |
 | `AI_PROVIDER`, `GOOGLE_API_KEY`, `ANTHROPIC_API_KEY` | — | optional AI assessment |
-| `SPAF_PRINCIPALS` | — | map keys → roles + engagements (RBAC; unset = all-access lead) |
-| `SPAF_AUTH_SIGNING_KEY` | — | mint tamper-evident engagement authorizations |
+| `REDPILOT_PRINCIPALS` | — | map keys → roles + engagements (RBAC; unset = all-access lead) |
+| `REDPILOT_AUTH_SIGNING_KEY` | — | mint tamper-evident engagement authorizations |
 
 Inside the container, all writable state is pinned under `/data`
-(`SPAF_SQLITE_PATH`, `SPAF_AUDIT_LOG`, `SPAF_CACHE_PATH`, `SPAF_ENGAGEMENTS_DIR`),
+(`REDPILOT_SQLITE_PATH`, `REDPILOT_AUDIT_LOG`, `REDPILOT_CACHE_PATH`, `REDPILOT_ENGAGEMENTS_DIR`),
 which is the only writable path — the root filesystem is read-only.
 
 ## Hardening at a glance
@@ -95,7 +95,7 @@ and a pre-exposure checklist — in
 
 ## Cloudflare (landing page only)
 
-SPAF's FastAPI backend is Python and **does not run on Cloudflare's Workers
+RedPilot's FastAPI backend is Python and **does not run on Cloudflare's Workers
 runtime** — run it via the Docker/Caddy stack above. The repo's `wrangler.toml`
 only publishes the static project **landing page** under `../public`
 (`npx wrangler deploy`). It is a marketing/docs page, not the app.

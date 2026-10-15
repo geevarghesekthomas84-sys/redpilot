@@ -1,7 +1,7 @@
 # ─────────────────────────────────────────────────────────────────────────────
-# SPAF hardened stack: Caddy gateway (TLS/headers) → SPAF API → optional Mongo.
+# RedPilot hardened stack: Caddy gateway (TLS/headers) → RedPilot API → optional Mongo.
 #
-#   cd deploy && cp .env.example .env   # set SPAF_API_KEYS (and SPAF_DOMAIN)
+#   cd deploy && cp .env.example .env   # set REDPILOT_API_KEYS (and REDPILOT_DOMAIN)
 #   docker compose up -d --build        # gateway + api (SQLite, zero-setup)
 #   docker compose --profile mongo up -d --build   # add MongoDB
 #
@@ -22,8 +22,8 @@ services:
       - "80:80"
       - "443:443"
     environment:
-      - SPAF_DOMAIN=${SPAF_DOMAIN:-localhost}
-      - SPAF_ACME_EMAIL=${SPAF_ACME_EMAIL:-}
+      - REDPILOT_DOMAIN=${REDPILOT_DOMAIN:-localhost}
+      - REDPILOT_ACME_EMAIL=${REDPILOT_ACME_EMAIL:-}
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
@@ -39,23 +39,23 @@ services:
     build:
       context: ..
       dockerfile: deploy/Dockerfile
-    image: spaf-api:local
+    image: redpilot-api:local
     environment:
-      - SPAF_API_KEYS=${SPAF_API_KEYS:?set SPAF_API_KEYS in .env}
-      - SPAF_DB_BACKEND=${SPAF_DB_BACKEND:-sqlite}
-      - SPAF_MONGO_URI=${SPAF_MONGO_URI:-mongodb://mongo:27017}
+      - REDPILOT_API_KEYS=${REDPILOT_API_KEYS:?set REDPILOT_API_KEYS in .env}
+      - REDPILOT_DB_BACKEND=${REDPILOT_DB_BACKEND:-sqlite}
+      - REDPILOT_MONGO_URI=${REDPILOT_MONGO_URI:-mongodb://mongo:27017}
       - AI_PROVIDER=${AI_PROVIDER:-google}
       - GOOGLE_API_KEY=${GOOGLE_API_KEY:-}
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
       # Multi-engagement + RBAC (optional; see SECURITY_HARDENING.md).
-      # SPAF_PRINCIPALS maps API keys to roles; SPAF_AUTH_SIGNING_KEY mints
+      # REDPILOT_PRINCIPALS maps API keys to roles; REDPILOT_AUTH_SIGNING_KEY mints
       # tamper-evident engagement authorizations. Unset = single-key lead.
-      - SPAF_PRINCIPALS=${SPAF_PRINCIPALS:-}
-      - SPAF_AUTH_SIGNING_KEY=${SPAF_AUTH_SIGNING_KEY:-}
+      - REDPILOT_PRINCIPALS=${REDPILOT_PRINCIPALS:-}
+      - REDPILOT_AUTH_SIGNING_KEY=${REDPILOT_AUTH_SIGNING_KEY:-}
     expose:
       - "8000"
     volumes:
-      - spaf_data:/data
+      - redpilot_data:/data
     read_only: true
     tmpfs:
       - /tmp
@@ -84,5 +84,5 @@ services:
 volumes:
   caddy_data:
   caddy_config:
-  spaf_data:
+  redpilot_data:
   mongo_data:

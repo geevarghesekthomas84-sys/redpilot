@@ -6,7 +6,7 @@ import pytest
 pytest.importorskip("fastapi")
 from fastapi.testclient import TestClient  # noqa: E402
 
-from spaf.api import create_app  # noqa: E402
+from redpilot.api import create_app  # noqa: E402
 
 KEY = "testkey"
 H = {"X-API-Key": KEY}
@@ -14,7 +14,7 @@ H = {"X-API-Key": KEY}
 
 @pytest.fixture()
 def client(tmp_path, monkeypatch):
-    monkeypatch.setenv("SPAF_API_KEY", KEY)
+    monkeypatch.setenv("REDPILOT_API_KEY", KEY)
     p = tmp_path / "scope.json"
     p.write_text(json.dumps({"in_scope": ["example.com"], "out_of_scope": []}))
     return TestClient(create_app(str(p)))
@@ -71,12 +71,12 @@ def test_pipeline_endpoint_mock(client):
 
 
 def test_rate_limit_returns_429(tmp_path, monkeypatch):
-    monkeypatch.setenv("SPAF_API_KEY", KEY)
-    monkeypatch.setenv("SPAF_RATE_LIMIT", "3")
-    monkeypatch.setenv("SPAF_RATE_BURST", "3")
+    monkeypatch.setenv("REDPILOT_API_KEY", KEY)
+    monkeypatch.setenv("REDPILOT_RATE_LIMIT", "3")
+    monkeypatch.setenv("REDPILOT_RATE_BURST", "3")
     p = tmp_path / "scope.json"
     p.write_text(json.dumps({"in_scope": ["example.com"], "out_of_scope": []}))
     c = TestClient(create_app(str(p)))
     codes = [c.get("/scope", headers=H).status_code for _ in range(6)]
     assert 429 in codes
-    assert "spaf_rate_limited_total" in c.get("/metrics").text
+    assert "redpilot_rate_limited_total" in c.get("/metrics").text

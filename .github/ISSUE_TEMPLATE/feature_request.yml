@@ -1,12 +1,12 @@
 name: 💡 Feature request
-description: Suggest an enhancement or new module for SPAF
+description: Suggest an enhancement or new module for RedPilot
 labels: [enhancement]
 body:
   - type: textarea
     id: problem
     attributes:
       label: Problem / motivation
-      description: What are you trying to do that SPAF doesn't support today?
+      description: What are you trying to do that RedPilot doesn't support today?
     validations:
       required: true
   - type: textarea

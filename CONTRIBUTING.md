@@ -1,11 +1,11 @@
-# Contributing to SPAF
+# Contributing to RedPilot
 
-Thanks for your interest in improving SPAF! This guide covers everything you need
+Thanks for your interest in improving RedPilot! This guide covers everything you need
 to get a change merged.
 
 ## Ground rules
 
-- **Authorized use only.** SPAF is an offensive-security framework. Only contribute
+- **Authorized use only.** RedPilot is an offensive-security framework. Only contribute
   features and test against systems you own or are explicitly authorized to test.
   See [SECURITY.md](SECURITY.md) and the Legal Disclaimer in the README.
 - Be respectful. See [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
@@ -14,7 +14,7 @@ to get a change merged.
 
 ```bash
 git clone https://github.com/geevarghesekthomas84-sys/spaf
-cd spaf
+cd redpilot
 python -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"          # core + pytest
 # optional extras:
@@ -22,8 +22,8 @@ pip install -e ".[ai,intel]"     # AI providers + Shodan
 cp .env.example .env             # then fill in what you need
 ```
 
-External recon binaries used by `spaf toolkit` (subfinder, httpx, nuclei, …) are
-optional at runtime; check what you have with `spaf tools`.
+External recon binaries used by `redpilot toolkit` (subfinder, httpx, nuclei, …) are
+optional at runtime; check what you have with `redpilot tools`.
 
 ## Before you open a PR
 
@@ -31,7 +31,7 @@ Run the same checks CI runs:
 
 ```bash
 pytest -q                 # tests must pass
-ruff check spaf tests     # lint (real-defect rules only — see pyproject.toml)
+ruff check redpilot tests     # lint (real-defect rules only — see pyproject.toml)
 python -m build           # wheel must build with all subpackages
 ```
 
@@ -46,10 +46,10 @@ python -m build           # wheel must build with all subpackages
 
 ## Adding a new scan module
 
-1. Subclass `BaseModule` in `spaf/modules/`, implementing `run()` and
+1. Subclass `BaseModule` in `redpilot/modules/`, implementing `run()` and
    `render_results()`.
-2. Return findings via `build_finding(...)` from `spaf.utils.risk`.
-3. Register it in the CLI (`spaf/cli/main.py`) as a new command and in the
+2. Return findings via `build_finding(...)` from `redpilot.utils.risk`.
+3. Register it in the CLI (`redpilot/cli/main.py`) as a new command and in the
    `watch` module map.
 4. Document it in `README.md` and `COMMANDS.md`, and add tests.
 

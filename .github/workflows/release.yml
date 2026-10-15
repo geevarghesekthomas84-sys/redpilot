@@ -1,6 +1,6 @@
 name: Release
 
-# Publishes SPAF to PyPI when a version tag is pushed (e.g. v1.0.1).
+# Publishes RedPilot to PyPI when a version tag is pushed (e.g. v1.0.1).
 # Uses PyPI Trusted Publishing (OIDC) — no API token secret required.
 # One-time setup on PyPI: create the project's trusted publisher pointing at
 # this repository, workflow `release.yml`, environment `pypi`.
@@ -44,7 +44,7 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/v')
     environment:
       name: pypi
-      url: https://pypi.org/project/spaf/
+      url: https://pypi.org/project/redpilot/
     permissions:
       id-token: write   # required for trusted publishing
     steps:

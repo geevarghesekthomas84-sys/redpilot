@@ -6,7 +6,7 @@ import pytest
 
 pytest.importorskip("mcp")
 
-from spaf.mcp.client import MCPClientManager, load_config  # noqa: E402
+from redpilot.mcp.client import MCPClientManager, load_config  # noqa: E402
 
 
 def test_load_config_claude_desktop_shape(tmp_path):
@@ -33,12 +33,12 @@ def test_unknown_server_raises():
     asyncio.run(main())
 
 
-def test_roundtrip_against_spaf_own_server(tmp_path):
-    """Integration: connect the client to SPAF's own MCP server as a subprocess."""
+def test_roundtrip_against_redpilot_own_server(tmp_path):
+    """Integration: connect the client to RedPilot's own MCP server as a subprocess."""
     scope = tmp_path / "scope.json"
     scope.write_text(json.dumps({"in_scope": ["example.com"], "out_of_scope": []}))
     code = (
-        "from spaf.mcp.server import run; run(scope_file=%r)" % str(scope)
+        "from redpilot.mcp.server import run; run(scope_file=%r)" % str(scope)
     )
     mgr = MCPClientManager(config={
         "self": {"command": sys.executable, "args": ["-c", code]}

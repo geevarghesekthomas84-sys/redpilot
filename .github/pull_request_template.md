@@ -1,4 +1,4 @@
-<!-- Thanks for contributing to SPAF! -->
+<!-- Thanks for contributing to RedPilot! -->
 
 ## Summary
 
@@ -14,7 +14,7 @@
 ## Checklist
 
 - [ ] `pytest -q` passes
-- [ ] `ruff check spaf tests` passes
+- [ ] `ruff check redpilot tests` passes
 - [ ] Added/updated tests for the change
 - [ ] Updated `README.md` / `COMMANDS.md` if behavior or flags changed
 - [ ] Updated `CHANGELOG.md`

@@ -1,27 +1,27 @@
-# SPAF architecture & extension guide
+# RedPilot architecture & extension guide
 
-How SPAF is laid out, how a request flows through it, and the three seams where
+How RedPilot is laid out, how a request flows through it, and the three seams where
 you extend it (modules, AI providers, report/output consumers) without touching
 the core.
 
 ## 1. Layers
 
-SPAF is a layered system: every surface talks to one **service engine**, which
+RedPilot is a layered system: every surface talks to one **service engine**, which
 runs **modules**, which produce one typed **result contract**.
 
 ```
- surfaces        spaf/cli · spaf/api · spaf/mcp
+ surfaces        redpilot/cli · redpilot/api · redpilot/mcp
                        │   (thin adapters — no business logic)
- engine          spaf/service (SpafService)  ·  spaf/core (ScanEngine)
+ engine          redpilot/service (RedPilotService)  ·  redpilot/core (ScanEngine)
                        │   scope · RBAC · audit · events · mock
- intelligence    spaf/agent · spaf/pipeline · spaf/orchestration · spaf/utils/ai
+ intelligence    redpilot/agent · redpilot/pipeline · redpilot/orchestration · redpilot/utils/ai
                        │   plan → route → cache → budget → fallback
                        │   (pipeline = deterministic staged flow)
- modules         spaf/modules/*  (recon · network · webscan · crawler · toolkit)
-                       │   + spaf/plugins (third-party modules)
- contract        spaf/service/models.py  →  spaf/service/schema.py (JSON Schema)
- storage         spaf/database (mongo | sqlite) · spaf/reports · audit JSONL
- governance      spaf/workspaces (engagements · roles · signed authorizations)
+ modules         redpilot/modules/*  (recon · network · webscan · crawler · toolkit)
+                       │   + redpilot/plugins (third-party modules)
+ contract        redpilot/service/models.py  →  redpilot/service/schema.py (JSON Schema)
+ storage         redpilot/database (mongo | sqlite) · redpilot/reports · audit JSONL
+ governance      redpilot/workspaces (engagements · roles · signed authorizations)
 ```
 
 **Rule:** surfaces never contain business logic — they parse input, call the
@@ -32,7 +32,7 @@ mock mode are enforced, so every surface inherits them identically.
 
 ```
 client ─▶ surface ─▶ validate input (utils/validator)
-        ─▶ SpafService.run_module
+        ─▶ RedPilotService.run_module
              ├─ mock? ──────────────▶ synthetic result (no target touched)
              ├─ overly-broad target? ▶ reject (InputError)
              ├─ scope check ─────────▶ reject if out of engagement scope
@@ -44,38 +44,38 @@ client ─▶ surface ─▶ validate input (utils/validator)
              └─ return ScanResult  ──▶ surface formats (Rich / JSON / WS)
 ```
 
-The **agent** (`spaf/agent`) sits above this: it asks the orchestrator to *plan*
+The **agent** (`redpilot/agent`) sits above this: it asks the orchestrator to *plan*
 an ordered list of module steps from a fixed, safe action set, then executes each
 step through the same `run_module` path — so planning is the only AI-driven part;
 execution is deterministic and governed.
 
-The **staged pipeline** (`spaf/pipeline`) is the deterministic counterpart to the
+The **staged pipeline** (`redpilot/pipeline`) is the deterministic counterpart to the
 agent: a fixed, ordered workflow — **discovery → validation → remediation →
 report** — with strict hand-offs. Each stage receives only the previous stage's
 typed `StageResult` (never another stage's internals), runs a fixed module set
 through `run_module`, and the runner consolidates findings; remediation enriches
 them with fix guidance without touching the target, and report renders the
-deliverable. `SpafService.run_pipeline`, `spaf pipeline`, and `POST /pipeline`
+deliverable. `RedPilotService.run_pipeline`, `redpilot pipeline`, and `POST /pipeline`
 all drive it.
 
 ## 3. The result contract
 
-`spaf/service/models.py` defines the Pydantic models every surface returns
-(`Finding`, `ScanResult`, `AgentResult`, …). `spaf/service/schema.py` emits their
-**JSON Schema** (`spaf schema`, `GET /schema`, and the checked-in
-[`schemas/`](schemas/)) so external consumers validate SPAF output instead of
-guessing. Change a model → regenerate schemas with `spaf schema --write docs/schemas`.
+`redpilot/service/models.py` defines the Pydantic models every surface returns
+(`Finding`, `ScanResult`, `AgentResult`, …). `redpilot/service/schema.py` emits their
+**JSON Schema** (`redpilot schema`, `GET /schema`, and the checked-in
+[`schemas/`](schemas/)) so external consumers validate RedPilot output instead of
+guessing. Change a model → regenerate schemas with `redpilot schema --write docs/schemas`.
 
 ## 4. Extension points
 
 ### a. Add a scan module
-Subclass `BaseModule` (or `PluginModule`) and advertise it on the `spaf.modules`
+Subclass `BaseModule` (or `PluginModule`) and advertise it on the `redpilot.modules`
 entry-point group, or register it in-process:
 
 ```python
-from spaf.plugins import spaf_module, PluginModule
+from redpilot.plugins import redpilot_module, PluginModule
 
-@spaf_module("myscan")
+@redpilot_module("myscan")
 class MyScanModule(PluginModule):
     async def run(self, progress):
         return [ { "target": self.target, "vuln_type": "...", "severity": "Info",
@@ -87,15 +87,15 @@ Return dicts in the `build_finding` shape; the service converts them to typed
 **deliberately not** added to the agent's fixed action set (that stays curated).
 
 ### b. Add an AI provider
-Providers live behind `spaf/utils/ai.py` (`complete(system, prompt, *, model=)`),
-normalised in `_normalise_provider`. The orchestrator (`spaf/orchestration`) adds
+Providers live behind `redpilot/utils/ai.py` (`complete(system, prompt, *, model=)`),
+normalised in `_normalise_provider`. The orchestrator (`redpilot/orchestration`) adds
 routing, caching, budgets, and a fallback chain on top — so a new provider is one
 branch in the provider abstraction, and routing/limits come for free.
 
 ### c. Consume output
 Read the typed models or the JSON Schema. Live runs stream `Event`s over the
 `EventBus` (`/ws/jobs/{id}`); finished runs expose `ScanResult`/`AgentResult`
-(REST + MCP). Reports render from the same findings via `spaf/reports`.
+(REST + MCP). Reports render from the same findings via `redpilot/reports`.
 
 ## 5. Governance & safety seams
 

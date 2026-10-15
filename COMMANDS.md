@@ -1,6 +1,6 @@
-# SPAF Command Reference
+# RedPilot Command Reference
 
-> **Smart Pentesting Automation Framework** — AI-Augmented Offensive Security  
+> **AI-orchestrated offensive security automation** — AI-Augmented Offensive Security  
 > Every scan command automatically runs AI threat analysis after completion.  
 > Add `--no-ai` to any command to skip. Add `--no-db` to run without MongoDB.
 
@@ -21,16 +21,16 @@
 
 ## 🔍 Scanning Commands
 
-### `spaf recon <target>` — Domain Reconnaissance
+### `redpilot recon <target>` — Domain Reconnaissance
 
 Passive and active reconnaissance: subdomain enumeration, DNS audit, WHOIS, zone-transfer attempts, and **passive Shodan intelligence** (if `SHODAN_API_KEY` is set).
 
 ```bash
-spaf recon target.com                          # Full recon + AI + Shodan (if key set)
-spaf recon target.com --passive                # Passive OSINT only (stealthy)
-spaf recon target.com --no-ai                  # Skip AI analysis
-spaf recon target.com --output results.json    # Save findings to JSON
-spaf recon target.com --delay 1.5 --concurrency 3   # Slow + stealthy
+redpilot recon target.com                          # Full recon + AI + Shodan (if key set)
+redpilot recon target.com --passive                # Passive OSINT only (stealthy)
+redpilot recon target.com --no-ai                  # Skip AI analysis
+redpilot recon target.com --output results.json    # Save findings to JSON
+redpilot recon target.com --delay 1.5 --concurrency 3   # Slow + stealthy
 ```
 
 | Flag | Default | Description |
@@ -44,17 +44,17 @@ spaf recon target.com --delay 1.5 --concurrency 3   # Slow + stealthy
 
 ---
 
-### `spaf scan <target>` — Network Port Scan
+### `redpilot scan <target>` — Network Port Scan
 
 High-speed port scanning using **Nmap** or **RustScan**, with service detection, OS fingerprinting, and automated CVE lookups via NIST NVD.
 
 ```bash
-spaf scan target.com                                       # Nmap standard scan + AI
-spaf scan target.com --intensity aggressive                # Deep scan (-sV -sC -O -A)
-spaf scan target.com --ports 1-65535                       # Full port range
-spaf scan target.com --scanner rustscan --ports 1-65535    # RustScan → Nmap pipeline
-spaf scan target.com --scanner rustscan --ulimit 8000      # Increase RustScan throughput
-spaf scan target.com --no-ai --output network.json        # Offline, save output
+redpilot scan target.com                                       # Nmap standard scan + AI
+redpilot scan target.com --intensity aggressive                # Deep scan (-sV -sC -O -A)
+redpilot scan target.com --ports 1-65535                       # Full port range
+redpilot scan target.com --scanner rustscan --ports 1-65535    # RustScan → Nmap pipeline
+redpilot scan target.com --scanner rustscan --ulimit 8000      # Increase RustScan throughput
+redpilot scan target.com --no-ai --output network.json        # Offline, save output
 ```
 
 | Flag | Default | Description |
@@ -72,15 +72,15 @@ spaf scan target.com --no-ai --output network.json        # Offline, save output
 
 ---
 
-### `spaf webscan <url>` — Web Security Audit
+### `redpilot webscan <url>` — Web Security Audit
 
 Security headers, cookie flags, TLS/certificate checks, sensitive path probing, CORS, server disclosure.
 
 ```bash
-spaf webscan https://target.com                # Full web audit + AI analysis
-spaf webscan https://target.com --headers-only # Headers only (fast)
-spaf webscan https://target.com --no-ai        # Skip AI analysis
-spaf webscan https://target.com --output web.json
+redpilot webscan https://target.com                # Full web audit + AI analysis
+redpilot webscan https://target.com --headers-only # Headers only (fast)
+redpilot webscan https://target.com --no-ai        # Skip AI analysis
+redpilot webscan https://target.com --output web.json
 ```
 
 | Flag | Default | Description |
@@ -94,15 +94,15 @@ spaf webscan https://target.com --output web.json
 
 ---
 
-### `spaf crawl <url>` — Web Application Spider
+### `redpilot crawl <url>` — Web Application Spider
 
 Recursively crawls a web application, discovers endpoints, forms, and flags sensitive keywords.
 
 ```bash
-spaf crawl https://target.com                  # Default crawl (depth 2, 50 pages)
-spaf crawl https://target.com --depth 4        # Deeper crawl
-spaf crawl https://target.com --max-pages 200  # Crawl more pages
-spaf crawl https://target.com --no-ai          # Skip AI analysis
+redpilot crawl https://target.com                  # Default crawl (depth 2, 50 pages)
+redpilot crawl https://target.com --depth 4        # Deeper crawl
+redpilot crawl https://target.com --max-pages 200  # Crawl more pages
+redpilot crawl https://target.com --no-ai          # Skip AI analysis
 ```
 
 | Flag | Default | Description |
@@ -115,20 +115,20 @@ spaf crawl https://target.com --no-ai          # Skip AI analysis
 
 ---
 
-### `spaf agent <target>` — Autonomous Agent
+### `redpilot agent <target>` — Autonomous Agent
 
-The AI plans an ordered sequence of SPAF modules, runs them on your host, and
+The AI plans an ordered sequence of RedPilot modules, runs them on your host, and
 writes one consolidated AI assessment at the end. The AI only chooses **which
 built-in modules** to run (never arbitrary commands). Active steps are
 scope-gated and ask for confirmation first.
 
 ```bash
-spaf agent example.com                         # plan → confirm → run → assess
-spaf agent example.com --goal "find web vulns" # steer the plan
-spaf agent example.com --dry-run               # show the plan only
-spaf agent example.com --aggressive -y         # deeper settings, no prompt
-spaf agent https://example.com --no-ai         # default playbook, no AI
-spaf agent example.com --output findings.json
+redpilot agent example.com                         # plan → confirm → run → assess
+redpilot agent example.com --goal "find web vulns" # steer the plan
+redpilot agent example.com --dry-run               # show the plan only
+redpilot agent example.com --aggressive -y         # deeper settings, no prompt
+redpilot agent https://example.com --no-ai         # default playbook, no AI
+redpilot agent example.com --output findings.json
 ```
 
 | Flag | Default | Description |
@@ -145,7 +145,7 @@ spaf agent example.com --output findings.json
 
 ---
 
-### `spaf toolkit <target>` — External Recon Pipeline
+### `redpilot toolkit <target>` — External Recon Pipeline
 
 Runs a chained pipeline of best-in-class open-source recon binaries, feeding each
 stage's output into the next:
@@ -159,11 +159,11 @@ Each binary is **optional** — if it is not on `$PATH` the stage is skipped wit
 warning, so the pipeline degrades gracefully on a partial install.
 
 ```bash
-spaf toolkit target.com                          # Full pipeline
-spaf toolkit target.com --no-nuclei --no-crawl   # Recon-only (no active scan)
-spaf toolkit target.com --fuzz --wordlist wl.txt # Add ffuf content fuzzing
-spaf toolkit target.com --nuclei-severity critical,high
-spaf toolkit target.com --output recon.json --no-ai
+redpilot toolkit target.com                          # Full pipeline
+redpilot toolkit target.com --no-nuclei --no-crawl   # Recon-only (no active scan)
+redpilot toolkit target.com --fuzz --wordlist wl.txt # Add ffuf content fuzzing
+redpilot toolkit target.com --nuclei-severity critical,high
+redpilot toolkit target.com --output recon.json --no-ai
 ```
 
 | Flag | Default | Description |
@@ -187,20 +187,20 @@ spaf toolkit target.com --output recon.json --no-ai
 > **Scope safety:** if a scope file with in-scope entries exists, out-of-scope
 > entry targets are refused and subdomains discovered outside the scope are
 > dropped before any active stage (httpx/katana/ffuf/nuclei) runs. Manage scope
-> with `spaf scope add|remove|show`. Bypass with `--ignore-scope` only when you
+> with `redpilot scope add|remove|show`. Bypass with `--ignore-scope` only when you
 > have authorization for every host in the target set.
 
 ---
 
-### `spaf tools` — Toolkit Installation Status
+### `redpilot tools` — Toolkit Installation Status
 
-Lists every external recon binary SPAF integrates and shows whether each is
+Lists every external recon binary RedPilot integrates and shows whether each is
 installed on your system, with install sources for any that are missing.
 
 ```bash
-spaf tools                 # list install status
-spaf tools --install       # install missing Go-based tools via 'go install' (needs Go)
-spaf tools --install --force   # reinstall all tools
+redpilot tools                 # list install status
+redpilot tools --install       # install missing Go-based tools via 'go install' (needs Go)
+redpilot tools --install --force   # reinstall all tools
 ```
 
 | Flag | Description |
@@ -228,12 +228,12 @@ spaf tools --install --force   # reinstall all tools
 
 ## 🤖 AI Commands
 
-### `spaf test-ai` — AI Provider Health Check
+### `redpilot test-ai` — AI Provider Health Check
 
 Tests the configured AI provider's connectivity and prints a health report table.
 
 ```bash
-spaf test-ai
+redpilot test-ai
 ```
 
 **Output example:**
@@ -250,75 +250,75 @@ spaf test-ai
 
 ---
 
-### `spaf chat <query>` — Direct AI Consultation
+### `redpilot chat <query>` — Direct AI Consultation
 
 Free-form chat with the **configured** AI provider.
 
 ```bash
-spaf chat "How do I bypass a WAF?"
-spaf chat "Write a Python PoC for CVE-2024-xxxx"
+redpilot chat "How do I bypass a WAF?"
+redpilot chat "Write a Python PoC for CVE-2024-xxxx"
 ```
 
 ---
 
-### `spaf gemini <query>` — Google Gemini Shortcut
+### `redpilot gemini <query>` — Google Gemini Shortcut
 
 Queries **Google Gemini** regardless of `AI_PROVIDER` setting.
 
 ```bash
-spaf gemini "Explain CVE-2024-1234"
-spaf gemini "Write an Nmap scan script for internal networks"
+redpilot gemini "Explain CVE-2024-1234"
+redpilot gemini "Write an Nmap scan script for internal networks"
 ```
 
 ---
 
-### `spaf claude <query>` — Anthropic Claude Shortcut
+### `redpilot claude <query>` — Anthropic Claude Shortcut
 
 Queries **Anthropic Claude** regardless of `AI_PROVIDER` setting.
 
 ```bash
-spaf claude "Write an Ansible remediation task for missing HSTS"
-spaf claude "Summarize this pentest report in executive language"
+redpilot claude "Write an Ansible remediation task for missing HSTS"
+redpilot claude "Summarize this pentest report in executive language"
 ```
 
 ---
 
-### `spaf ollama <query>` — Ollama Shortcut *(streaming)*
+### `redpilot ollama <query>` — Ollama Shortcut *(streaming)*
 
 Queries your **locally running Ollama** model. Tokens stream to the terminal in real-time.
 
 ```bash
-spaf ollama "List exploitation paths for open SMB ports"
-spaf ollama "Generate a Python reverse shell"
+redpilot ollama "List exploitation paths for open SMB ports"
+redpilot ollama "Generate a Python reverse shell"
 ```
 
 > **Requires:** `ollama serve` running locally (or `OLLAMA_URL` pointing to remote).
 
 ---
 
-### `spaf lmstudio <query>` — LM Studio Shortcut *(streaming)*
+### `redpilot lmstudio <query>` — LM Studio Shortcut *(streaming)*
 
 Queries the **model currently loaded in LM Studio**. Tokens stream in real-time.
 
 ```bash
-spaf lmstudio "Analyze these HTTP headers for security risks"
-spaf lmstudio "Summarize OWASP Top 10 attack techniques"
+redpilot lmstudio "Analyze these HTTP headers for security risks"
+redpilot lmstudio "Summarize OWASP Top 10 attack techniques"
 ```
 
 > **Requires:** LM Studio → Local Server tab → Start Server.
 
 ---
 
-### `spaf ai <scan_id>` — Re-Analyze a Past Scan
+### `redpilot ai <scan_id>` — Re-Analyze a Past Scan
 
 Re-runs AI analysis on any previous scan's findings **without re-scanning** the target.
 
 ```bash
-spaf ai <scan_id>                              # Re-analyze (module auto-detected)
-spaf ai <scan_id> --module network             # Force network prompt template
-spaf ai <scan_id> --provider ollama            # Use Ollama for this call only
-spaf ai <scan_id> --provider lmstudio          # Use LM Studio for this call only
-spaf ai <scan_id> --provider claude            # Use Claude for this call only
+redpilot ai <scan_id>                              # Re-analyze (module auto-detected)
+redpilot ai <scan_id> --module network             # Force network prompt template
+redpilot ai <scan_id> --provider ollama            # Use Ollama for this call only
+redpilot ai <scan_id> --provider lmstudio          # Use LM Studio for this call only
+redpilot ai <scan_id> --provider claude            # Use Claude for this call only
 ```
 
 | Flag | Default | Description |
@@ -328,36 +328,36 @@ spaf ai <scan_id> --provider claude            # Use Claude for this call only
 
 ---
 
-### `spaf analyze` — Full AI Threat Report
+### `redpilot analyze` — Full AI Threat Report
 
 Generic AI analysis by scan ID or local JSON file.
 
 ```bash
-spaf analyze --id <scan_id>
-spaf analyze --file findings.json
+redpilot analyze --id <scan_id>
+redpilot analyze --file findings.json
 ```
 
 ---
 
-### `spaf poc <finding_id>` — Generate Exploit Script
+### `redpilot poc <finding_id>` — Generate Exploit Script
 
 Generates a standalone Python Proof-of-Concept exploit script.
 
 ```bash
-spaf poc <finding_id>
-spaf poc <finding_id> --output exploit.py
+redpilot poc <finding_id>
+redpilot poc <finding_id> --output exploit.py
 ```
 
 ---
 
-### `spaf remediate <finding_id>` — Generate Fix Code
+### `redpilot remediate <finding_id>` — Generate Fix Code
 
 Generates production-ready remediation code for a specific finding.
 
 ```bash
-spaf remediate <finding_id>                    # Default: Ansible
-spaf remediate <finding_id> --format terraform
-spaf remediate <finding_id> --format bash
+redpilot remediate <finding_id>                    # Default: Ansible
+redpilot remediate <finding_id> --format terraform
+redpilot remediate <finding_id> --format bash
 ```
 
 | Flag | Default | Values | Description |
@@ -368,15 +368,15 @@ spaf remediate <finding_id> --format bash
 
 ## 📊 Reporting & Operations
 
-### `spaf export <target>` — Export Findings
+### `redpilot export <target>` — Export Findings
 
 Exports all deduplicated findings for a target from MongoDB to CSV or JSON.
 
 ```bash
-spaf export target.com                         # Default: CSV
-spaf export target.com --format csv            # Explicit CSV (client spreadsheets)
-spaf export target.com --format json           # JSON (pipeline integration)
-spaf export target.com --format csv --output /tmp/client_report.csv
+redpilot export target.com                         # Default: CSV
+redpilot export target.com --format csv            # Explicit CSV (client spreadsheets)
+redpilot export target.com --format json           # JSON (pipeline integration)
+redpilot export target.com --format csv --output /tmp/client_report.csv
 ```
 
 | Flag | Default | Description |
@@ -386,13 +386,13 @@ spaf export target.com --format csv --output /tmp/client_report.csv
 
 ---
 
-### `spaf diff <scan_id_1> <scan_id_2>` — Compare Scans
+### `redpilot diff <scan_id_1> <scan_id_2>` — Compare Scans
 
 Compares two scans and shows what's new, fixed, and unchanged.
 
 ```bash
-spaf history                                   # Get scan IDs first
-spaf diff <older_scan_id> <newer_scan_id>
+redpilot history                                   # Get scan IDs first
+redpilot diff <older_scan_id> <newer_scan_id>
 ```
 
 **Output:**
@@ -411,18 +411,18 @@ Unchanged: 5 findings
 
 ---
 
-### `spaf report <target>` — Generate HTML/JSON Report
+### `redpilot report <target>` — Generate HTML/JSON Report
 
 The HTML report includes a severity-distribution chart, a per-module breakdown,
 and (with `--with-ai`) an embedded AI threat-intelligence analysis. All finding
 data is HTML-escaped.
 
 ```bash
-spaf report target.com --format html           # Dark-mode HTML dashboard
-spaf report target.com --format json           # Structured JSON export
-spaf report target.com --format both           # Both simultaneously
-spaf report target.com --with-ai               # Embed AI threat analysis
-spaf report --from-file findings.json          # Report from a saved JSON file
+redpilot report target.com --format html           # Dark-mode HTML dashboard
+redpilot report target.com --format json           # Structured JSON export
+redpilot report target.com --format both           # Both simultaneously
+redpilot report target.com --with-ai               # Embed AI threat analysis
+redpilot report --from-file findings.json          # Report from a saved JSON file
 ```
 
 | Flag | Default | Description |
@@ -434,17 +434,17 @@ spaf report --from-file findings.json          # Report from a saved JSON file
 
 ---
 
-### `spaf watch <target>` — Shadow Scan (24/7 Monitoring)
+### `redpilot watch <target>` — Shadow Scan (24/7 Monitoring)
 
 Continuously re-runs a module on a schedule. AI alerts when new findings are detected.
 
 ```bash
-spaf watch target.com                              # Recon every hour (default)
-spaf watch target.com --interval 1800              # Every 30 minutes
-spaf watch target.com --module webscan             # Monitor web security posture
-spaf watch target.com --module network             # Monitor open ports
-spaf watch target.com --no-ai                      # Monitoring only, no AI summaries
-spaf watch target.com --no-db                      # No database logging
+redpilot watch target.com                              # Recon every hour (default)
+redpilot watch target.com --interval 1800              # Every 30 minutes
+redpilot watch target.com --module webscan             # Monitor web security posture
+redpilot watch target.com --module network             # Monitor open ports
+redpilot watch target.com --no-ai                      # Monitoring only, no AI summaries
+redpilot watch target.com --no-db                      # No database logging
 ```
 
 | Flag | Default | Description |
@@ -456,28 +456,28 @@ spaf watch target.com --no-db                      # No database logging
 
 ---
 
-### `spaf history` — View Past Scans
+### `redpilot history` — View Past Scans
 
 ```bash
-spaf history                                   # Show 20 most recent scans
-spaf history target.com                        # Filter by target
-spaf history --limit 50                        # Show more results
+redpilot history                                   # Show 20 most recent scans
+redpilot history target.com                        # Filter by target
+redpilot history --limit 50                        # Show more results
 ```
 
 ---
 
-### `spaf update` — Update SPAF
+### `redpilot update` — Update RedPilot
 
 ```bash
-spaf update                                    # pip install --upgrade spaf
+redpilot update                                    # pip install --upgrade redpilot
 ```
 
 ---
 
-### `spaf shell` — Interactive AI Shell
+### `redpilot shell` — Interactive AI Shell
 
 ```bash
-spaf shell
+redpilot shell
 ```
 
 **Shell commands:**
@@ -489,18 +489,18 @@ spaf shell
 
 ---
 
-### `spaf setup` — Configuration Wizard
+### `redpilot setup` — Configuration Wizard
 
 ```bash
-spaf setup
+redpilot setup
 ```
 
 ---
 
-### `spaf login` — Cloud Authentication
+### `redpilot login` — Cloud Authentication
 
 ```bash
-spaf login
+redpilot login
 ```
 
 ---
@@ -510,11 +510,11 @@ spaf login
 Manage which targets are in-scope for your engagement. Persisted to `scope.json`.
 
 ```bash
-spaf scope show                                # View current scope table
-spaf scope add target.com                      # Add to in-scope
-spaf scope add 10.0.0.0/24                     # CIDR ranges work too
-spaf scope remove target.com                   # Remove from scope
-spaf scope show --file engagement.json         # Use a custom scope file
+redpilot scope show                                # View current scope table
+redpilot scope add target.com                      # Add to in-scope
+redpilot scope add 10.0.0.0/24                     # CIDR ranges work too
+redpilot scope remove target.com                   # Remove from scope
+redpilot scope show --file engagement.json         # Use a custom scope file
 ```
 
 | Argument | Description |
@@ -572,7 +572,7 @@ LM_STUDIO_MODEL=your-model      # optional, auto-detected
 | `PROXY_FILE=./proxies.txt` | Rotating SOCKS5/HTTP proxy chain file |
 | `RANDOM_USER_AGENT=true` | Randomise browser User-Agent per request |
 | `NIST_API_KEY=<key>` | NIST NVD API key (10× CVE lookup rate — free signup) |
-| `SHODAN_API_KEY=<key>` | Passive Shodan recon in `spaf recon` (free tier available) |
+| `SHODAN_API_KEY=<key>` | Passive Shodan recon in `redpilot recon` (free tier available) |
 
 ---
 
@@ -580,39 +580,39 @@ LM_STUDIO_MODEL=your-model      # optional, auto-detected
 
 ```bash
 # ── Full pentest engagement ───────────────────────────────────────
-spaf scope add target.com
-spaf recon target.com
-spaf webscan https://target.com
-spaf scan target.com --intensity aggressive --scanner rustscan --ports 1-65535
-spaf crawl https://target.com --depth 3
-spaf report target.com --format html
-spaf export target.com --format csv          # Client deliverable
+redpilot scope add target.com
+redpilot recon target.com
+redpilot webscan https://target.com
+redpilot scan target.com --intensity aggressive --scanner rustscan --ports 1-65535
+redpilot crawl https://target.com --depth 3
+redpilot report target.com --format html
+redpilot export target.com --format csv          # Client deliverable
 
 # ── External recon toolkit pipeline ───────────────────────────────
-spaf tools                                   # Check which recon binaries are installed
-spaf toolkit target.com                      # subfinder→httpx→katana→nuclei chain
-spaf toolkit target.com --no-nuclei          # Attack-surface mapping only (no active scan)
-spaf toolkit target.com --fuzz --wordlist /usr/share/wordlists/common.txt
+redpilot tools                                   # Check which recon binaries are installed
+redpilot toolkit target.com                      # subfinder→httpx→katana→nuclei chain
+redpilot toolkit target.com --no-nuclei          # Attack-surface mapping only (no active scan)
+redpilot toolkit target.com --fuzz --wordlist /usr/share/wordlists/common.txt
 
 # ── Offline / air-gapped (Ollama, no DB) ─────────────────────────
-AI_PROVIDER=ollama spaf scan target.com --no-db
+AI_PROVIDER=ollama redpilot scan target.com --no-db
 
 # ── Re-analyze an old scan with a different AI ───────────────────
-spaf ai <scan_id> --provider claude
+redpilot ai <scan_id> --provider claude
 
 # ── Compare weekly scans to see what changed ─────────────────────
-spaf diff <last_week_scan_id> <today_scan_id>
+redpilot diff <last_week_scan_id> <today_scan_id>
 
 # ── 24/7 web monitoring with AI alerts ───────────────────────────
-spaf watch target.com --module webscan --interval 3600
+redpilot watch target.com --module webscan --interval 3600
 
 # ── Generate exploit + fix for a finding ─────────────────────────
-spaf history                                 # find finding ID
-spaf poc <finding_id> --output exploit.py
-spaf remediate <finding_id> --format ansible
+redpilot history                                 # find finding ID
+redpilot poc <finding_id> --output exploit.py
+redpilot remediate <finding_id> --format ansible
 
 # ── Docker quick-start ────────────────────────────────────────────
 docker-compose up -d
-docker-compose run spaf recon target.com
-docker-compose run spaf shell
+docker-compose run redpilot recon target.com
+docker-compose run redpilot shell
 ```

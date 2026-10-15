@@ -2,22 +2,22 @@ import asyncio
 
 import pytest
 
-from spaf.orchestration import (
+from redpilot.orchestration import (
     Orchestrator, ModelRouter, Budget, BudgetExceeded, ResponseCache, make_key,
 )
 
 
 # ── Router ────────────────────────────────────────────────────────────
 def test_router_defaults_to_provider_model(monkeypatch):
-    for v in ("SPAF_MODEL_PLAN", "SPAF_MODEL_ANALYZE", "SPAF_MODEL_DEFAULT"):
+    for v in ("REDPILOT_MODEL_PLAN", "REDPILOT_MODEL_ANALYZE", "REDPILOT_MODEL_DEFAULT"):
         monkeypatch.delenv(v, raising=False)
     r = ModelRouter()
     assert r.resolve("plan") == [None]
 
 
 def test_router_env_overrides_with_fallback(monkeypatch):
-    monkeypatch.setenv("SPAF_MODEL_PLAN", "big-model, mid-model")
-    monkeypatch.setenv("SPAF_MODEL_DEFAULT", "fallback-model")
+    monkeypatch.setenv("REDPILOT_MODEL_PLAN", "big-model, mid-model")
+    monkeypatch.setenv("REDPILOT_MODEL_DEFAULT", "fallback-model")
     r = ModelRouter()
     chain = r.resolve("plan")
     assert chain == ["big-model", "mid-model", "fallback-model", None]
@@ -61,7 +61,7 @@ def _orch(tmp_path, complete_fn, **kw):
 
 
 def test_orchestrator_caches(tmp_path, monkeypatch):
-    for v in ("SPAF_MODEL_PLAN", "SPAF_MODEL_DEFAULT"):
+    for v in ("REDPILOT_MODEL_PLAN", "REDPILOT_MODEL_DEFAULT"):
         monkeypatch.delenv(v, raising=False)
     calls = []
 
@@ -77,7 +77,7 @@ def test_orchestrator_caches(tmp_path, monkeypatch):
 
 
 def test_orchestrator_falls_back_to_next_model(tmp_path, monkeypatch):
-    monkeypatch.setenv("SPAF_MODEL_PLAN", "bad, good")
+    monkeypatch.setenv("REDPILOT_MODEL_PLAN", "bad, good")
     tried = []
 
     async def fn(system, prompt, model):
@@ -91,7 +91,7 @@ def test_orchestrator_falls_back_to_next_model(tmp_path, monkeypatch):
 
 
 def test_orchestrator_budget_stops(tmp_path, monkeypatch):
-    monkeypatch.setenv("SPAF_MODEL_PLAN", "a, b, c")
+    monkeypatch.setenv("REDPILOT_MODEL_PLAN", "a, b, c")
 
     async def fn(system, prompt, model):
         return "⚠️  always fails"

@@ -1,14 +1,14 @@
-# SPAF threat model & risk classification
+# RedPilot threat model & risk classification
 
-SPAF is offensive-security tooling: used correctly it tests systems its operator
+RedPilot is offensive-security tooling: used correctly it tests systems its operator
 is **authorized** to test; used incorrectly it can cause harm. This document
-states what SPAF defends against, what it deliberately does not, and the risk
+states what RedPilot defends against, what it deliberately does not, and the risk
 class of each workflow — so operators and contributors reason about blast radius
 on purpose, not by accident.
 
 > **Authorized testing only.** Scope enforcement, authorization signing, and the
 > audit trail are safety controls, **not** authorization. You are responsible for
-> having written permission for every target you point SPAF at.
+> having written permission for every target you point RedPilot at.
 
 ## 1. Assets
 
@@ -18,7 +18,7 @@ on purpose, not by accident.
 | API keys / provider tokens / signing key | Access to the service and to AI providers |
 | Scan findings & reports | Sensitive details about a client's weaknesses |
 | Audit trail | The accountability record of what was done |
-| The host SPAF runs on | Runs network tools and (optionally) AI-generated content |
+| The host RedPilot runs on | Runs network tools and (optionally) AI-generated content |
 
 ## 2. Trust boundaries
 
@@ -34,7 +34,7 @@ Everything a **target** or an **AI provider** returns is untrusted input. It may
 be logged, stored, and shown — it is never executed as a command and never
 treated as an instruction.
 
-## 3. What SPAF defends against (controls)
+## 3. What RedPilot defends against (controls)
 
 | Threat | Control | Where |
 |---|---|---|
@@ -53,7 +53,7 @@ treated as an instruction.
 
 ## 4. Out of scope (explicit non-goals)
 
-- SPAF does **not** grant authorization or verify you have it.
+- RedPilot does **not** grant authorization or verify you have it.
 - It does not sandbox the external recon binaries it runs (`nmap`, `nuclei`, …) —
   run it on a host you control, ideally the hardened container.
 - It does not defend against a malicious operator with a valid lead key.
@@ -73,7 +73,7 @@ treated as an instruction.
 | `agent` (active) | Yes | **High** | Requires in-scope + (when signing on) valid authorization; audited |
 | nuclei DAST / aggressive | Yes | **High** | Opt-in only; most intrusive path |
 
-**Mock mode** (`SPAF_MOCK=1` or `--mock` / `options.mock`) drops every workflow to
+**Mock mode** (`REDPILOT_MOCK=1` or `--mock` / `options.mock`) drops every workflow to
 **Low**: the pipeline runs end-to-end with synthetic findings and no target is
 contacted — use it for development, demos, and CI.
 

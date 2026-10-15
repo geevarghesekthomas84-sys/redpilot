@@ -1,5 +1,5 @@
 # ─────────────────────────────────────────────────────────────────────────────
-# SPAF — Smart Pentesting Automation Framework
+# RedPilot — AI-orchestrated offensive security automation
 # ─────────────────────────────────────────────────────────────────────────────
 FROM python:3.12-slim
 
@@ -15,7 +15,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # ── External recon toolkit ───────────────────────────────────────────────────
-# Installs the Go-based recon suite used by `spaf toolkit` / `spaf tools`:
+# Installs the Go-based recon suite used by `redpilot toolkit` / `redpilot tools`:
 #   subfinder, httpx, nuclei, katana, dnsx  (ProjectDiscovery)
 #   assetfinder, waybackurls, hakrawler     (tomnomnom / hakluke)
 #   gau (lc), ffuf                          (fuzzing)
@@ -53,7 +53,7 @@ RUN pip install --no-cache-dir -e .
 
 # Runtime environment
 ENV PYTHONUNBUFFERED=1
-ENV SPAF_MONGO_URI=mongodb://mongo:27017
+ENV REDPILOT_MONGO_URI=mongodb://mongo:27017
 
-ENTRYPOINT ["spaf"]
+ENTRYPOINT ["redpilot"]
 CMD ["--help"]

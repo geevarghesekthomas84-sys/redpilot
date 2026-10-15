@@ -3,7 +3,7 @@
 Detailed, build-ready design for the first v2 slice. No code yet — this is the
 contract we implement against. Built with the `mcp-builder` skill at code time.
 
-Goal of this slice: **SPAF runs as a local MCP server that Claude Desktop (or any
+Goal of this slice: **RedPilot runs as a local MCP server that Claude Desktop (or any
 MCP host) can drive — scope-gated, headless, tested** — on top of a clean,
 CLI-independent service layer.
 
@@ -13,16 +13,16 @@ CLI-independent service layer.
 
 ### Why
 Today the engine renders with Rich and the agent/CLI are intertwined. The API
-and MCP server both need to call SPAF *headlessly* and get *typed* results +
+and MCP server both need to call RedPilot *headlessly* and get *typed* results +
 *events*. So we carve out a thin, UI-free facade.
 
-### New package: `spaf/service/`
+### New package: `redpilot/service/`
 ```
-spaf/service/
-  __init__.py        # exports SpafService, EventBus, models
+redpilot/service/
+  __init__.py        # exports RedPilotService, EventBus, models
   models.py          # Pydantic v2 models (the shared contract)
   events.py          # EventBus (async pub/sub) + Event types
-  service.py         # SpafService facade over engine/agent/scope/db
+  service.py         # RedPilotService facade over engine/agent/scope/db
 ```
 
 ### Models (`models.py`) — the one contract for CLI/API/MCP
@@ -35,7 +35,7 @@ spaf/service/
 - `AgentResult` — target, goal, plan: list[AgentPlanStep], findings, assessment?.
 - `ScopeEntry`, `ToolStatus`, `ScanSummary` (for listings).
 
-All severity/ordering reuse `spaf.utils.risk`.
+All severity/ordering reuse `redpilot.utils.risk`.
 
 ### EventBus (`events.py`)
 Async pub/sub so a run emits progress without knowing who's listening.
@@ -46,10 +46,10 @@ Async pub/sub so a run emits progress without knowing who's listening.
 - Consumers: the **CLI** (renders via the existing `ui` design system), the
   **API** (WebSocket), the **MCP server** (progress notifications).
 
-### SpafService (`service.py`) — the facade
+### RedPilotService (`service.py`) — the facade
 Async, UI-free, returns models, emits events, enforces scope + audit centrally.
 ```python
-class SpafService:
+class RedPilotService:
     async def run_module(self, module: str, target: str, options: dict,
                          bus: EventBus | None = None) -> ScanResult
     async def run_agent(self, target: str, goal: str = "", *, dry_run=False,
@@ -74,13 +74,13 @@ class SpafService:
 - No behavior change to the CLI; covered by existing tests + new service tests.
 
 ### Audit (lightweight, lands now)
-- `spaf/service/audit.py` appends a JSONL record for every **active** action
+- `redpilot/service/audit.py` appends a JSONL record for every **active** action
   (who=operator/local, action, module, target, scope_ok, ts). Written to
   `./logs/audit.jsonl` (configurable). The MCP/API paths always audit; CLI opt-in.
 
 ### Acceptance (Phase 0)
 - CLI output identical to today (spot-checked).
-- `pytest` drives a scan through `SpafService` and receives a typed `ScanResult`
+- `pytest` drives a scan through `RedPilotService` and receives a typed `ScanResult`
   plus an ordered event stream; `run_agent(dry_run=True)` returns a plan.
 - No new runtime dependency (Pydantic already transitive via FastAPI later; add
   `pydantic>=2` to core).
@@ -95,14 +95,14 @@ class SpafService:
 
 ### Package
 ```
-spaf/mcp/
+redpilot/mcp/
   __init__.py
   server.py          # builds the MCP server (FastMCP), registers tools/resources/prompts
   shaping.py         # LLM-friendly output shaping (summaries, caps, truncation)
 ```
-Launched by a new CLI command: `spaf mcp` (stdio).
+Launched by a new CLI command: `redpilot mcp` (stdio).
 
-### Tools (model-callable) — all go through `SpafService`, all scope-gated
+### Tools (model-callable) — all go through `RedPilotService`, all scope-gated
 | Tool | Input | Returns (to the model) |
 |---|---|---|
 | `recon` | target, passive=true | severity summary + top findings; full set as a resource |
@@ -139,20 +139,20 @@ Launched by a new CLI command: `spaf mcp` (stdio).
 - **`agent_run` defaults to `dry_run=true`** (plan only). Running active steps
   requires `dry_run=false` *and* an in-scope target. Document that the operator
   owns authorization.
-- **No raw-command tool.** The model only selects from SPAF's fixed modules —
+- **No raw-command tool.** The model only selects from RedPilot's fixed modules —
   never arbitrary shell. (Same principle as the existing agent.)
 - Every active tool call writes an **audit** record.
 - Output shaping caps finding counts / truncates details so a huge scan can't
   blow the context window; full data via the `scan://` resource.
 
 ### Packaging
-- New extra: **`spaf[mcp]`** → depends on `mcp` (official SDK).
-- `spaf mcp` command (guarded import; friendly error if extra not installed).
+- New extra: **`redpilot[mcp]`** → depends on `mcp` (official SDK).
+- `redpilot mcp` command (guarded import; friendly error if extra not installed).
 - Docs include a copy-paste **Claude Desktop** config:
   ```json
   {
     "mcpServers": {
-      "spaf": { "command": "spaf", "args": ["mcp"] }
+      "redpilot": { "command": "redpilot", "args": ["mcp"] }
     }
   }
   ```
@@ -164,8 +164,8 @@ Launched by a new CLI command: `spaf mcp` (stdio).
   mocked so tests need no network/binaries — same pattern as `tests/test_*`.)
 
 ### Acceptance (minimal Phase 2)
-- `spaf mcp` starts a stdio server.
-- Added to Claude Desktop, the host lists SPAF's tools; "recon example.com and
+- `redpilot mcp` starts a stdio server.
+- Added to Claude Desktop, the host lists RedPilot's tools; "recon example.com and
   summarize" calls `recon` (after `scope_add example.com`) and returns a summary;
   an out-of-scope target is refused with the scope message.
 - CI runs the new tests under the `mcp` extra.
@@ -174,7 +174,7 @@ Launched by a new CLI command: `spaf mcp` (stdio).
 
 ## C. Versioning & rollout
 - This slice ships as **`2.0.0a1`** (PyPI pre-release) — installable with
-  `pip install --pre "spaf[mcp]"`, so `1.4.x` users are undisturbed.
+  `pip install --pre "redpilot[mcp]"`, so `1.4.x` users are undisturbed.
 - `main` stays green; the CLI is unchanged for existing users.
 
 ---
@@ -191,4 +191,4 @@ Launched by a new CLI command: `spaf mcp` (stdio).
 
 Once these are confirmed, implementation order: `service/models` → `events` →
 `service` + engine `bus` hook → CLI wiring (no visual change) → `mcp/server` →
-`spaf mcp` → docs + tests → `2.0.0a1`.
+`redpilot mcp` → docs + tests → `2.0.0a1`.

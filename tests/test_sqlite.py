@@ -1,7 +1,7 @@
 import asyncio
 from datetime import datetime
 
-from spaf.database.sqlite import SQLiteDB
+from redpilot.database.sqlite import SQLiteDB
 
 
 def _finding(vuln_type="missing_hsts", detail="x", sev="High", order=2):
@@ -96,12 +96,12 @@ def test_scan_history_filters_by_target(tmp_path):
 
 def test_backend_selector(monkeypatch):
     import importlib
-    import spaf.database as database
+    import redpilot.database as database
 
-    monkeypatch.setenv("SPAF_DB_BACKEND", "sqlite")
+    monkeypatch.setenv("REDPILOT_DB_BACKEND", "sqlite")
     importlib.reload(database)
     assert type(database.db).__name__ == "SQLiteDB"
 
-    monkeypatch.setenv("SPAF_DB_BACKEND", "mongo")
+    monkeypatch.setenv("REDPILOT_DB_BACKEND", "mongo")
     importlib.reload(database)
     assert type(database.db).__name__ == "MongoDB"

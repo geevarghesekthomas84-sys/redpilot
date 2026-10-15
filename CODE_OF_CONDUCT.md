@@ -3,7 +3,7 @@
 ## Our Pledge
 
 We as members, contributors, and maintainers pledge to make participation in the
-SPAF community a harassment-free experience for everyone, regardless of age, body
+RedPilot community a harassment-free experience for everyone, regardless of age, body
 size, visible or invisible disability, ethnicity, sex characteristics, gender
 identity and expression, level of experience, education, socio-economic status,
 nationality, personal appearance, race, religion, or sexual identity and
@@ -27,7 +27,7 @@ Examples of unacceptable behavior:
 
 ## Responsible use
 
-SPAF is a security tool. Discussion, issues, and contributions must center on
+RedPilot is a security tool. Discussion, issues, and contributions must center on
 **authorized** security testing, research, and defense. Requests for help
 attacking systems you do not own or have permission to test are out of scope and
 will be removed.

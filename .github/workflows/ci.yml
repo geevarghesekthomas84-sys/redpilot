@@ -48,7 +48,7 @@ jobs:
       - name: Install ruff
         run: pip install ruff
       - name: Ruff check (real defects only; see [tool.ruff] in pyproject)
-        run: ruff check spaf tests
+        run: ruff check redpilot tests
 
   build:
     name: Build wheel
@@ -69,26 +69,26 @@ jobs:
           import glob, zipfile, os, sys
           whl = sorted(glob.glob("dist/*.whl"))[-1]
           names = zipfile.ZipFile(whl).namelist()
-          pkgs = {os.path.dirname(n) for n in names if n.startswith("spaf/")}
+          pkgs = {os.path.dirname(n) for n in names if n.startswith("redpilot/")}
           required = {
-              "spaf", "spaf/cli", "spaf/core", "spaf/database",
-              "spaf/modules", "spaf/reports", "spaf/utils",
+              "redpilot", "redpilot/cli", "redpilot/core", "redpilot/database",
+              "redpilot/modules", "redpilot/reports", "redpilot/utils",
               # platform packages (1.6 → 1.14)
-              "spaf/agent", "spaf/service", "spaf/api", "spaf/mcp",
-              "spaf/orchestration", "spaf/plugins", "spaf/workspaces",
-              "spaf/pipeline",
+              "redpilot/agent", "redpilot/service", "redpilot/api", "redpilot/mcp",
+              "redpilot/orchestration", "redpilot/plugins", "redpilot/workspaces",
+              "redpilot/pipeline",
           }
           missing = required - pkgs
           if missing:
               print("Missing packages in wheel:", sorted(missing))
               sys.exit(1)
           # package-data that ships inside the wheel (the web dashboard)
-          if not any(n.endswith("spaf/api/static/dashboard.html") for n in names):
-              print("Missing package-data: spaf/api/static/dashboard.html")
+          if not any(n.endswith("redpilot/api/static/dashboard.html") for n in names):
+              print("Missing package-data: redpilot/api/static/dashboard.html")
               sys.exit(1)
           print("All packages and package-data present in wheel.")
           PY
       - uses: actions/upload-artifact@v4
         with:
-          name: spaf-dist
+          name: redpilot-dist
           path: dist/*

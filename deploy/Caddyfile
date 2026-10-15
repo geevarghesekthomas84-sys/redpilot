@@ -1,20 +1,20 @@
 # ─────────────────────────────────────────────────────────────────────────────
-# SPAF gateway — Caddy reverse proxy in front of the API.
+# RedPilot gateway — Caddy reverse proxy in front of the API.
 # TLS (automatic for a real domain, internal self-signed for localhost),
 # security headers, and a single upstream. mTLS and rate-limiting are opt-in
-# (see the commented blocks). SPAF_DOMAIN / SPAF_ACME_EMAIL come from the env.
+# (see the commented blocks). REDPILOT_DOMAIN / REDPILOT_ACME_EMAIL come from the env.
 # ─────────────────────────────────────────────────────────────────────────────
 
 {
 	# ACME account email for Let's Encrypt (required for a public domain).
-	email {$SPAF_ACME_EMAIL}
+	email {$REDPILOT_ACME_EMAIL}
 	# Don't leak the server banner.
 	servers {
 		trusted_proxies static private_ranges
 	}
 }
 
-{$SPAF_DOMAIN:localhost} {
+{$REDPILOT_DOMAIN:localhost} {
 	encode gzip zstd
 
 	header {
@@ -44,7 +44,7 @@
 	# ── Rate limiting (opt-in) ─────────────────────────────────────────────────
 	# Requires a Caddy build with the caddy-ratelimit plugin, then uncomment:
 	# rate_limit {
-	#     zone spaf_api {
+	#     zone redpilot_api {
 	#         key    {remote_host}
 	#         events 120
 	#         window 1m

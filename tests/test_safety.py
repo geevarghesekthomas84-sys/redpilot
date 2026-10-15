@@ -1,7 +1,7 @@
 import pytest
 
-from spaf.utils import safety, validator
-from spaf.utils.logger import redact
+from redpilot.utils import safety, validator
+from redpilot.utils.logger import redact
 
 
 # ── safety: command guard ────────────────────────────────────────────────

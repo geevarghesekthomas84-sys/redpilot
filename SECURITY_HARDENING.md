@@ -1,9 +1,9 @@
-# SPAF — Secure Deployment & Hardening
+# RedPilot — Secure Deployment & Hardening
 
-How to run SPAF's API (and MCP) as a hardened service behind a reverse-proxy
+How to run RedPilot's API (and MCP) as a hardened service behind a reverse-proxy
 gateway. The `deploy/` directory contains a ready-to-run stack.
 
-> **Authorized testing only.** SPAF runs active scanners. Deploy it only where
+> **Authorized testing only.** RedPilot runs active scanners. Deploy it only where
 > you are authorized to operate, keep the engagement scope tight, and protect
 > the API — anyone with a key can launch in-scope scans.
 
@@ -13,7 +13,7 @@ gateway. The `deploy/` directory contains a ready-to-run stack.
 
 ```bash
 cd deploy
-cp .env.example .env            # set SPAF_API_KEYS (long random), SPAF_DOMAIN
+cp .env.example .env            # set REDPILOT_API_KEYS (long random), REDPILOT_DOMAIN
 docker compose up -d --build    # gateway + API (SQLite, zero-setup)
 
 # health through the gateway (localhost uses an internal-CA cert → -k in dev)
@@ -35,7 +35,7 @@ docker compose --profile mongo up -d --build
 ## What's hardened
 
 **Gateway (Caddy)**
-- Automatic TLS (Let's Encrypt for a real `SPAF_DOMAIN`, internal CA for localhost).
+- Automatic TLS (Let's Encrypt for a real `REDPILOT_DOMAIN`, internal CA for localhost).
 - Security headers: HSTS, `X-Content-Type-Options`, `X-Frame-Options: DENY`,
   `Referrer-Policy: no-referrer`, `-Server`.
 - Request-body size cap. `cap_drop: ALL` (+ only `NET_BIND_SERVICE`),
@@ -96,19 +96,19 @@ sops --decrypt .env.enc > .env && docker compose up -d && shred -u .env
 
 For sanctioned engagements that require routing tool traffic through a controlled
 egress point (a redirector), run a **separate, access-controlled forward proxy**
-you operate, and point SPAF at it with the existing stealth settings
+you operate, and point RedPilot at it with the existing stealth settings
 (`PROXY_FILE` / `USE_TOR` / `TOR_PROXY`). This is deliberately **not** shipped as
 a compose service: an open redirector is dual-use and must be stood up only with
 explicit written authorization for the specific engagement, locked to the
-engagement scope, access-controlled, and torn down afterwards. SPAF enforces its
+engagement scope, access-controlled, and torn down afterwards. RedPilot enforces its
 engagement scope regardless of egress path.
 
 ---
 
 ## Checklist before exposing publicly
 
-- [ ] `SPAF_API_KEYS` set to long random value(s); not the example.
-- [ ] `SPAF_DOMAIN` + `SPAF_ACME_EMAIL` set (real TLS, not the localhost cert).
+- [ ] `REDPILOT_API_KEYS` set to long random value(s); not the example.
+- [ ] `REDPILOT_DOMAIN` + `REDPILOT_ACME_EMAIL` set (real TLS, not the localhost cert).
 - [ ] Engagement scope defined (`scope.json`) — out-of-scope is refused.
 - [ ] mTLS enabled if the API should be client-cert-only.
 - [ ] Secrets encrypted with sops; no plaintext keys committed.

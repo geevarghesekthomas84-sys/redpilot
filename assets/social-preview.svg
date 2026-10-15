@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="640" viewBox="0 0 1280 640" fill="none" role="img" aria-label="SPAF — Smart Pentesting Automation Framework">
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="640" viewBox="0 0 1280 640" fill="none" role="img" aria-label="RedPilot — AI-orchestrated offensive security">
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0" stop-color="#06080b"/>
@@ -29,8 +29,8 @@
   <rect x="0" y="0" width="1280" height="6" fill="url(#amber)"/>
   <rect x="0" y="634" width="1280" height="6" fill="url(#amber)" opacity="0.5"/>
 
-  <text class="m" x="640" y="200" font-family="'JetBrains Mono','Courier New',monospace" font-weight="800" font-size="118" fill="url(#amber)" filter="url(#glow)" text-anchor="middle" letter-spacing="6">SPAF</text>
-  <text x="640" y="258" font-family="'JetBrains Mono','Courier New',monospace" font-size="27" fill="#c7d0da" text-anchor="middle" letter-spacing="3">Smart Pentesting Automation Framework</text>
+  <text class="m" x="640" y="196" font-family="'JetBrains Mono','Courier New',monospace" font-weight="800" font-size="92" fill="url(#amber)" filter="url(#glow)" text-anchor="middle" letter-spacing="2">RedPilot</text>
+  <text x="640" y="252" font-family="'JetBrains Mono','Courier New',monospace" font-size="24" fill="#c7d0da" text-anchor="middle" letter-spacing="4">AI-ORCHESTRATED OFFENSIVE SECURITY</text>
   <text x="640" y="306" font-family="'JetBrains Mono','Courier New',monospace" font-size="20" fill="#9AA6B2" text-anchor="middle" letter-spacing="2">AI-orchestrated offensive security — one target in, a written assessment out</text>
 
   <!-- pipeline chips -->
@@ -58,6 +58,6 @@
   </g>
 
   <!-- footer line -->
-  <text x="640" y="582" font-family="'JetBrains Mono','Courier New',monospace" font-size="18" fill="#E0A82E" text-anchor="middle">$ pip install spaf</text>
+  <text x="640" y="582" font-family="'JetBrains Mono','Courier New',monospace" font-size="18" fill="#E0A82E" text-anchor="middle">$ pip install redpilot</text>
   <text x="640" y="610" font-family="'JetBrains Mono','Courier New',monospace" font-size="14" fill="#6b7682" text-anchor="middle">github.com/geevarghesekthomas84-sys/spaf · authorized testing only</text>
 </svg>

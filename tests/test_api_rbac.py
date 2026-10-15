@@ -5,8 +5,8 @@ import pytest
 pytest.importorskip("fastapi")
 from fastapi.testclient import TestClient  # noqa: E402
 
-import spaf.service.service as svcmod  # noqa: E402
-from spaf.api import create_app  # noqa: E402
+import redpilot.service.service as svcmod  # noqa: E402
+from redpilot.api import create_app  # noqa: E402
 
 
 class _FakeModule:
@@ -21,10 +21,10 @@ class _FakeModule:
 def rbac_client(tmp_path, monkeypatch):
     # Two engagements, isolated on disk.
     eng_dir = tmp_path / "eng"
-    monkeypatch.setenv("SPAF_ENGAGEMENTS_DIR", str(eng_dir))
+    monkeypatch.setenv("REDPILOT_ENGAGEMENTS_DIR", str(eng_dir))
     monkeypatch.setitem(svcmod.MODULE_MAP, "webscan", _FakeModule)
 
-    from spaf.workspaces import EngagementManager
+    from redpilot.workspaces import EngagementManager
     mgr = EngagementManager(root=str(eng_dir))
     acme = mgr.create("Acme", in_scope=["acme.com"])
     globex = mgr.create("Globex", in_scope=["globex.com"])
@@ -34,7 +34,7 @@ def rbac_client(tmp_path, monkeypatch):
         "OPKEY": {"name": "op", "role": "operator", "engagements": [acme.id]},
         "VIEWKEY": {"name": "viewer", "role": "viewer", "engagements": [acme.id]},
     }
-    monkeypatch.setenv("SPAF_PRINCIPALS", json.dumps(principals))
+    monkeypatch.setenv("REDPILOT_PRINCIPALS", json.dumps(principals))
 
     p = tmp_path / "scope.json"
     p.write_text(json.dumps({"in_scope": ["default.com"], "out_of_scope": []}))

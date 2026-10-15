@@ -1,4 +1,4 @@
-from spaf.utils.validator import validate_target, validate_url, sanitize_domain
+from redpilot.utils.validator import validate_target, validate_url, sanitize_domain
 
 def test_validate_target():
     assert validate_target("google.com") is True

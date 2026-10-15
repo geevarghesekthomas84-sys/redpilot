@@ -2,9 +2,9 @@ import asyncio
 
 import pytest
 
-from spaf.service import SpafService, ScopeError
-from spaf.service.models import Finding, severity_counts
-from spaf.service.events import EventBus
+from redpilot.service import RedPilotService, ScopeError
+from redpilot.service.models import Finding, severity_counts
+from redpilot.service.events import EventBus
 
 
 class _FakeModule:
@@ -27,7 +27,7 @@ def _svc(tmp_path, scope=None):
     import json
     p = tmp_path / "scope.json"
     p.write_text(json.dumps(scope or {"in_scope": ["example.com"], "out_of_scope": []}))
-    return SpafService(str(p))
+    return RedPilotService(str(p))
 
 
 def test_scope_state_and_add(tmp_path):
@@ -41,7 +41,7 @@ def test_scope_state_and_add(tmp_path):
 
 def test_run_module_blocks_out_of_scope(tmp_path, monkeypatch):
     svc = _svc(tmp_path)
-    monkeypatch.setitem(__import__("spaf.service.service", fromlist=["MODULE_MAP"]).MODULE_MAP,
+    monkeypatch.setitem(__import__("redpilot.service.service", fromlist=["MODULE_MAP"]).MODULE_MAP,
                         "webscan", _FakeModule)
     with pytest.raises(ScopeError):
         asyncio.run(svc.run_module("webscan", "https://evil.com", {"no_db": True}))
@@ -49,7 +49,7 @@ def test_run_module_blocks_out_of_scope(tmp_path, monkeypatch):
 
 def test_run_module_headless_returns_typed_result(tmp_path, monkeypatch):
     svc = _svc(tmp_path)
-    import spaf.service.service as svcmod
+    import redpilot.service.service as svcmod
     monkeypatch.setitem(svcmod.MODULE_MAP, "webscan", _FakeModule)
     res = asyncio.run(svc.run_module("webscan", "https://example.com", {"no_db": True}))
     assert res.status == "completed"
@@ -60,7 +60,7 @@ def test_run_module_headless_returns_typed_result(tmp_path, monkeypatch):
 
 def test_run_module_emits_events(tmp_path, monkeypatch):
     svc = _svc(tmp_path)
-    import spaf.service.service as svcmod
+    import redpilot.service.service as svcmod
     monkeypatch.setitem(svcmod.MODULE_MAP, "webscan", _FakeModule)
     bus = EventBus()
     seen = []

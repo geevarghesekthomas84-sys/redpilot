@@ -1,6 +1,6 @@
 import json
 
-from spaf.utils.scope import (
+from redpilot.utils.scope import (
     is_in_scope,
     has_scope,
     load_scope,

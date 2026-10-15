@@ -32,12 +32,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Build API image
-        run: docker build -f deploy/Dockerfile -t spaf-api:scan .
+        run: docker build -f deploy/Dockerfile -t redpilot-api:scan .
       - name: Trivy image scan
         uses: aquasecurity/trivy-action@v0.36.0
         with:
           scan-type: image
-          image-ref: spaf-api:scan
+          image-ref: redpilot-api:scan
           severity: CRITICAL,HIGH
           ignore-unfixed: true
           exit-code: "0"
@@ -61,5 +61,5 @@ jobs:
         run: cyclonedx-py environment --output-format json --output-file sbom.json
       - uses: actions/upload-artifact@v4
         with:
-          name: spaf-sbom
+          name: redpilot-sbom
           path: sbom.json

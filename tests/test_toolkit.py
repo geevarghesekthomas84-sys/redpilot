@@ -1,7 +1,7 @@
 import asyncio
 import json
 
-from spaf.modules.toolkit import ToolkitModule, TOOL_REGISTRY
+from redpilot.modules.toolkit import ToolkitModule, TOOL_REGISTRY
 
 
 def _make(target="example.com", options=None):
@@ -121,5 +121,5 @@ def test_nuclei_missing_tool(monkeypatch):
 def test_exec_handles_missing_binary():
     # A binary that certainly does not exist should return [] gracefully.
     mod = _make()
-    out = asyncio.run(mod._exec("nope", ["spaf_nonexistent_binary_xyz"], None, timeout=5))
+    out = asyncio.run(mod._exec("nope", ["redpilot_nonexistent_binary_xyz"], None, timeout=5))
     assert out == []

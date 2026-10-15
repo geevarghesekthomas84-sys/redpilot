@@ -1,5 +1,5 @@
-from spaf.modules.network import NetworkModule
-from spaf.utils.validator import validate_target, sanitize_domain
+from redpilot.modules.network import NetworkModule
+from redpilot.utils.validator import validate_target, sanitize_domain
 
 
 def _mod():
@@ -36,9 +36,9 @@ def test_injection_target_is_rejected_by_validation():
 
 def test_engine_mock_mode(monkeypatch):
     import asyncio
-    from spaf.core.engine import ScanEngine
-    from spaf.modules.webscan import WebscanModule
-    monkeypatch.setenv("SPAF_MOCK", "1")
+    from redpilot.core.engine import ScanEngine
+    from redpilot.modules.webscan import WebscanModule
+    monkeypatch.setenv("REDPILOT_MOCK", "1")
     eng = ScanEngine()
     res = asyncio.run(eng.run_module(WebscanModule, "example.com", {"no_db": True}))
     assert len(res) == 1 and res[0]["vuln_type"] == "mock_webscan_finding"

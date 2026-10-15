@@ -1,6 +1,6 @@
-# SPAF v2 — AI-Orchestrated Offensive Security Platform
+# RedPilot v2 — AI-Orchestrated Offensive Security Platform
 
-> **Thesis.** SPAF is already a solid AI-augmented CLI. v2 turns it into a *platform*:
+> **Thesis.** RedPilot is already a solid AI-augmented CLI. v2 turns it into a *platform*:
 > a local AI orchestration brain that drives a fleet of security modules, speaks
 > **MCP** so any agent (Claude Desktop, IDEs, other LLMs) can operate it, and runs
 > behind **hardened, automated infrastructure** (reverse-proxy gateway, mTLS,
@@ -49,7 +49,7 @@ flowchart TB
   subgraph CLIENTS [clients]
     direction LR
     C1[Claude Desktop / IDE<br/>MCP host]:::dim
-    C2[SPAF CLI / TUI]:::dim
+    C2[RedPilot CLI / TUI]:::dim
     C3[Web dashboard]:::dim
     C4[CI / automation]:::dim
   end
@@ -58,7 +58,7 @@ flowchart TB
     RP[[reverse proxy<br/>Caddy/Traefik · TLS · mTLS · authn · rate-limit]]:::hot
   end
 
-  subgraph CORE [SPAF core service]
+  subgraph CORE [RedPilot core service]
     API[FastAPI<br/>REST + WebSocket events]:::hot
     MCP[MCP server<br/>stdio + streamable-HTTP]:::hot
     ORCH[AI orchestration<br/>model router · tool-calling · budget · cache]:::hot
@@ -95,11 +95,11 @@ flowchart TB
 
 Four new pillars, all in-process-capable so the CLI/offline story never breaks:
 
-1. **SPAF API** — async REST + WebSocket. Everything the CLI does, over HTTP, with
+1. **RedPilot API** — async REST + WebSocket. Everything the CLI does, over HTTP, with
    live scan events and job control.
-2. **SPAF MCP server** — exposes modules + the agent as MCP *tools*, scans as
+2. **RedPilot MCP server** — exposes modules + the agent as MCP *tools*, scans as
    *resources*, analysis templates as *prompts*. This is the flagship: it makes
-   SPAF a first-class citizen of local AI orchestration (Claude Desktop, etc.).
+   RedPilot a first-class citizen of local AI orchestration (Claude Desktop, etc.).
 3. **AI orchestration layer** — a real router (task→model), structured
    tool-calling where providers support it, token budgets, response caching, and
    a fallback chain. The agent graduates from "plan once" to a controlled loop.
@@ -117,28 +117,28 @@ ordered by leverage; 2 (MCP) and 3 (orchestration) are the headline.
 ### Phase 0 — Foundation refactor  *(small, enabling)*
 - **Goal:** make the engine callable as a library without the CLI, with typed
   results and an event stream.
-- **Build:** extract a `spaf.service` core API (`run_module`, `run_agent`,
+- **Build:** extract a `redpilot.service` core API (`run_module`, `run_agent`,
   `list_scans`, `get_findings`) returning Pydantic models; add an async
   `EventBus` so runs emit `step_started/finding/step_done/completed` events;
   decouple rendering from execution.
 - **Stack:** Pydantic v2, `asyncio` event bus.
-- **Deliverable:** `spaf/service/` + models; CLI refactored to consume it.
+- **Deliverable:** `redpilot/service/` + models; CLI refactored to consume it.
 - **Acceptance:** CLI behaves identically; a unit test drives a scan via the
   service and receives events. No new deps required.
 
-### Phase 1 — SPAF API (FastAPI)
-- **Goal:** operate SPAF over HTTP with live updates.
+### Phase 1 — RedPilot API (FastAPI)
+- **Goal:** operate RedPilot over HTTP with live updates.
 - **Build:** FastAPI app; `POST /scans` (module+target+options → job id),
   `GET /scans/{id}`, `GET /findings`, `POST /agent`, `GET /scope`, `WS /events`
   streaming the EventBus. Job runner backed by asyncio (optionally Redis/arq
   later). API-key auth + per-key scope.
 - **Stack:** FastAPI, uvicorn, websockets; optional `arq`+Redis for durable jobs.
-- **Deliverable:** `spaf/api/`, `spaf serve` command, OpenAPI docs.
+- **Deliverable:** `redpilot/api/`, `redpilot serve` command, OpenAPI docs.
 - **Acceptance:** start server, launch an agent run over REST, watch findings
   stream over WebSocket; scope rejection returns 403.
 
-### Phase 2 — SPAF MCP server  ⭐ flagship
-- **Goal:** any MCP host (Claude Desktop, IDEs, other agents) can drive SPAF as
+### Phase 2 — RedPilot MCP server  ⭐ flagship
+- **Goal:** any MCP host (Claude Desktop, IDEs, other agents) can drive RedPilot as
   native tools, locally.
 - **Build:** MCP server exposing
   - **tools:** `recon`, `toolkit`, `scan`, `webscan`, `crawl`, `agent_run`,
@@ -148,10 +148,10 @@ ordered by leverage; 2 (MCP) and 3 (orchestration) are the headline.
   Two transports: **stdio** (for Claude Desktop) and **streamable-HTTP/SSE**
   (networked, behind the gateway). Scope + audit enforced inside every tool;
   long scans return a job id + progress notifications.
-- **Stack:** official **MCP Python SDK** (`mcp`), reuse `spaf.service`.
-- **Deliverable:** `spaf/mcp/server.py`, `spaf mcp` command, a ready-to-paste
+- **Stack:** official **MCP Python SDK** (`mcp`), reuse `redpilot.service`.
+- **Deliverable:** `redpilot/mcp/server.py`, `redpilot mcp` command, a ready-to-paste
   Claude Desktop config block, docs + tests (tool schemas, scope gating).
-- **Acceptance:** add SPAF to Claude Desktop; ask it to "recon example.com and
+- **Acceptance:** add RedPilot to Claude Desktop; ask it to "recon example.com and
   summarize" and it calls the tools, respecting scope.
 - **Reference:** build with the `mcp-builder` skill.
 
@@ -161,26 +161,26 @@ ordered by leverage; 2 (MCP) and 3 (orchestration) are the headline.
   - **Model router:** map task-type → model (planning→strong; bulk analysis→local;
     code-gen→coding model). Config-driven, provider-agnostic.
   - **Structured tool-calling loop:** for providers that support tools
-    (Claude, OpenAI-compatible/LM Studio), let the model *call SPAF tools
+    (Claude, OpenAI-compatible/LM Studio), let the model *call RedPilot tools
     directly* in a bounded ReAct loop with a step cap — the agent becomes truly
     autonomous but still scope-gated and confirmable.
   - **Budgets + caching:** per-run token/time budget; prompt→response cache keyed
     by hash to cut cost and latency; deterministic replay.
   - **Fallback chain:** provider/model failover.
-- **Stack:** extend `spaf.utils.ai`; JSON-schema structured output; local cache
+- **Stack:** extend `redpilot.utils.ai`; JSON-schema structured output; local cache
   (SQLite/Redis).
-- **Deliverable:** `spaf/orchestration/` (router, budget, cache, tool-loop).
+- **Deliverable:** `redpilot/orchestration/` (router, budget, cache, tool-loop).
 - **Acceptance:** one agent run uses two different models for plan vs. analysis;
   cache hit on re-run; a forced provider outage falls back cleanly.
 
 ### Phase 4 — MCP client + plugin ecosystem
-- **Goal:** SPAF *consumes* external capabilities, and third parties extend it.
+- **Goal:** RedPilot *consumes* external capabilities, and third parties extend it.
 - **Build:** an MCP **client** so the orchestrator can mount external MCP servers
   (CVE/intel feeds, OSINT, a user's own tools) as additional agent tools; a
   typed **plugin SDK** (register modules/tools/report formats) that supersedes
   today's `plugins/` dir.
 - **Stack:** MCP SDK (client side), entry-point-based plugin discovery.
-- **Deliverable:** `spaf/mcp/client.py`, `spaf/plugins/` SDK + example plugin.
+- **Deliverable:** `redpilot/mcp/client.py`, `redpilot/plugins/` SDK + example plugin.
 - **Acceptance:** mount an external MCP server; the agent uses one of its tools
   during a run.
 
@@ -190,7 +190,7 @@ ordered by leverage; 2 (MCP) and 3 (orchestration) are the headline.
 - **Build:**
   - **Reverse-proxy gateway** (Caddy or Traefik) in front of API+MCP:
     automatic TLS, optional **mTLS** client certs, API-key/JWT auth, rate
-    limiting, security headers. One compose command brings up gateway + SPAF +
+    limiting, security headers. One compose command brings up gateway + RedPilot +
     DB + local model.
   - **Secrets:** `.env` → `sops`/`age`-encrypted secrets; no plaintext keys in
     images; per-engagement secret scoping.
@@ -202,20 +202,20 @@ ordered by leverage; 2 (MCP) and 3 (orchestration) are the headline.
     file, with the scope list enforced. Documented as authorized-use-only.
 - **Stack:** Caddy/Traefik, Docker Compose, sops/age, Trivy, GH Actions.
 - **Deliverable:** `deploy/` (compose + gateway config), `SECURITY_HARDENING.md`.
-- **Acceptance:** `docker compose up` yields a TLS-fronted, authenticated SPAF;
+- **Acceptance:** `docker compose up` yields a TLS-fronted, authenticated RedPilot;
   an unauthenticated request is rejected at the edge; CI scans images.
 
 ### Phase 6 — Observability + web dashboard  *(shipped — v1.10.0)*
 - **Goal:** see runs, findings, and agent reasoning live; keep an audit trail.
 - **Shipped:**
-  - **Prometheus metrics** at `GET /metrics` (`spaf/api/metrics.py`) — a
+  - **Prometheus metrics** at `GET /metrics` (`redpilot/api/metrics.py`) — a
     dependency-free counter registry (scans started/completed/failed by module,
     findings by severity, agent runs by mode, auth failures). Aggregate labels
     only, so scraping leaks no engagement data; endpoint left open for scrapers.
   - **Audit view** at `GET /audit` — key-protected tail of the JSONL audit log
     (the who/what/target/when record already written for every active action).
   - **Web dashboard** at `GET /` and `/dashboard` — a self-contained vanilla-JS
-    console (`spaf/api/static/dashboard.html`) in the CLI's amber/steel theme:
+    console (`redpilot/api/static/dashboard.html`) in the CLI's amber/steel theme:
     API-key connect, status/scope/tools, a run panel (recon/toolkit/scan/webscan/
     crawl/agent with dry-run), a live WebSocket event log, findings table, and the
     audit view.
@@ -228,19 +228,19 @@ ordered by leverage; 2 (MCP) and 3 (orchestration) are the headline.
 ### Phase 7 — Multi-engagement & RBAC  *(shipped — v1.11.0)*
 - **Goal:** teams and multiple concurrent engagements.
 - **Shipped:**
-  - **Engagement workspaces** (`spaf/workspaces/manager.py`) — each isolates its
+  - **Engagement workspaces** (`redpilot/workspaces/manager.py`) — each isolates its
     own scope file, audit trail, and report storage under
-    `SPAF_ENGAGEMENTS_DIR`; work in one cannot leak into another.
+    `REDPILOT_ENGAGEMENTS_DIR`; work in one cannot leak into another.
   - **Roles** viewer/operator/lead with ordered checks (`Role`, `Principal`);
-    principals map API keys → role + allowed engagements via `SPAF_PRINCIPALS`
+    principals map API keys → role + allowed engagements via `REDPILOT_PRINCIPALS`
     (opt-in; existing keys stay all-access leads).
   - **Signed engagement authorizations** (`authorization.py`) — tamper-evident
     HMAC over engagement id + scope hash + authorizer + expiry, minted only with
-    `SPAF_AUTH_SIGNING_KEY`; active runs require a valid signature when signing
+    `REDPILOT_AUTH_SIGNING_KEY`; active runs require a valid signature when signing
     is configured.
   - **Retention policies** — per-engagement `retention_days` + `purge_expired`.
   - **RBAC middleware** in the API (principal + `X-Engagement` dependencies,
-    role gates on active/management endpoints); `spaf engagements` CLI.
+    role gates on active/management endpoints); `redpilot engagements` CLI.
 - **Acceptance:** two engagements run isolated (scope + audit); a viewer gets
   403 on active scans. ✅ (`tests/test_workspaces.py`, `tests/test_api_rbac.py`)
 
@@ -258,7 +258,7 @@ ordered by leverage; 2 (MCP) and 3 (orchestration) are the headline.
 | Secrets | **sops + age** | encrypted-at-rest, git-friendly |
 | Telemetry | **structlog + OpenTelemetry + Prometheus** | audit + metrics + traces |
 | Dashboard | **HTMX** (or Vite/React) | keep it light, API-driven |
-| Packaging | extras: `spaf[api]`, `spaf[mcp]`, `spaf[all]` | core stays dependency-light |
+| Packaging | extras: `redpilot[api]`, `redpilot[mcp]`, `redpilot[all]` | core stays dependency-light |
 
 Everything new is **optional at install** — the offline CLI + SQLite story never
 regresses.
@@ -274,7 +274,7 @@ regresses.
   time — for client deliverables and accountability.
 - **No illegal capabilities:** the redirector and any egress routing are
   authorized-engagement-only, opt-in, documented, and gated behind an explicit
-  flag + engagement authorization. SPAF does not add evasion/persistence meant
+  flag + engagement authorization. RedPilot does not add evasion/persistence meant
   for unauthorized use.
 - **Safe defaults:** TLS on, auth on, redirector off, destructive options behind
   confirmation.
@@ -290,7 +290,7 @@ Phase 0  ──▶  Phase 1 (API)  ──▶  Phase 2 (MCP ⭐)  ──▶  Phas
 Phase 4, 6, 7 follow.
 ```
 
-**Fastest path to "wow":** Phase 0 → **Phase 2 (MCP)**. Standing SPAF up as an
+**Fastest path to "wow":** Phase 0 → **Phase 2 (MCP)**. Standing RedPilot up as an
 MCP server that Claude Desktop can drive — scope-gated — is the single most
 differentiating move and proves the whole platform thesis in one shippable step.
 
@@ -299,10 +299,10 @@ differentiating move and proves the whole platform thesis in one shippable step.
 ## 7. First concrete step (on approval)
 
 Ship **Phase 0 + a minimal Phase 2**:
-1. Extract `spaf/service/` (typed, CLI-independent) + an `EventBus`.
-2. Add `spaf/mcp/server.py` exposing `recon`, `toolkit`, `scan`, `agent_run`,
+1. Extract `redpilot/service/` (typed, CLI-independent) + an `EventBus`.
+2. Add `redpilot/mcp/server.py` exposing `recon`, `toolkit`, `scan`, `agent_run`,
    `scope_*` as MCP tools over stdio, scope-enforced, with tests.
-3. Add `spaf mcp` command + a Claude Desktop config snippet in the docs.
-4. New extra `spaf[mcp]`; CI covers it; version → `2.0.0-alpha`.
+3. Add `redpilot mcp` command + a Claude Desktop config snippet in the docs.
+4. New extra `redpilot[mcp]`; CI covers it; version → `2.0.0-alpha`.
 
 Then iterate outward (HTTP transport, orchestration, gateway).

@@ -2,9 +2,9 @@ import asyncio
 
 import pytest
 
-from spaf import plugins
-from spaf.core.engine import BaseModule
-from spaf.service import SpafService
+from redpilot import plugins
+from redpilot.core.engine import BaseModule
+from redpilot.service import RedPilotService
 
 
 class _MyPlugin(BaseModule):
@@ -24,7 +24,7 @@ def test_register_and_lookup():
 
 
 def test_decorator_registers():
-    @plugins.spaf_module("decorated")
+    @plugins.redpilot_module("decorated")
     class _D(BaseModule):
         async def run(self, progress):
             return []
@@ -47,7 +47,7 @@ def test_service_runs_registered_plugin(tmp_path):
     plugins.register_module("myplugin", _MyPlugin)
     p = tmp_path / "scope.json"
     p.write_text(json.dumps({"in_scope": ["example.com"], "out_of_scope": []}))
-    svc = SpafService(str(p))
+    svc = RedPilotService(str(p))
     res = asyncio.run(svc.run_module("myplugin", "example.com", {"no_db": True}))
     assert res.status == "completed"
     assert res.findings and res.findings[0].vuln_type == "custom_finding"
@@ -57,6 +57,6 @@ def test_service_unknown_module_lists_plugins(tmp_path):
     import json
     p = tmp_path / "scope.json"
     p.write_text(json.dumps({"in_scope": ["example.com"], "out_of_scope": []}))
-    svc = SpafService(str(p))
+    svc = RedPilotService(str(p))
     with pytest.raises(ValueError):
         asyncio.run(svc.run_module("does-not-exist", "example.com", {"no_db": True}))

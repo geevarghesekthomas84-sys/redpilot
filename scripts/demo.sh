@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# SPAF demo walkthrough — records a short, deterministic tour of the CLI.
+# RedPilot demo walkthrough — records a short, deterministic tour of the CLI.
 #
 # Produce a GIF for the README:
 #   1. Install recorder + renderer:
@@ -11,7 +11,7 @@
 #   4. Commit docs/demo.gif — the README already references it.
 #
 # The demo runs offline (--no-db --no-ai) and against example.com so it is safe
-# and reproducible. Install the recon suite first (`spaf tools --install`) to see
+# and reproducible. Install the recon suite first (`redpilot tools --install`) to see
 # real toolkit output.
 
 set -e
@@ -28,19 +28,19 @@ run() {
 }
 
 clear
-echo "=== SPAF — Smart Pentesting Automation Framework ==="
+echo "=== RedPilot — AI-orchestrated offensive security automation ==="
 sleep "$PAUSE"
 
-run spaf --help
-run spaf tools
-run spaf scope add "$TARGET"
-run spaf toolkit "$TARGET" --no-db --no-ai --no-crawl --no-urls
-run spaf recon "$TARGET" --passive --no-db --no-ai
+run redpilot --help
+run redpilot tools
+run redpilot scope add "$TARGET"
+run redpilot toolkit "$TARGET" --no-db --no-ai --no-crawl --no-urls
+run redpilot recon "$TARGET" --passive --no-db --no-ai
 
 echo
 echo "=== Generate a shareable HTML report (add --with-ai for AI analysis) ==="
 sleep "$PAUSE"
-run spaf report "$TARGET" --from-file /dev/stdin --format html --output-dir ./reports <<'JSON' || true
+run redpilot report "$TARGET" --from-file /dev/stdin --format html --output-dir ./reports <<'JSON' || true
 [{"target":"example.com","vuln_type":"missing_hsts","detail":"No HSTS header","severity":"High","severity_order":2,"recommendation":"Add Strict-Transport-Security","scan_type":"webscan","discovered_at":"2026-01-01"}]
 JSON
 

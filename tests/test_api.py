@@ -6,8 +6,8 @@ import pytest
 pytest.importorskip("fastapi")
 from fastapi.testclient import TestClient  # noqa: E402
 
-import spaf.service.service as svcmod  # noqa: E402
-from spaf.api import create_app  # noqa: E402
+import redpilot.service.service as svcmod  # noqa: E402
+from redpilot.api import create_app  # noqa: E402
 
 KEY = "testkey"
 H = {"X-API-Key": KEY}
@@ -25,7 +25,7 @@ class _FakeModule:
 
 @pytest.fixture()
 def client(tmp_path, monkeypatch):
-    monkeypatch.setenv("SPAF_API_KEY", KEY)
+    monkeypatch.setenv("REDPILOT_API_KEY", KEY)
     monkeypatch.setitem(svcmod.MODULE_MAP, "webscan", _FakeModule)
     p = tmp_path / "scope.json"
     p.write_text(json.dumps({"in_scope": ["example.com"], "out_of_scope": []}))
@@ -93,7 +93,7 @@ def test_scope_add(client):
 
 def test_dashboard_served(client):
     r = client.get("/")
-    assert r.status_code == 200 and "SPAF" in r.text
+    assert r.status_code == 200 and "RedPilot" in r.text
     assert client.get("/dashboard").status_code == 200
 
 
@@ -109,13 +109,13 @@ def test_metrics_open_and_records(client):
         _t.sleep(0.05)
     m = client.get("/metrics")
     assert m.status_code == 200
-    assert "spaf_scans_started_total" in m.text
-    assert "spaf_findings_total" in m.text
+    assert "redpilot_scans_started_total" in m.text
+    assert "redpilot_findings_total" in m.text
 
 
 def test_auth_failure_metric(client):
     client.get("/scope")  # no key -> 401
-    assert "spaf_auth_failures_total" in client.get("/metrics").text
+    assert "redpilot_auth_failures_total" in client.get("/metrics").text
 
 
 def test_audit_requires_key(client):

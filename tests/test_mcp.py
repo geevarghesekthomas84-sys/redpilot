@@ -5,9 +5,9 @@ import pytest
 
 pytest.importorskip("mcp")  # skip if the mcp extra isn't installed
 
-from spaf.mcp.server import build_server  # noqa: E402
-from spaf.mcp import shaping  # noqa: E402
-from spaf.service.models import ScanResult, Finding  # noqa: E402
+from redpilot.mcp.server import build_server  # noqa: E402
+from redpilot.mcp import shaping  # noqa: E402
+from redpilot.service.models import ScanResult, Finding  # noqa: E402
 
 
 def _server(tmp_path, scope=None):

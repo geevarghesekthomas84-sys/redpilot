@@ -16,7 +16,7 @@ proxies.txt
 /logs/
 *.log
 
-# Reports (generated output dir at repo root — not the spaf/reports package)
+# Reports (generated output dir at repo root — not the redpilot/reports package)
 /reports/
 
 # OS

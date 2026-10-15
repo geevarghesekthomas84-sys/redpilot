@@ -3,9 +3,9 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "spaf"
-version = "1.14.0"
-description = "Smart Pentesting Automation Framework — AI-augmented offensive security automation"
+name = "redpilot"
+version = "2.0.0"
+description = "RedPilot — AI-orchestrated offensive security automation"
 readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "MIT" }
@@ -46,7 +46,7 @@ dependencies = [
 [project.optional-dependencies]
 # HTTP API: REST + WebSocket over the service layer.
 api = ["fastapi>=0.110", "uvicorn[standard]>=0.27"]
-# MCP server: expose SPAF as tools for Claude Desktop / MCP hosts.
+# MCP server: expose RedPilot as tools for Claude Desktop / MCP hosts.
 mcp = ["mcp>=1.2"]
 # AI providers and passive-intel integrations (imported lazily / guarded).
 ai = [
@@ -58,10 +58,10 @@ intel = ["shodan>=1.28.0"]
 dev = ["pytest>=7.4.0", "pytest-asyncio>=0.21.0", "httpx>=0.27"]
 
 [tool.setuptools.packages.find]
-include = ["spaf*"]
+include = ["redpilot*"]
 
 [tool.setuptools.package-data]
-"spaf.api" = ["static/*.html"]
+"redpilot.api" = ["static/*.html"]
 
 [project.urls]
 Homepage = "https://github.com/geevarghesekthomas84-sys/spaf"
@@ -70,7 +70,7 @@ Issues = "https://github.com/geevarghesekthomas84-sys/spaf/issues"
 Changelog = "https://github.com/geevarghesekthomas84-sys/spaf/blob/master/CHANGELOG.md"
 
 [project.scripts]
-spaf = "spaf.cli.main:entry_point"
+redpilot = "redpilot.cli.main:entry_point"
 
 [tool.ruff]
 line-length = 120

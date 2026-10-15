@@ -1,6 +1,6 @@
 from rich.console import Console
 
-from spaf.agent.orchestrator import PentestAgent, ACTIONS, ACTIVE_ACTIONS
+from redpilot.agent.orchestrator import PentestAgent, ACTIONS, ACTIVE_ACTIONS
 
 
 def _agent(target="example.com", options=None):

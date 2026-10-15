@@ -1,6 +1,6 @@
 import json
 
-from spaf.reports.generator import ReportGenerator
+from redpilot.reports.generator import ReportGenerator
 
 FINDINGS = [
     {

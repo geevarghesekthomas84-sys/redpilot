@@ -2,18 +2,18 @@
      matches the CLI + dashboard design system) + a hosted typing ticker. -->
 <div align="center">
 
-<img alt="SPAF — Smart Pentesting Automation Framework" width="100%" src="https://raw.githubusercontent.com/geevarghesekthomas84-sys/spaf/master/assets/hero.svg" />
+<img alt="RedPilot — AI-orchestrated offensive security automation" width="100%" src="https://raw.githubusercontent.com/geevarghesekthomas84-sys/spaf/master/assets/hero.svg" />
 
 <a href="https://github.com/geevarghesekthomas84-sys/spaf">
   <img alt="AI plans → runs → reports"
-       src="https://readme-typing-svg.demolab.com?font=JetBrains+Mono&weight=700&size=21&pause=1000&color=E0A82E&center=true&vCenter=true&width=780&height=44&lines=%24+spaf+agent+target.com;the+AI+plans+%E2%86%92+runs+the+tools+%E2%86%92+writes+it+up;recon+%C2%B7+web+%C2%B7+network+%C2%B7+nuclei+%C2%B7+crawler;drive+it+from+CLI+%C2%B7+API+%C2%B7+MCP+%C2%B7+dashboard" />
+       src="https://readme-typing-svg.demolab.com?font=JetBrains+Mono&weight=700&size=21&pause=1000&color=E0A82E&center=true&vCenter=true&width=780&height=44&lines=%24+redpilot+agent+target.com;the+AI+plans+%E2%86%92+runs+the+tools+%E2%86%92+writes+it+up;recon+%C2%B7+web+%C2%B7+network+%C2%B7+nuclei+%C2%B7+crawler;drive+it+from+CLI+%C2%B7+API+%C2%B7+MCP+%C2%B7+dashboard" />
 </a>
 
 <p><b>AI-orchestrated offensive security</b> — one target in, a written assessment out.<br>
 <sub>Built for Kali, bug bounty, and red-team work · <b>authorized testing only</b></sub></p>
 
 <p>
-  <a href="https://pypi.org/project/spaf/"><img alt="PyPI" src="https://img.shields.io/pypi/v/spaf?style=flat-square&label=pypi&labelColor=0a0e12&color=E0A82E"></a>
+  <a href="https://pypi.org/project/redpilot/"><img alt="PyPI" src="https://img.shields.io/pypi/v/redpilot?style=flat-square&label=pypi&labelColor=0a0e12&color=E0A82E"></a>
   <a href="https://github.com/geevarghesekthomas84-sys/spaf/actions/workflows/ci.yml"><img alt="ci" src="https://img.shields.io/github/actions/workflow/status/geevarghesekthomas84-sys/spaf/ci.yml?branch=master&style=flat-square&label=ci&labelColor=0a0e12&color=E0A82E"></a>
   <a href="https://python.org"><img alt="python" src="https://img.shields.io/badge/python-3.11+-E0A82E?style=flat-square&labelColor=0a0e12&logo=python&logoColor=E0A82E"></a>
   <a href="LICENSE"><img alt="license" src="https://img.shields.io/badge/license-MIT-9AA6B2?style=flat-square&labelColor=0a0e12"></a>
@@ -37,21 +37,21 @@
 
 ---
 
-> **Point SPAF at a target and it runs the engagement.** The AI plans the recon,
-> SPAF runs the tools on your machine, and you get the findings plus a written
+> **Point RedPilot at a target and it runs the engagement.** The AI plans the recon,
+> RedPilot runs the tools on your machine, and you get the findings plus a written
 > assessment — built for Kali, bug bounty, and red-team work.
 
 ```bash
-pip install "spaf[ai]"        # SPAF + the AI providers
-spaf setup                    # pick your AI + database (SQLite = zero setup)
-spaf agent target.com         # the AI plans → runs → reports, end to end
+pip install "redpilot[ai]"        # RedPilot + the AI providers
+redpilot setup                    # pick your AI + database (SQLite = zero setup)
+redpilot agent target.com         # the AI plans → runs → reports, end to end
 ```
 
 <sub>⚠️ Authorized testing only — see the <a href="#-legal-disclaimer">Legal Disclaimer</a>.</sub>
 
 ### What you get
 
-- **`spaf agent`** — an autonomous agent: the AI chooses which modules to run, chains them, and writes the assessment.
+- **`redpilot agent`** — an autonomous agent: the AI chooses which modules to run, chains them, and writes the assessment.
 - **Recon toolkit** — one pipeline wrapping `subfinder`, `httpx`, `nuclei`, `katana`, `dnsx`, `ffuf` and more.
 - **AI threat analysis** after every scan — Gemini, Claude, Ollama, or LM Studio — plus PoC and remediation code on demand.
 - **Full attack surface** — recon, network + CVE mapping, web audit, crawler, passive Shodan intel.
@@ -64,7 +64,7 @@ spaf agent target.com         # the AI plans → runs → reports, end to end
 
 ## ◇ How it works
 
-One target in, a written assessment out. Reach SPAF from any **surface** — the
+One target in, a written assessment out. Reach RedPilot from any **surface** — the
 CLI, the HTTP API, the web dashboard, or an MCP host — and they all drive the
 **same engine**: every active step is scope-gated and audit-logged, runs the
 modules on your machine, and the AI writes it up.
@@ -74,7 +74,7 @@ modules on your machine, and the AI writes it up.
 flowchart TD
   subgraph SURF [ surfaces ]
     direction LR
-    CLI[spaf CLI]:::box
+    CLI[redpilot CLI]:::box
     API[HTTP API<br/>REST · WebSocket]:::box
     DASH[web dashboard<br/>+ /metrics]:::box
     MCP[MCP server<br/>Claude Desktop]:::box
@@ -113,7 +113,7 @@ flowchart TD
   classDef dim fill:#11161a,stroke:#2b3a2f,color:#9AA6B2;
 ```
 
-<sub>Run the whole chain with <code>spaf agent target.com</code> (AI-planned) or <code>spaf pipeline target.com</code> (deterministic <b>discovery → validation → remediation → report</b>), any single stage on its own (<code>spaf recon</code>, <code>spaf toolkit</code>, <code>spaf scan</code>, …), or the same over the API / dashboard / MCP — all scope-gated and audit-logged through one engine.</sub>
+<sub>Run the whole chain with <code>redpilot agent target.com</code> (AI-planned) or <code>redpilot pipeline target.com</code> (deterministic <b>discovery → validation → remediation → report</b>), any single stage on its own (<code>redpilot recon</code>, <code>redpilot toolkit</code>, <code>redpilot scan</code>, …), or the same over the API / dashboard / MCP — all scope-gated and audit-logged through one engine.</sub>
 
 ---
 
@@ -124,15 +124,15 @@ flowchart TD
 <td valign="top" width="50%">
 
 ### 🧠 AI Intelligence Suite
-Connect to any leading AI model for Red Team-grade analysis. After **every scan**, SPAF automatically sends findings to your configured AI and generates a module-specific intelligence report covering attack paths, exploitation techniques, CVE correlation, and actionable remediation — printed directly in the terminal.
+Connect to any leading AI model for Red Team-grade analysis. After **every scan**, RedPilot automatically sends findings to your configured AI and generates a module-specific intelligence report covering attack paths, exploitation techniques, CVE correlation, and actionable remediation — printed directly in the terminal.
 
 **Supported providers (all work with every command):**
 | Provider | Type | Shortcut |
 |---|---|---|
-| Google Gemini 2.0 Flash | ☁️ Remote | `spaf gemini` |
-| Anthropic Claude 3.5 | ☁️ Remote | `spaf claude` |
-| Ollama (local) | 💻 Streaming | `spaf ollama` |
-| LM Studio (local) | 💻 Streaming | `spaf lmstudio` |
+| Google Gemini 2.0 Flash | ☁️ Remote | `redpilot gemini` |
+| Anthropic Claude 3.5 | ☁️ Remote | `redpilot claude` |
+| Ollama (local) | 💻 Streaming | `redpilot ollama` |
+| LM Studio (local) | 💻 Streaming | `redpilot lmstudio` |
 
 > Local providers (**Ollama / LM Studio**) stream tokens in real-time as they are generated.  
 > Add `--no-ai` to any scan command to skip AI analysis.
@@ -164,7 +164,7 @@ Build a complete attack surface map before firing a single payload.
 - DNS Record audit: SPF, DMARC, AXFR zone transfer
 - WHOIS registrant email exposure analysis
 - **Shodan passive IP intelligence** (optional)
-- **External recon toolkit** (`spaf toolkit`) — chains `subfinder`, `assetfinder`, `dnsx`, `httpx`, `katana`, `hakrawler`, `waybackurls`, `gau`, `ffuf` & `nuclei` into one pipeline (run `spaf tools` to check installs)
+- **External recon toolkit** (`redpilot toolkit`) — chains `subfinder`, `assetfinder`, `dnsx`, `httpx`, `katana`, `hakrawler`, `waybackurls`, `gau`, `ffuf` & `nuclei` into one pipeline (run `redpilot tools` to check installs)
 
 </td>
 <td valign="top" width="50%">
@@ -198,8 +198,8 @@ Generate executive-grade deliverables.
 
 - 🌑 **Dark-mode HTML Dashboard** with severity-ranked findings
 - 📄 **Structured JSON** output for pipelines
-- 📋 **CSV Export** (`spaf export`) for client-ready spreadsheets
-- 🔍 **Scan Diff** (`spaf diff`) — compare any two scans visually
+- 📋 **CSV Export** (`redpilot export`) for client-ready spreadsheets
+- 🔍 **Scan Diff** (`redpilot diff`) — compare any two scans visually
 
 </td>
 </tr>
@@ -207,7 +207,7 @@ Generate executive-grade deliverables.
 <td valign="top" width="100%" colspan="2">
 
 ### 🧰 External Recon Toolkit
-Chain a suite of best-in-class open-source recon binaries into a single pipeline with `spaf toolkit`. Each stage feeds the next, and every tool is **optional** — missing binaries are skipped gracefully (check status with `spaf tools`).
+Chain a suite of best-in-class open-source recon binaries into a single pipeline with `redpilot toolkit`. Each stage feeds the next, and every tool is **optional** — missing binaries are skipped gracefully (check status with `redpilot tools`).
 
 ```
 subfinder / assetfinder  →  dnsx  →  httpx  →  katana / hakrawler
@@ -233,11 +233,11 @@ subfinder / assetfinder  →  dnsx  →  httpx  →  katana / hakrawler
 A 60-second tour — safe to run offline against `example.com`:
 
 ```bash
-spaf tools                       # see which recon binaries are installed
-spaf tools --install             # install the Go recon suite (requires Go)
-spaf scope add example.com       # define engagement scope
-spaf toolkit example.com         # subfinder → httpx → katana → nuclei pipeline
-spaf report example.com --format html --with-ai   # shareable HTML report + AI analysis
+redpilot tools                       # see which recon binaries are installed
+redpilot tools --install             # install the Go recon suite (requires Go)
+redpilot scope add example.com       # define engagement scope
+redpilot toolkit example.com         # subfinder → httpx → katana → nuclei pipeline
+redpilot report example.com --format html --with-ai   # shareable HTML report + AI analysis
 ```
 
 > ▶️ Generate a walkthrough GIF for your fork with [`scripts/demo.sh`](scripts/demo.sh) — recipe in [`docs/demo.md`](docs/demo.md).
@@ -249,17 +249,17 @@ spaf report example.com --format html --with-ai   # shareable HTML report + AI a
 ### From PyPI (recommended)
 
 ```bash
-pip install spaf                 # core
-pip install "spaf[ai]"           # + Google / Claude / OpenAI-compatible providers
-pip install "spaf[intel]"        # + Shodan passive intelligence
-pip install "spaf[ai,intel]"     # everything
+pip install redpilot                 # core
+pip install "redpilot[ai]"           # + Google / Claude / OpenAI-compatible providers
+pip install "redpilot[intel]"        # + Shodan passive intelligence
+pip install "redpilot[ai,intel]"     # everything
 ```
 
 ### From source (for development)
 
 ```bash
 git clone https://github.com/geevarghesekthomas84-sys/spaf.git
-cd spaf
+cd redpilot
 python -m venv venv
 source venv/bin/activate         # Windows: venv\Scripts\activate
 pip install -e ".[ai,intel,dev]" # editable install with all extras + test tools
@@ -269,15 +269,15 @@ pip install -e ".[ai,intel,dev]" # editable install with all extras + test tools
 
 ```bash
 cp .env.example .env             # configure providers / MongoDB / stealth
-spaf --install-completion        # shell tab-completion (optional)
-spaf tools --install             # install the recon toolkit binaries (needs Go)
-spaf setup                       # interactive configuration wizard
+redpilot --install-completion        # shell tab-completion (optional)
+redpilot tools --install             # install the recon toolkit binaries (needs Go)
+redpilot setup                       # interactive configuration wizard
 ```
 
 > **Requirements:** Python 3.11+, [Nmap](https://nmap.org), MongoDB (local or remote)
 >
 > **Optional:** [RustScan](https://github.com/RustScan/RustScan) for ultra-fast port discovery
-> · the [recon toolkit](#-external-recon-toolkit) binaries (`spaf tools` to check)
+> · the [recon toolkit](#-external-recon-toolkit) binaries (`redpilot tools` to check)
 > · Shodan via the `intel` extra above
 
 ---
@@ -287,18 +287,18 @@ spaf setup                       # interactive configuration wizard
 The fastest way to get running — no manual setup of MongoDB or Python environment needed.
 
 ```bash
-# 1. Start MongoDB + SPAF in one command
+# 1. Start MongoDB + RedPilot in one command
 docker-compose up -d
 
 # 2. Run any scan
-docker-compose run spaf recon target.com
-docker-compose run spaf scan target.com --scanner rustscan --ports 1-65535
+docker-compose run redpilot recon target.com
+docker-compose run redpilot scan target.com --scanner rustscan --ports 1-65535
 
 # 3. Drop into interactive AI shell
-docker-compose run spaf shell
+docker-compose run redpilot shell
 
 # Override the entire command
-docker-compose run spaf export target.com --format csv
+docker-compose run redpilot export target.com --format csv
 ```
 
 > **Note:** `docker-compose.yml` uses `network_mode: host` so Nmap/RustScan can reach real targets.  
@@ -309,7 +309,7 @@ docker-compose run spaf export target.com --format csv
 ```bash
 podman compose up -d                 # Podman 4.4+ (uses the compose provider)
 # or: podman-compose up -d
-podman compose run spaf recon target.com
+podman compose run redpilot recon target.com
 ```
 
 > On **SELinux** hosts (Fedora/RHEL), if a bind mount gives "permission denied",
@@ -351,13 +351,13 @@ PROXY_FILE=./proxies.txt
 RANDOM_USER_AGENT=true
 
 # ─── Database ────────────────────────────────────────────────────
-SPAF_DB_BACKEND=mongo                      # mongo (default) | sqlite
-SPAF_MONGO_URI=mongodb://localhost:27017   # used when backend = mongo
-SPAF_SQLITE_PATH=spaf.db                   # used when backend = sqlite
+REDPILOT_DB_BACKEND=mongo                      # mongo (default) | sqlite
+REDPILOT_MONGO_URI=mongodb://localhost:27017   # used when backend = mongo
+REDPILOT_SQLITE_PATH=redpilot.db                   # used when backend = sqlite
 ```
 
-> **No MongoDB? Use the SQLite fallback.** Set `SPAF_DB_BACKEND=sqlite` (or pick
-> it in `spaf setup`) and SPAF stores everything in a local file — no database
+> **No MongoDB? Use the SQLite fallback.** Set `REDPILOT_DB_BACKEND=sqlite` (or pick
+> it in `redpilot setup`) and RedPilot stores everything in a local file — no database
 > server needed. Great for quick/offline use.
 
 ---
@@ -368,73 +368,73 @@ SPAF_SQLITE_PATH=spaf.db                   # used when backend = sqlite
 
 ```bash
 # ─── Autonomous Agent (AI plans & chains the modules) ────────────
-spaf agent target.com                                # plan → confirm → run → AI assessment
-spaf agent target.com --goal "find web vulns" -y     # steer it, skip the prompt
-spaf agent target.com --dry-run                      # preview the plan only
+redpilot agent target.com                                # plan → confirm → run → AI assessment
+redpilot agent target.com --goal "find web vulns" -y     # steer it, skip the prompt
+redpilot agent target.com --dry-run                      # preview the plan only
 
 # ─── Reconnaissance ──────────────────────────────────────────────
-spaf recon target.com                                # Recon + AI + Shodan (if key set)
-spaf recon target.com --passive --no-ai              # Passive OSINT only
+redpilot recon target.com                                # Recon + AI + Shodan (if key set)
+redpilot recon target.com --passive --no-ai              # Passive OSINT only
 
 # ─── Network Scanning ────────────────────────────────────────────
-spaf scan target.com                                 # Nmap + AI analysis
-spaf scan target.com --scanner rustscan --ports 1-65535  # RustScan → Nmap
-spaf scan target.com --intensity aggressive          # Deep scan (-sV -sC -O -A)
+redpilot scan target.com                                 # Nmap + AI analysis
+redpilot scan target.com --scanner rustscan --ports 1-65535  # RustScan → Nmap
+redpilot scan target.com --intensity aggressive          # Deep scan (-sV -sC -O -A)
 
 # ─── Web Security ────────────────────────────────────────────────
-spaf webscan https://target.com                      # Full web audit + AI
-spaf crawl https://target.com --depth 3              # Spider + AI
+redpilot webscan https://target.com                      # Full web audit + AI
+redpilot crawl https://target.com --depth 3              # Spider + AI
 
 # ─── External Recon Toolkit ──────────────────────────────────────
-spaf tools                                           # Show which recon tools are installed
-spaf toolkit target.com                              # Full pipeline: subfinder→httpx→katana→nuclei
-spaf toolkit target.com --no-nuclei --no-crawl       # Passive recon only (no active scan)
-spaf toolkit target.com --fuzz --wordlist wl.txt     # Add ffuf content fuzzing
-spaf toolkit target.com --nuclei-severity critical,high --output recon.json
+redpilot tools                                           # Show which recon tools are installed
+redpilot toolkit target.com                              # Full pipeline: subfinder→httpx→katana→nuclei
+redpilot toolkit target.com --no-nuclei --no-crawl       # Passive recon only (no active scan)
+redpilot toolkit target.com --fuzz --wordlist wl.txt     # Add ffuf content fuzzing
+redpilot toolkit target.com --nuclei-severity critical,high --output recon.json
 
 # ─── AI Provider Shortcuts (all context-safe) ────────────────────
-spaf test-ai                                         # Health check + status table
-spaf chat "How do I bypass a WAF?"                   # Configured provider
-spaf gemini "Explain CVE-2024-1234"                  # Google Gemini
-spaf claude "Write an Ansible remediation task"      # Anthropic Claude
-spaf ollama "List SMB exploitation paths"            # Ollama — live streaming
-spaf lmstudio "Analyze these HTTP headers"           # LM Studio — live streaming
+redpilot test-ai                                         # Health check + status table
+redpilot chat "How do I bypass a WAF?"                   # Configured provider
+redpilot gemini "Explain CVE-2024-1234"                  # Google Gemini
+redpilot claude "Write an Ansible remediation task"      # Anthropic Claude
+redpilot ollama "List SMB exploitation paths"            # Ollama — live streaming
+redpilot lmstudio "Analyze these HTTP headers"           # LM Studio — live streaming
 
 # ─── AI Analysis on past scans ───────────────────────────────────
-spaf ai <scan_id>                                    # Re-analyze (no re-scan)
-spaf ai <scan_id> --provider ollama                  # Use Ollama for this run
+redpilot ai <scan_id>                                    # Re-analyze (no re-scan)
+redpilot ai <scan_id> --provider ollama                  # Use Ollama for this run
 
 # ─── Exploit & Remediation ───────────────────────────────────────
-spaf poc <finding_id>                                # Generate Python exploit script
-spaf poc <finding_id> --output exploit.py
-spaf remediate <finding_id> --format ansible         # Fix code (ansible/terraform/bash)
+redpilot poc <finding_id>                                # Generate Python exploit script
+redpilot poc <finding_id> --output exploit.py
+redpilot remediate <finding_id> --format ansible         # Fix code (ansible/terraform/bash)
 
 # ─── Operations ──────────────────────────────────────────────────
-spaf export target.com --format csv                  # Export findings to CSV
-spaf export target.com --format json                 # Export findings to JSON
-spaf diff <scan_id_1> <scan_id_2>                    # Compare two scans
-spaf scope show                                      # View engagement scope
-spaf scope add target.com                            # Add to scope
-spaf scope remove target.com                         # Remove from scope
-spaf watch target.com --interval 3600 --module webscan   # 24/7 monitoring
-spaf report target.com --format html                 # Premium HTML report
-spaf history                                         # Past scan records
-spaf shell                                           # Interactive AI shell
-spaf update                                          # Update SPAF to latest
+redpilot export target.com --format csv                  # Export findings to CSV
+redpilot export target.com --format json                 # Export findings to JSON
+redpilot diff <scan_id_1> <scan_id_2>                    # Compare two scans
+redpilot scope show                                      # View engagement scope
+redpilot scope add target.com                            # Add to scope
+redpilot scope remove target.com                         # Remove from scope
+redpilot watch target.com --interval 3600 --module webscan   # 24/7 monitoring
+redpilot report target.com --format html                 # Premium HTML report
+redpilot history                                         # Past scan records
+redpilot shell                                           # Interactive AI shell
+redpilot update                                          # Update RedPilot to latest
 ```
 
 ---
 
 ## ◇ MCP server <sup>new in 1.5</sup>
 
-Run SPAF as an **MCP server** so Claude Desktop (or any MCP host) can drive it
+Run RedPilot as an **MCP server** so Claude Desktop (or any MCP host) can drive it
 with natural language — recon, the toolkit, scans, and the autonomous agent, all
 as native tools, locally.
 
 ```bash
-pip install "spaf[mcp]"           # installs the MCP support
-spaf scope add target.com         # authorize a target first
-spaf mcp                          # serve over stdio
+pip install "redpilot[mcp]"           # installs the MCP support
+redpilot scope add target.com         # authorize a target first
+redpilot mcp                          # serve over stdio
 ```
 
 Add it to **Claude Desktop** (`claude_desktop_config.json`):
@@ -442,7 +442,7 @@ Add it to **Claude Desktop** (`claude_desktop_config.json`):
 ```json
 {
   "mcpServers": {
-    "spaf": { "command": "spaf", "args": ["mcp"] }
+    "redpilot": { "command": "redpilot", "args": ["mcp"] }
   }
 }
 ```
@@ -454,7 +454,7 @@ Then ask Claude things like *"recon target.com and summarize the risks."*
   there is **no bypass flag** exposed to the model.
 - `agent_run` is **plan-only by default**; active execution needs an explicit
   `dry_run=false` and an in-scope target.
-- **No raw-command tool** — the model only selects SPAF's fixed modules.
+- **No raw-command tool** — the model only selects RedPilot's fixed modules.
 - Every active call is written to an **audit log** (`logs/audit.jsonl`).
 
 > See [`docs/ROADMAP_V2.md`](docs/ROADMAP_V2.md) for the full platform plan
@@ -464,14 +464,14 @@ Then ask Claude things like *"recon target.com and summarize the risks."*
 
 ## ◇ HTTP API <sup>new in 1.6</sup>
 
-Run SPAF as a service — everything the CLI does, over REST, with **live scan
+Run RedPilot as a service — everything the CLI does, over REST, with **live scan
 events over WebSocket**. Secure by default: every endpoint except `/health` and
 `/version` needs an API key, and active scans are scope-gated.
 
 ```bash
-pip install "spaf[api]"
-export SPAF_API_KEYS="your-secret-key"   # or let it print a generated one
-spaf serve                               # http://127.0.0.1:8000  (docs at /docs)
+pip install "redpilot[api]"
+export REDPILOT_API_KEYS="your-secret-key"   # or let it print a generated one
+redpilot serve                               # http://127.0.0.1:8000  (docs at /docs)
 ```
 
 ```bash
@@ -507,10 +507,10 @@ curl -s -XPOST localhost:8000/scans -H "X-API-Key: $KEY" \
 ## ◇ Dashboard & metrics <sup>new in 1.10</sup>
 
 The API ships a **self-contained web console** and **Prometheus metrics** — no
-extra install beyond `spaf[api]`.
+extra install beyond `redpilot[api]`.
 
 ```bash
-spaf serve
+redpilot serve
 open http://127.0.0.1:8000/          # the dashboard (enter your API key to connect)
 curl -s localhost:8000/metrics       # Prometheus scrape target
 ```
@@ -534,7 +534,7 @@ Run the API hardened, behind a TLS reverse-proxy gateway — one command.
 
 ```bash
 cd deploy
-cp .env.example .env            # set SPAF_API_KEYS (and SPAF_DOMAIN for real TLS)
+cp .env.example .env            # set REDPILOT_API_KEYS (and REDPILOT_DOMAIN for real TLS)
 docker compose up -d --build    # Caddy gateway + API (SQLite, zero-setup)
 curl -k https://localhost/health
 ```
@@ -553,34 +553,34 @@ curl -k https://localhost/health
 ## ◇ Extend it <sup>new in 1.9</sup>
 
 **Plugins** — add your own scan module by subclassing `PluginModule` and
-advertising it via the `spaf.modules` entry-point group:
+advertising it via the `redpilot.modules` entry-point group:
 
 ```toml
 # your plugin's pyproject.toml
-[project.entry-points."spaf.modules"]
+[project.entry-points."redpilot.modules"]
 myscan = "my_pkg.module:MyScanModule"
 ```
 
 ```bash
-spaf plugins            # list discovered plugins
-spaf myscan target.com  # runs like a built-in (CLI / API / MCP)
+redpilot plugins            # list discovered plugins
+redpilot myscan target.com  # runs like a built-in (CLI / API / MCP)
 ```
 
-**Consume external MCP servers** — point SPAF at other MCP servers (CVE/OSINT
+**Consume external MCP servers** — point RedPilot at other MCP servers (CVE/OSINT
 feeds, your own tools) in Claude-Desktop shape (`mcp_servers.json`):
 
 ```bash
-spaf mcp-tools          # list tools exposed by the configured servers
+redpilot mcp-tools          # list tools exposed by the configured servers
 ```
 
 > Plugins and external MCP tools run through the CLI/API/service — they are not
 > auto-added to the autonomous agent's fixed action set (that stays curated).
 
 **Machine-readable output** — every surface returns the same typed models; emit
-their **JSON Schema** so downstream tooling can validate SPAF output:
+their **JSON Schema** so downstream tooling can validate RedPilot output:
 
 ```bash
-spaf schema --write docs/schemas     # or: GET /schema over the API
+redpilot schema --write docs/schemas     # or: GET /schema over the API
 ```
 
 > Architecture, request flow, and all three extension seams (modules, providers,
@@ -597,21 +597,21 @@ trail, and report storage; nothing leaks between them.
 
 ```bash
 # create an engagement (optionally with a signed client authorization)
-export SPAF_AUTH_SIGNING_KEY="…"      # minting key for authorizations
-spaf engagements --create "Acme Corp" --scope "acme.com,api.acme.com" \
+export REDPILOT_AUTH_SIGNING_KEY="…"      # minting key for authorizations
+redpilot engagements --create "Acme Corp" --scope "acme.com,api.acme.com" \
                  --authorized-by "ciso@acme.com" --retention-days 90
-spaf engagements                       # list them
+redpilot engagements                       # list them
 ```
 
 **Roles** — map API keys to a role and the engagements they may touch:
 
 ```bash
-export SPAF_PRINCIPALS='{
+export REDPILOT_PRINCIPALS='{
   "LEAD_KEY":  {"name":"lead","role":"lead","engagements":["*"]},
   "OP_KEY":    {"name":"op","role":"operator","engagements":["acme-corp"]},
   "VIEW_KEY":  {"name":"client","role":"viewer","engagements":["acme-corp"]}
 }'
-spaf serve
+redpilot serve
 ```
 
 | Role | Can |
@@ -625,12 +625,12 @@ workspace. `GET /whoami` shows your identity; `GET/POST /engagements` list/creat
 them. A **viewer** gets `403` on active endpoints; access outside your granted
 engagements is `403`; an unknown engagement is `404`.
 
-- **Signed authorizations** — with `SPAF_AUTH_SIGNING_KEY` set, an engagement's
+- **Signed authorizations** — with `REDPILOT_AUTH_SIGNING_KEY` set, an engagement's
   authorization is a tamper-evident HMAC over its id, scope hash, authorizer, and
   expiry. Editing the stored scope or expiry invalidates it, and active runs are
   refused without a valid, unexpired signature.
-- **Backwards-compatible** — with no `SPAF_PRINCIPALS` set, your existing
-  `SPAF_API_KEYS` act as all-access **leads** and a single default engagement is
+- **Backwards-compatible** — with no `REDPILOT_PRINCIPALS` set, your existing
+  `REDPILOT_API_KEYS` act as all-access **leads** and a single default engagement is
   used, so nothing changes until you opt in.
 
 ---
@@ -638,9 +638,9 @@ engagements is `403`; an unknown engagement is `404`.
 ## ◇ AI providers
 
 > **Model routing, caching & budgets** (1.7+): the agent routes each task to a
-> model you choose (`SPAF_MODEL_PLAN`, `SPAF_MODEL_ANALYZE`, …, comma-separated
-> for fallbacks), caches responses (`SPAF_CACHE=off` to disable), and bounds each
-> run (`SPAF_BUDGET_CALLS` / `SPAF_BUDGET_SECONDS`). Unset = your provider's default.
+> model you choose (`REDPILOT_MODEL_PLAN`, `REDPILOT_MODEL_ANALYZE`, …, comma-separated
+> for fallbacks), caches responses (`REDPILOT_CACHE=off` to disable), and bounds each
+> run (`REDPILOT_BUDGET_CALLS` / `REDPILOT_BUDGET_SECONDS`). Unset = your provider's default.
 
 ### Quick Comparison
 
@@ -665,10 +665,10 @@ OLLAMA_URL=http://localhost:11434/v1   # default, change if remote
 OLLAMA_MODEL=llama3.2                  # optional — auto-detected if not set
 
 # 4. Test connection
-spaf test-ai
+redpilot test-ai
 
 # 5. Use shortcut (tokens stream in real-time)
-spaf ollama "List exploitation paths for open SMB ports"
+redpilot ollama "List exploitation paths for open SMB ports"
 ```
 
 ### LM Studio Setup
@@ -684,10 +684,10 @@ LM_STUDIO_URL=http://localhost:1234/v1  # default
 LM_STUDIO_MODEL=your-model-name         # optional — auto-detected from loaded model
 
 # 5. Test connection
-spaf test-ai
+redpilot test-ai
 
 # 6. Use shortcut (tokens stream in real-time)
-spaf lmstudio "Analyze these HTTP headers for security risks"
+redpilot lmstudio "Analyze these HTTP headers for security risks"
 ```
 
 > **All AI name variants accepted:** `lmstudio`, `lm-studio`, `lm_studio` all work as `AI_PROVIDER` values.
@@ -696,7 +696,7 @@ spaf lmstudio "Analyze these HTTP headers for security risks"
 
 ## ◇ Shodan intel
 
-Enrich every `spaf recon` scan with **passive Shodan intelligence** — open ports, org, ISP, and country — without sending any packets to the target.
+Enrich every `redpilot recon` scan with **passive Shodan intelligence** — open ports, org, ISP, and country — without sending any packets to the target.
 
 ```bash
 # 1. Get a free API key → https://account.shodan.io/register
@@ -707,7 +707,7 @@ SHODAN_API_KEY=your_api_key
 pip install shodan
 
 # 4. Run recon — Shodan data is fetched automatically
-spaf recon target.com
+redpilot recon target.com
 ```
 
 ---
@@ -716,21 +716,21 @@ spaf recon target.com
 
 ```bash
 # View scan history to get IDs
-spaf history
+redpilot history
 
 # Compare two scans — see what's new, fixed, or unchanged
-spaf diff <older_scan_id> <newer_scan_id>
+redpilot diff <older_scan_id> <newer_scan_id>
 
 # Export all findings for a target to CSV (for clients)
-spaf export target.com --format csv
-spaf export target.com --format json --output /tmp/findings.json
+redpilot export target.com --format csv
+redpilot export target.com --format json --output /tmp/findings.json
 ```
 
 ---
 
 ## ◇ Safety & hardening
 
-SPAF is **authorized-testing-only** tooling, built fail-safe. Layered controls:
+RedPilot is **authorized-testing-only** tooling, built fail-safe. Layered controls:
 
 - **Scope enforcement** — out-of-scope targets are refused (fail-closed when a
   scope is set); **signed authorizations** gate active runs.
@@ -746,8 +746,8 @@ SPAF is **authorized-testing-only** tooling, built fail-safe. Layered controls:
 
 ```bash
 # Dry-run the pipeline without touching any target (synthetic findings):
-SPAF_MOCK=1 spaf webscan target.com        # any module / the agent honor it
-SPAF_MOCK=1 spaf agent target.com -y       # or over the API: options {"mock": true}
+REDPILOT_MOCK=1 redpilot webscan target.com        # any module / the agent honor it
+REDPILOT_MOCK=1 redpilot agent target.com -y       # or over the API: options {"mock": true}
 ```
 
 > Full detail — assets, trust boundaries, and a per-workflow **risk
@@ -760,17 +760,17 @@ SPAF_MOCK=1 spaf agent target.com -y       # or over the API: options {"mock": t
 
 ```bash
 # Initialise scope (creates scope.json in current directory)
-spaf scope add target.com
-spaf scope add 10.0.0.0/24
+redpilot scope add target.com
+redpilot scope add 10.0.0.0/24
 
 # View current scope
-spaf scope show
+redpilot scope show
 
 # Remove a target
-spaf scope remove 10.0.0.0/24
+redpilot scope remove 10.0.0.0/24
 
 # Use a custom scope file
-spaf scope show --file engagement_scope.json
+redpilot scope show --file engagement_scope.json
 ```
 
 ---
@@ -778,11 +778,11 @@ spaf scope show --file engagement_scope.json
 ## ◇ Project structure
 
 ```
-spaf/
-├── spaf/
+redpilot/
+├── redpilot/
 │   ├── cli/          # Typer CLI — all commands
 │   ├── core/         # Async engine & BaseModule
-│   ├── agent/        # autonomous AI orchestrator (spaf agent)
+│   ├── agent/        # autonomous AI orchestrator (redpilot agent)
 │   ├── pipeline/     # staged workflow: discovery→validation→remediation→report
 │   ├── orchestration/# model router, response cache, run budgets
 │   ├── modules/      # recon, network, webscan, crawler, toolkit
@@ -799,7 +799,7 @@ spaf/
 ├── docs/             # roadmap, demo recipe, extra docs
 ├── .github/          # CI + release + security workflows, issue/PR templates
 ├── Dockerfile        # Python 3.12-slim + nmap + Go recon suite
-├── docker-compose.yml # MongoDB 7 + SPAF with healthcheck
+├── docker-compose.yml # MongoDB 7 + RedPilot with healthcheck
 ├── scope.json        # Engagement scope (auto-created)
 ├── COMMANDS.md       # Full command reference
 └── .env.example      # Configuration template
@@ -815,7 +815,7 @@ Contributions are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md) and the
 ```bash
 pip install -e ".[dev]"
 pytest -q                 # tests
-ruff check spaf tests     # lint
+ruff check redpilot tests     # lint
 python -m build           # wheel
 ```
 
@@ -849,7 +849,7 @@ git push origin v1.0.1        # → builds, checks, and publishes to PyPI
 
 ## ◇ Support
 
-SPAF is free and MIT-licensed. If it saves you time, you can support development:
+RedPilot is free and MIT-licensed. If it saves you time, you can support development:
 
 <a href="https://buymeacoffee.com/geevarghes2"><img alt="Buy Me a Coffee" src="https://img.shields.io/badge/Buy_Me_a_Coffee-%E2%98%95-E0A82E?style=for-the-badge&labelColor=0a0e12&logo=buymeacoffee&logoColor=0a0e12"></a>
 
@@ -867,6 +867,6 @@ SPAF is free and MIT-licensed. If it saves you time, you can support development
 
 Built with 🔥 by **[geevarghesekthomas84-sys](https://github.com/geevarghesekthomas84-sys)**
 
-⭐ If you find SPAF useful, please consider starring the repository — it helps a lot!
+⭐ If you find RedPilot useful, please consider starring the repository — it helps a lot!
 
 </div>

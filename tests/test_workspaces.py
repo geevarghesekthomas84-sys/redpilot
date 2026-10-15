@@ -2,9 +2,9 @@ import json
 
 import pytest
 
-from spaf.workspaces import EngagementManager, Role, authorization
-from spaf.workspaces.models import Principal
-from spaf.workspaces.principals import PrincipalRegistry, load_registry
+from redpilot.workspaces import EngagementManager, Role, authorization
+from redpilot.workspaces.models import Principal
+from redpilot.workspaces.principals import PrincipalRegistry, load_registry
 
 
 # ── Roles ──────────────────────────────────────────────────────────────
@@ -51,7 +51,7 @@ def test_duplicate_names_get_unique_ids(tmp_path):
 
 # ── Signed authorizations ────────────────────────────────────────────────
 def test_authorization_signature_detects_tampering(tmp_path, monkeypatch):
-    monkeypatch.setenv("SPAF_AUTH_SIGNING_KEY", "unit-test-signing-key")
+    monkeypatch.setenv("REDPILOT_AUTH_SIGNING_KEY", "unit-test-signing-key")
     mgr = EngagementManager(root=str(tmp_path / "eng"))
     eng = mgr.create("Signed", in_scope=["x.com"], authorized_by="client@x.com")
     assert mgr.authorization_valid(eng)
@@ -62,7 +62,7 @@ def test_authorization_signature_detects_tampering(tmp_path, monkeypatch):
 
 def test_authorization_expiry(tmp_path, monkeypatch):
     from datetime import datetime, timedelta
-    monkeypatch.setenv("SPAF_AUTH_SIGNING_KEY", "unit-test-signing-key")
+    monkeypatch.setenv("REDPILOT_AUTH_SIGNING_KEY", "unit-test-signing-key")
     mgr = EngagementManager(root=str(tmp_path / "eng"))
     eng = mgr.create("Expiring", in_scope=["x.com"], authorized_by="c",
                      expires_at=datetime.utcnow() - timedelta(days=1))
@@ -73,7 +73,7 @@ def test_authorization_expiry(tmp_path, monkeypatch):
 def test_registry_from_config():
     cfg = {"OPKEY": {"name": "op", "role": "operator", "engagements": ["acme"]},
            "VIEWKEY": {"name": "v", "role": "viewer", "engagements": ["acme"]}}
-    import spaf.workspaces.principals as pr
+    import redpilot.workspaces.principals as pr
     reg = PrincipalRegistry(pr._parse_config(json.dumps(cfg)))
     assert reg.authenticate("OPKEY").role is Role.OPERATOR
     assert reg.authenticate("VIEWKEY").role is Role.VIEWER
@@ -81,9 +81,9 @@ def test_registry_from_config():
 
 
 def test_registry_fallback_to_api_keys(monkeypatch):
-    monkeypatch.delenv("SPAF_PRINCIPALS", raising=False)
-    monkeypatch.delenv("SPAF_PRINCIPALS_FILE", raising=False)
-    monkeypatch.setenv("SPAF_API_KEY", "legacy-key")
+    monkeypatch.delenv("REDPILOT_PRINCIPALS", raising=False)
+    monkeypatch.delenv("REDPILOT_PRINCIPALS_FILE", raising=False)
+    monkeypatch.setenv("REDPILOT_API_KEY", "legacy-key")
     reg = load_registry()
     p = reg.authenticate("legacy-key")
     assert p is not None and p.role is Role.LEAD and p.can_access("anything")

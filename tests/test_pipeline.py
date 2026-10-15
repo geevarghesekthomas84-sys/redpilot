@@ -3,16 +3,16 @@ import json
 
 import pytest
 
-from spaf.pipeline import Pipeline, Stage, STAGE_MODULES
-from spaf.pipeline.pipeline import _dedupe, _default_remediation
-from spaf.service import SpafService
-from spaf.service.models import Finding
+from redpilot.pipeline import Pipeline, Stage, STAGE_MODULES
+from redpilot.pipeline.pipeline import _dedupe, _default_remediation
+from redpilot.service import RedPilotService
+from redpilot.service.models import Finding
 
 
 @pytest.fixture()
 def svc(tmp_path):
     # no scope file → scope not enforced; mock mode avoids any network.
-    return SpafService(scope_file=str(tmp_path / "scope.json"))
+    return RedPilotService(scope_file=str(tmp_path / "scope.json"))
 
 
 def _run(coro):
