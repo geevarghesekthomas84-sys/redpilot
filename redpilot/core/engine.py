@@ -174,7 +174,7 @@ class BaseModule:
         headers = {"User-Agent": proxy_manager.get_user_agent()}
         return aiohttp.ClientSession(
             headers=headers,
-            connector=aiohttp.TCPConnector(ssl=False),
+            connector=aiohttp.TCPConnector(),
         )
 
     def get_request_params(self) -> Dict[str, Any]:
