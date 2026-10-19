@@ -38,6 +38,18 @@ def test_budget_limits_chars():
         b.consume(100)
 
 
+def test_budget_limits_time(monkeypatch):
+    import time
+    b = Budget(max_calls=10, max_chars=10_000, max_seconds=1.0)
+
+    # Fast-forward time so that remaining_seconds() <= 0
+    monkeypatch.setattr(time, "monotonic", lambda: b.started + 2.0)
+
+    with pytest.raises(BudgetExceeded) as exc:
+        b.consume(10)
+    assert "time_left=-1s" in str(exc.value)
+
+
 # ── Cache ─────────────────────────────────────────────────────────────
 def test_cache_roundtrip(tmp_path):
     c = ResponseCache(str(tmp_path / "c.db"), enabled=True)
