@@ -14,6 +14,8 @@ import redpilot as _redpilot
 _redpilot._apply_env_compat()
 import typer
 from typing import Optional, List
+from dataclasses import dataclass, asdict
+
 from rich.console import Console
 from rich.table import Table
 
@@ -709,25 +711,22 @@ def recon(
 
     asyncio.run(run())
 
-@app.command()
-def scan(
-    target: str      = typer.Argument(..., help="Target domain or IP"),
-    ports: str       = typer.Option("1-1024", "--ports",      help="Port range (e.g., 1-65535)"),
-    intensity: str   = typer.Option("normal", "--intensity",  help="Scan intensity: light|normal|aggressive"),
-    scanner: str     = typer.Option("nmap",   "--scanner",    help="Scanner engine: nmap|rustscan"),
-    ulimit: int      = typer.Option(5000,      "--ulimit",     help="RustScan: open file descriptor limit"),
-    batch_size: int  = typer.Option(2500,      "--batch-size", help="RustScan: ports per batch"),
-    no_db: bool      = typer.Option(False,     "--no-db",      help="Run in offline mode without database logging"),
-    no_ai: bool      = typer.Option(False,     "--no-ai",      help="Skip automatic AI analysis after scan"),
-):
-    """Run a network port scan using Nmap or RustScan on one or more targets."""
-    targets = load_targets(target)
+@dataclass
+class ScanOptions:
+    ports: str
+    intensity: str
+    scanner: str
+    ulimit: int
+    batch_size: int
+    no_db: bool
+    no_ai: bool
 
-    if intensity not in ["light", "normal", "aggressive"]:
+def _run_network_scan(targets: List[str], opts: ScanOptions):
+    if opts.intensity not in ["light", "normal", "aggressive"]:
         console.print("[bold red]Error:[/bold red] Intensity must be light, normal, or aggressive.")
         raise typer.Exit(1)
 
-    if scanner not in ["nmap", "rustscan"]:
+    if opts.scanner not in ["nmap", "rustscan"]:
         console.print("[bold red]Error:[/bold red] Scanner must be nmap or rustscan.")
         raise typer.Exit(1)
 
@@ -741,26 +740,41 @@ def scan(
         raise typer.Exit(1)
 
     async def run():
-        if not no_db:
+        if not opts.no_db:
             try:
                 await _init_db()
             except ConnectionError:
                 raise typer.Exit(1)
 
-        options = {
-            "ports":      ports,
-            "intensity":  intensity,
-            "scanner":    scanner,
-            "ulimit":     ulimit,
-            "batch_size": batch_size,
-            "no_db":      no_db,
-            "no_ai":      no_ai,
-        }
+        options = asdict(opts)
         tasks = [engine.run_module(NetworkModule, t, options) for t in targets]
         await asyncio.gather(*tasks)
 
     asyncio.run(run())
 
+@app.command()
+def scan(
+    target: str      = typer.Argument(..., help="Target domain or IP"),
+    ports: str       = typer.Option("1-1024", "--ports",      help="Port range (e.g., 1-65535)"),
+    intensity: str   = typer.Option("normal", "--intensity",  help="Scan intensity: light|normal|aggressive"),
+    scanner: str     = typer.Option("nmap",   "--scanner",    help="Scanner engine: nmap|rustscan"),
+    ulimit: int      = typer.Option(5000,      "--ulimit",     help="RustScan: open file descriptor limit"),
+    batch_size: int  = typer.Option(2500,      "--batch-size", help="RustScan: ports per batch"),
+    no_db: bool      = typer.Option(False,     "--no-db",      help="Run in offline mode without database logging"),
+    no_ai: bool      = typer.Option(False,     "--no-ai",      help="Skip automatic AI analysis after scan"),
+):  # pylint: disable=too-many-arguments
+    """Run a network port scan using Nmap or RustScan on one or more targets."""
+    targets = load_targets(target)
+    opts = ScanOptions(
+        ports=ports,
+        intensity=intensity,
+        scanner=scanner,
+        ulimit=ulimit,
+        batch_size=batch_size,
+        no_db=no_db,
+        no_ai=no_ai
+    )
+    _run_network_scan(targets, opts)
 
 @app.command()
 def webscan(
