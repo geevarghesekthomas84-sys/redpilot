@@ -65,3 +65,22 @@ def test_module_options_presets():
     assert opts["no_ai"] is True  # sub-steps silent; agent does one final summary
     t = ag._module_options("toolkit")
     assert t["nuclei_dast"] is True
+
+
+import pytest
+
+@pytest.mark.asyncio
+async def test_summarize_edge_cases():
+    # Test that summarize returns None when no_ai is True, regardless of findings
+    ag_no_ai_no_findings = _agent(options={"no_ai": True})
+    ag_no_ai_no_findings.findings = []
+    assert await ag_no_ai_no_findings.summarize() is None
+
+    ag_no_ai_with_findings = _agent(options={"no_ai": True})
+    ag_no_ai_with_findings.findings = [{"title": "test finding"}]
+    assert await ag_no_ai_with_findings.summarize() is None
+
+    # Test that summarize returns None when no_ai is False but findings are empty
+    ag_ai_no_findings = _agent(options={"no_ai": False})
+    ag_ai_no_findings.findings = []
+    assert await ag_ai_no_findings.summarize() is None
