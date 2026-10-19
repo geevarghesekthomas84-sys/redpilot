@@ -227,18 +227,13 @@ class SQLiteDB:
             try:
                 # Latest finding per vuln_type for this target, severity-sorted.
                 rows = con.execute(
-                    "SELECT id, data, created_at, severity_order, vuln_type "
-                    "FROM vulnerabilities WHERE target=? ORDER BY created_at DESC",
+                    "SELECT id, data, MAX(created_at) as created_at, severity_order, vuln_type "
+                    "FROM vulnerabilities WHERE target=? "
+                    "GROUP BY vuln_type "
+                    "ORDER BY COALESCE(severity_order, 99) ASC",
                     (target,),
                 ).fetchall()
-                seen = {}
-                for r in rows:
-                    vt = r["vuln_type"]
-                    if vt not in seen:
-                        seen[vt] = self._vuln_row(r)
-                results = list(seen.values())
-                results.sort(key=lambda x: x.get("severity_order", 99))
-                return results
+                return [self._vuln_row(r) for r in rows]
             finally:
                 con.close()
 
