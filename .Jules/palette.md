@@ -1,3 +1,0 @@
-## 2026-10-20 - [RedPilot Console Forms and Custom Styles]
-**Learning:** The console uses custom styling for inputs and selects (`border:1px solid var(--line)`) but initially stripped the default focus outline without providing a visible replacement, hurting keyboard accessibility. Additionally, form elements relied heavily on visual layout (`placeholder`, adjacent labels in `div`s) rather than explicit `aria-label` or `<label for="...">` associations, which reduces screen reader usability.
-**Action:** Always ensure that removing default input outlines includes a `:focus-visible` replacement. Ensure custom dashboard forms have explicit `aria-label`s on elements that lack descriptive inner text or direct label targeting.
