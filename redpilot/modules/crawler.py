@@ -1,15 +1,10 @@
-import re
 from urllib.parse import urljoin, urlparse
+from bs4 import BeautifulSoup
 from typing import Any, Dict, List
 from rich.progress import Progress
 
 from redpilot.core.engine import BaseModule
 from redpilot.utils.risk import build_finding
-
-# Compile regular expressions for performance
-# ⚡ Bolt Optimization: BeautifulSoup replacement
-LINK_RE = re.compile(r'<a\s+(?:[^>]*?\s+)?href=[\'"]?([^\'" >]+)', re.IGNORECASE)
-FORM_RE = re.compile(r'<form\b', re.IGNORECASE)
 
 class CrawlerModule(BaseModule):
     async def run(self, progress: Progress) -> List[Dict[str, Any]]:
@@ -39,11 +34,11 @@ class CrawlerModule(BaseModule):
                         async with session.get(current_url, timeout=5, **self.get_request_params()) as resp:
                             if resp.status == 200:
                                 html = await resp.text()
+                                soup = BeautifulSoup(html, 'html.parser')
                                 
-                                # Extract links using regex instead of BeautifulSoup for performance
-                                for match in LINK_RE.finditer(html):
-                                    href = match.group(1)
-                                    link = urljoin(current_url, href)
+                                # Extract links
+                                for a in soup.find_all('a', href=True):
+                                    link = urljoin(current_url, a['href'])
                                     parsed_link = urlparse(link)
                                     # Stay on same domain
                                     if parsed_link.netloc == urlparse(url).netloc:
@@ -51,7 +46,7 @@ class CrawlerModule(BaseModule):
                                             to_visit.append(link)
                                             
                                 # Check for interesting things (forms, inputs, sensitive keywords)
-                                findings.extend(self._analyze_page(current_url, html))
+                                findings.extend(self._analyze_page(current_url, html, soup))
                                 
                     except Exception:
                         pass
@@ -69,10 +64,10 @@ class CrawlerModule(BaseModule):
             
         return findings
 
-    def _analyze_page(self, url: str, html: str) -> List[Dict[str, Any]]:
+    def _analyze_page(self, url: str, html: str, soup: BeautifulSoup) -> List[Dict[str, Any]]:
         findings = []
         # Check for forms
-        forms = FORM_RE.findall(html)
+        forms = soup.find_all('form')
         if forms:
             findings.append(build_finding(
                 url, "form_detected",

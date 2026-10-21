@@ -67,7 +67,9 @@ class SQLiteDB:
                 );
                 CREATE INDEX IF NOT EXISTS idx_scans_target   ON scans(target, started_at);
                 CREATE INDEX IF NOT EXISTS idx_vulns_target   ON vulnerabilities(target, created_at);
-                CREATE INDEX IF NOT EXISTS idx_vulns_scan     ON vulnerabilities(scan_id);
+                -- ⚡ Bolt Optimization: Drop old index and recreate as composite to prevent sorting step
+                DROP INDEX IF EXISTS idx_vulns_scan;
+                CREATE INDEX IF NOT EXISTS idx_vulns_scan_sev ON vulnerabilities(scan_id, severity_order);
                 """
             )
             con.commit()
