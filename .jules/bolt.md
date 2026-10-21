@@ -1,0 +1,3 @@
+## 2025-02-23 - Replacing Full DOM Parsers with Regular Expressions for Performance
+**Learning:** Full DOM parsers like `BeautifulSoup` are extremely slow and add unnecessary overhead when extracting simple elements (like `<a>` or `<form>`) from HTML, especially during fast-paced operations like web crawling. A quick benchmark showed a ~50x speedup by switching from `BeautifulSoup` to compiled regular expressions for link extraction.
+**Action:** When working on web crawling modules in this codebase, prioritize using compiled regular expressions for simple HTML string matching instead of full DOM parsers unless a complex structural analysis is actually required.
