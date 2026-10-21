@@ -20,6 +20,7 @@
   header .grow{flex:1}
   input,select,button{background:#0d1210;color:var(--ink);border:1px solid var(--line);
     border-radius:6px;padding:7px 10px;font:inherit}
+  input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid var(--amber);outline-offset:2px;}
   input::placeholder{color:var(--faint)}
   button{cursor:pointer;border-color:#3a4a33}
   button.primary{background:#1a1403;border-color:var(--amber);color:var(--amber)}
@@ -51,7 +52,7 @@
   <span class="muted">console</span><span class="dot">·</span>
   <span id="ver" class="muted">v…</span>
   <span class="grow"></span>
-  <input id="key" type="password" placeholder="X-API-Key" style="width:220px" />
+  <input id="key" type="password" placeholder="X-API-Key" aria-label="API Key" style="width:220px" />
   <button id="save">connect</button>
   <span id="auth" class="pill">no key</span>
 </header>
@@ -62,7 +63,7 @@
     <div id="status"><div class="muted">enter your API key and connect.</div></div>
 
     <h2 style="margin-top:16px">Run</h2>
-    <div class="row"><select id="module">
+    <div class="row"><select id="module" aria-label="Select module to run">
       <option value="recon">recon</option>
       <option value="toolkit">toolkit</option>
       <option value="scan">scan (network)</option>
@@ -70,7 +71,7 @@
       <option value="crawl">crawl</option>
       <option value="agent">agent</option>
     </select></div>
-    <div class="row"><input id="target" placeholder="target (in-scope)"></div>
+    <div class="row"><input id="target" placeholder="target (in-scope)" aria-label="Target"></div>
     <label id="dryWrap"><input type="checkbox" id="dry" checked> agent: plan only (dry-run)</label>
     <div class="row"><button class="primary" id="go">start</button>
       <button id="addScope">add target to scope</button></div>
