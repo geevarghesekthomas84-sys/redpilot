@@ -1,5 +1,6 @@
 import os
 from typing import Any, Dict, List, Optional
+from pymongo import UpdateOne
 from motor.motor_asyncio import AsyncIOMotorClient
 from bson import ObjectId
 from datetime import datetime
@@ -157,29 +158,45 @@ class MongoDB:
         results = await cursor.to_list(length=10)
         return [r["latest_scan"] for r in results]
 
+    async def upsert_vulnerabilities(self, scan_id: str, vulnerabilities: List[Dict[str, Any]]):
+        """
+        Inserts or updates multiple vulnerability records in a single bulk operation,
+        deduplicating by scan_id+vuln_type+target.
+        """
+        if not vulnerabilities:
+            return
+
+        now = datetime.utcnow()
+        operations = []
+        
+        for vuln_dict in vulnerabilities:
+            vuln_dict_copy = dict(vuln_dict)
+            vuln_dict_copy["scan_id"] = scan_id
+            vuln_dict_copy["updated_at"] = now
+            # Remove created_at from the $set payload to avoid a path conflict
+            # with $setOnInsert when MongoDB processes both operators on the same field.
+            vuln_dict_copy.pop("created_at", None)
+
+            filter_query = {
+                "scan_id": scan_id,
+                "vuln_type": vuln_dict_copy["vuln_type"],
+                "target": vuln_dict_copy["target"]
+            }
+
+            update_data = {
+                "$set": vuln_dict_copy,
+                "$setOnInsert": {"created_at": now}
+            }
+            operations.append(UpdateOne(filter_query, update_data, upsert=True))
+
+        if operations:
+            await self.db.vulnerabilities.bulk_write(operations)
+
     async def upsert_vulnerability(self, scan_id: str, vuln_dict: Dict[str, Any]):
         """
         Inserts or updates a vulnerability record, deduplicating by scan_id+vuln_type+target.
         """
-        vuln_dict["scan_id"] = scan_id
-        now = datetime.utcnow()
-        vuln_dict["updated_at"] = now
-        # Remove created_at from the $set payload to avoid a path conflict
-        # with $setOnInsert when MongoDB processes both operators on the same field.
-        vuln_dict.pop("created_at", None)
-
-        filter_query = {
-            "scan_id": scan_id,
-            "vuln_type": vuln_dict["vuln_type"],
-            "target": vuln_dict["target"]
-        }
-
-        update_data = {
-            "$set": vuln_dict,
-            "$setOnInsert": {"created_at": now}
-        }
-        
-        await self.db.vulnerabilities.update_one(filter_query, update_data, upsert=True)
+        await self.upsert_vulnerabilities(scan_id, [vuln_dict])
 
     async def get_vulnerabilities_for_scan(self, scan_id: str) -> List[Dict[str, Any]]:
         """
