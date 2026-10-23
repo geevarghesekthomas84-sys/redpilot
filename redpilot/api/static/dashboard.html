@@ -19,12 +19,13 @@
   .dot{color:var(--faint)}
   header .grow{flex:1}
   input,select,button{background:#0d1210;color:var(--ink);border:1px solid var(--line);
-    border-radius:6px;padding:7px 10px;font:inherit}
+    border-radius:6px;padding:7px 10px;font:inherit;transition: border-color 0.2s ease, opacity 0.2s ease;}
   input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid var(--amber);outline-offset:2px;}
   input::placeholder{color:var(--faint)}
   button{cursor:pointer;border-color:#3a4a33}
+  button:disabled{opacity:0.5;cursor:not-allowed;}
   button.primary{background:#1a1403;border-color:var(--amber);color:var(--amber)}
-  button:hover{border-color:var(--amber)}
+  button:not(:disabled):hover{border-color:var(--amber)}
   main{display:grid;grid-template-columns:320px 1fr;gap:16px;padding:16px;max-width:1200px;margin:0 auto}
   @media(max-width:820px){main{grid-template-columns:1fr}}
   .panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px}
@@ -143,19 +144,26 @@ function renderFindings(list){
 function esc(s){ return (s==null?"":String(s)).replace(/[<>&]/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;"}[c])); }
 function logln(t){ const el=$("#log"); if(el.textContent==="—")el.textContent=""; el.textContent += t+"\n"; el.scrollTop=el.scrollHeight; }
 
-$("#save").onclick = ()=>{ KEY=$("#key").value.trim(); localStorage.setItem("redpilot_key",KEY); refresh(); };
+$("#save").onclick = async ()=>{
+  const btn=$("#save"); btn.disabled=true; const oldText=btn.textContent; btn.textContent="connecting...";
+  KEY=$("#key").value.trim(); localStorage.setItem("redpilot_key",KEY);
+  try{ await refresh(); } finally { btn.disabled=false; btn.textContent=oldText; }
+};
 $("#module").onchange = ()=>{ $("#dryWrap").style.display = $("#module").value==="agent"?"flex":"none"; };
 $("#module").onchange();
 
 $("#addScope").onclick = async ()=>{
   const t=$("#target").value.trim(); if(!t)return;
-  try{ await api("/scope",{method:"POST",body:JSON.stringify({value:t})}); logln("+ scope: "+t); refresh(); }
+  const btn=$("#addScope"); btn.disabled=true; const oldText=btn.textContent; btn.textContent="adding...";
+  try{ await api("/scope",{method:"POST",body:JSON.stringify({value:t})}); logln("+ scope: "+t); await refresh(); }
   catch(e){ logln("! "+e.message); }
+  btn.disabled=false; btn.textContent=oldText;
 };
 
 $("#go").onclick = async ()=>{
   const module=$("#module").value, target=$("#target").value.trim();
   if(!target){ logln("! enter a target"); return; }
+  const btn=$("#go"); btn.disabled=true; const oldText=btn.textContent; btn.textContent="starting...";
   $("#log").textContent="—"; renderFindings([]);
   try{
     let job;
@@ -164,12 +172,13 @@ $("#go").onclick = async ()=>{
       job = await r.json();
     }else{
       const r = await api("/scans",{method:"POST",body:JSON.stringify({module,target})});
-      if(r.status===403){ logln("! out of engagement scope — add it first"); return; }
+      if(r.status===403){ logln("! out of engagement scope — add it first"); btn.disabled=false; btn.textContent=oldText; return; }
       job = await r.json();
     }
     $("#jobline").textContent = "job "+job.job_id+" · "+job.status;
     streamJob(job.job_id);
   }catch(e){ logln("! "+e.message); }
+  btn.disabled=false; btn.textContent=oldText;
 };
 
 function streamJob(id){
