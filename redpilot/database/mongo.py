@@ -162,25 +162,7 @@ class MongoDB:
         """
         Inserts or updates a vulnerability record, deduplicating by scan_id+vuln_type+target.
         """
-        vuln_dict["scan_id"] = scan_id
-        now = datetime.utcnow()
-        vuln_dict["updated_at"] = now
-        # Remove created_at from the $set payload to avoid a path conflict
-        # with $setOnInsert when MongoDB processes both operators on the same field.
-        vuln_dict.pop("created_at", None)
-
-        filter_query = {
-            "scan_id": scan_id,
-            "vuln_type": vuln_dict["vuln_type"],
-            "target": vuln_dict["target"]
-        }
-
-        update_data = {
-            "$set": vuln_dict,
-            "$setOnInsert": {"created_at": now}
-        }
-        
-        await self.db.vulnerabilities.update_one(filter_query, update_data, upsert=True)
+        await self.upsert_vulnerabilities(scan_id, [vuln_dict])
 
     async def upsert_vulnerabilities(self, scan_id: str, vuln_list: List[Dict[str, Any]]):
         """
