@@ -1,6 +1,7 @@
 import os
 from typing import Any, Dict, List, Optional
 from motor.motor_asyncio import AsyncIOMotorClient
+from pymongo import UpdateOne
 from bson import ObjectId
 from datetime import datetime
 from redpilot.utils.logger import logger
@@ -161,25 +162,42 @@ class MongoDB:
         """
         Inserts or updates a vulnerability record, deduplicating by scan_id+vuln_type+target.
         """
-        vuln_dict["scan_id"] = scan_id
+        await self.upsert_vulnerabilities(scan_id, [vuln_dict])
+
+    async def upsert_vulnerabilities(self, scan_id: str, vuln_list: List[Dict[str, Any]]):
+        """
+        Inserts or updates multiple vulnerability records in a single bulk operation.
+        """
+        if not vuln_list:
+            return
+
         now = datetime.utcnow()
-        vuln_dict["updated_at"] = now
-        # Remove created_at from the $set payload to avoid a path conflict
-        # with $setOnInsert when MongoDB processes both operators on the same field.
-        vuln_dict.pop("created_at", None)
+        operations = []
 
-        filter_query = {
-            "scan_id": scan_id,
-            "vuln_type": vuln_dict["vuln_type"],
-            "target": vuln_dict["target"]
-        }
+        for vuln in vuln_list:
+            vuln_dict = dict(vuln)
+            vuln_dict["scan_id"] = scan_id
+            vuln_dict["updated_at"] = now
+            vuln_dict.pop("created_at", None)
 
-        update_data = {
-            "$set": vuln_dict,
-            "$setOnInsert": {"created_at": now}
-        }
-        
-        await self.db.vulnerabilities.update_one(filter_query, update_data, upsert=True)
+            target = vuln_dict.get("target", "")
+            vuln_type = vuln_dict.get("vuln_type", "")
+
+            filter_query = {
+                "scan_id": scan_id,
+                "vuln_type": vuln_type,
+                "target": target
+            }
+
+            update_data = {
+                "$set": vuln_dict,
+                "$setOnInsert": {"created_at": now}
+            }
+
+            operations.append(UpdateOne(filter_query, update_data, upsert=True))
+
+        if operations:
+            await self.db.vulnerabilities.bulk_write(operations, ordered=False)
 
     async def get_vulnerabilities_for_scan(self, scan_id: str) -> List[Dict[str, Any]]:
         """
