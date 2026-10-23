@@ -198,10 +198,13 @@ class MongoDB:
             vuln_dict["updated_at"] = now
             vuln_dict.pop("created_at", None)
 
+            target = vuln_dict.get("target", "")
+            vuln_type = vuln_dict.get("vuln_type", "")
+
             filter_query = {
                 "scan_id": scan_id,
-                "vuln_type": vuln_dict["vuln_type"],
-                "target": vuln_dict["target"]
+                "vuln_type": vuln_type,
+                "target": target
             }
 
             update_data = {
