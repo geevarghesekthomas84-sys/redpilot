@@ -148,10 +148,13 @@ $("#save").onclick = async ()=>{
   const btn = $("#save");
   btn.disabled = true;
   btn.textContent = "connecting...";
-  KEY=$("#key").value.trim(); localStorage.setItem("redpilot_key",KEY);
-  await refresh();
-  btn.disabled = false;
-  btn.textContent = "connect";
+  try {
+    KEY=$("#key").value.trim(); localStorage.setItem("redpilot_key",KEY);
+    await refresh();
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "connect";
+  }
 };
 $("#module").onchange = ()=>{ $("#dryWrap").style.display = $("#module").value==="agent"?"flex":"none"; };
 $("#module").onchange();
