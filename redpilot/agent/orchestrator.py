@@ -198,12 +198,30 @@ class PentestAgent:
     # ------------------------------------------------------------------
     # Final assessment
     # ------------------------------------------------------------------
+    def _serialize_findings(self, limit: int = 60000) -> str:
+        if not self.findings:
+            return "[]"
+        parts = ["[\n"]
+        length = 2
+        for i, f in enumerate(self.findings):
+            part = "  " + json.dumps(f, indent=2, default=str).replace("\n", "\n  ")
+            if i < len(self.findings) - 1:
+                part += ",\n"
+            else:
+                part += "\n]"
+            if length + len(part) > limit:
+                parts.append(part[:limit - length])
+                break
+            parts.append(part)
+            length += len(part)
+        return "".join(parts)
+
     async def summarize(self) -> Optional[str]:
         if self.options.get("no_ai") or not self.findings:
             return None
         from redpilot.orchestration import default_orchestrator
         prompt = _ASSESS_PROMPT.format(
-            findings=json.dumps([f for f in self.findings], indent=2, default=str)[:60000]
+            findings=self._serialize_findings()
         )
         try:
             out = await default_orchestrator().complete(
