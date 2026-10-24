@@ -1,6 +1,7 @@
 import os
 from typing import Any, Dict, List, Optional
 from motor.motor_asyncio import AsyncIOMotorClient
+from pymongo import UpdateOne
 from bson import ObjectId
 from datetime import datetime
 from redpilot.utils.logger import logger
@@ -180,6 +181,36 @@ class MongoDB:
         }
         
         await self.db.vulnerabilities.update_one(filter_query, update_data, upsert=True)
+
+    async def upsert_vulnerabilities(self, scan_id: str, vulnerabilities: List[Dict[str, Any]]):
+        """
+        Bulk inserts or updates multiple vulnerability records, deduplicating by scan_id+vuln_type+target.
+        """
+        if not vulnerabilities:
+            return
+
+        now = datetime.utcnow()
+        requests = []
+        for vuln_dict in vulnerabilities:
+            vuln_dict = dict(vuln_dict) # copy to avoid modifying original
+            vuln_dict["scan_id"] = scan_id
+            vuln_dict["updated_at"] = now
+            vuln_dict.pop("created_at", None)
+
+            filter_query = {
+                "scan_id": scan_id,
+                "vuln_type": vuln_dict["vuln_type"],
+                "target": vuln_dict["target"]
+            }
+
+            update_data = {
+                "$set": vuln_dict,
+                "$setOnInsert": {"created_at": now}
+            }
+            requests.append(UpdateOne(filter_query, update_data, upsert=True))
+
+        if requests:
+            await self.db.vulnerabilities.bulk_write(requests, ordered=False)
 
     async def get_vulnerabilities_for_scan(self, scan_id: str) -> List[Dict[str, Any]]:
         """
