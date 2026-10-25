@@ -1,5 +1,6 @@
 import os
 from typing import Any, Dict, List, Optional
+from pymongo import UpdateOne
 from motor.motor_asyncio import AsyncIOMotorClient
 from bson import ObjectId
 from datetime import datetime
@@ -156,6 +157,37 @@ class MongoDB:
         cursor = self.db.scans.aggregate(pipeline)
         results = await cursor.to_list(length=10)
         return [r["latest_scan"] for r in results]
+
+    async def upsert_vulnerabilities(self, scan_id: str, vulns: List[Dict[str, Any]]):
+        """
+        ⚡ Bolt Optimization: Batch upserts to prevent N+1 query problem.
+        Uses bulk_write to insert/update multiple vulnerability records in a
+        single network round-trip.
+        """
+        if not vulns:
+            return
+
+        now = datetime.utcnow()
+        requests = []
+        for vuln_dict in vulns:
+            v = dict(vuln_dict)
+            v["scan_id"] = scan_id
+            v["updated_at"] = now
+            v.pop("created_at", None)
+
+            filter_query = {
+                "scan_id": scan_id,
+                "vuln_type": v["vuln_type"],
+                "target": v["target"]
+            }
+            update_data = {
+                "$set": v,
+                "$setOnInsert": {"created_at": now}
+            }
+            requests.append(UpdateOne(filter_query, update_data, upsert=True))
+
+        if requests:
+            await self.db.vulnerabilities.bulk_write(requests)
 
     async def upsert_vulnerability(self, scan_id: str, vuln_dict: Dict[str, Any]):
         """
