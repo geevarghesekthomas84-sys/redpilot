@@ -87,8 +87,12 @@ class ScanEngine:
             # Persist findings
             findings_count = len(results)
             if not no_db and scan_id:
-                for finding in results:
-                    await db.upsert_vulnerability(scan_id, finding)
+                if results:
+                    if hasattr(db, 'upsert_vulnerabilities'):
+                        await db.upsert_vulnerabilities(scan_id, results)
+                    else:
+                        for finding in results:
+                            await db.upsert_vulnerability(scan_id, finding)
                 await db.complete_scan(scan_id, findings_count)
 
             # Render raw results table
