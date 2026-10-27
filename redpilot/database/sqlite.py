@@ -172,37 +172,46 @@ class SQLiteDB:
     # ------------------------------------------------------------------
     # Vulnerabilities
     # ------------------------------------------------------------------
-    async def upsert_vulnerability(self, scan_id: str, vuln_dict: Dict[str, Any]):
+    async def upsert_vulnerabilities(self, scan_id: str, vuln_dicts: List[Dict[str, Any]]):
+        if not vuln_dicts:
+            return
+
         now = datetime.utcnow().isoformat()
-        record = dict(vuln_dict)
-        record["scan_id"] = scan_id
-        record["updated_at"] = now
-        record.setdefault("created_at", now)
-        target = record.get("target", "")
-        vuln_type = record.get("vuln_type", "")
-        sev_order = record.get("severity_order", 99)
+        records_to_process = []
+        for vd in vuln_dicts:
+            record = dict(vd)
+            record["scan_id"] = scan_id
+            record["updated_at"] = now
+            record.setdefault("created_at", now)
+            records_to_process.append(record)
 
         def _run():
             con = self._con()
             try:
-                existing = con.execute(
-                    "SELECT id, created_at FROM vulnerabilities "
-                    "WHERE scan_id=? AND vuln_type=? AND target=?",
-                    (scan_id, vuln_type, target),
-                ).fetchone()
-                if existing:
-                    record["created_at"] = existing["created_at"]
-                    con.execute(
-                        "UPDATE vulnerabilities SET severity_order=?, updated_at=?, data=? WHERE id=?",
-                        (sev_order, now, json.dumps(record, default=str), existing["id"]),
-                    )
-                else:
-                    con.execute(
-                        "INSERT INTO vulnerabilities (id, scan_id, target, vuln_type, "
-                        "severity_order, created_at, updated_at, data) VALUES (?,?,?,?,?,?,?,?)",
-                        (_new_id(), scan_id, target, vuln_type, sev_order,
-                         record["created_at"], now, json.dumps(record, default=str)),
-                    )
+                for record in records_to_process:
+                    target = record.get("target", "")
+                    vuln_type = record.get("vuln_type", "")
+                    sev_order = record.get("severity_order", 99)
+
+                    existing = con.execute(
+                        "SELECT id, created_at FROM vulnerabilities "
+                        "WHERE scan_id=? AND vuln_type=? AND target=?",
+                        (scan_id, vuln_type, target),
+                    ).fetchone()
+
+                    if existing:
+                        record["created_at"] = existing["created_at"]
+                        con.execute(
+                            "UPDATE vulnerabilities SET severity_order=?, updated_at=?, data=? WHERE id=?",
+                            (sev_order, now, json.dumps(record, default=str), existing["id"]),
+                        )
+                    else:
+                        con.execute(
+                            "INSERT INTO vulnerabilities (id, scan_id, target, vuln_type, "
+                            "severity_order, created_at, updated_at, data) VALUES (?,?,?,?,?,?,?,?)",
+                            (_new_id(), scan_id, target, vuln_type, sev_order,
+                             record["created_at"], now, json.dumps(record, default=str)),
+                        )
                 con.commit()
             finally:
                 con.close()
