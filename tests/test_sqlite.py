@@ -39,8 +39,8 @@ def test_upsert_dedup_updates_in_place(tmp_path):
 
     async def run():
         sid = await db.create_scan("example.com", "webscan", {})
-        await db.upsert_vulnerability(sid, _finding(detail="first"))
-        await db.upsert_vulnerability(sid, _finding(detail="second"))  # same key
+        await db.upsert_vulnerabilities(sid, [_finding(detail="first")])
+        await db.upsert_vulnerabilities(sid, [_finding(detail="second")])  # same key
         vulns = await db.get_vulnerabilities_for_scan(sid)
         assert len(vulns) == 1
         assert vulns[0]["detail"] == "second"
@@ -54,7 +54,7 @@ def test_get_finding_by_id(tmp_path):
 
     async def run():
         sid = await db.create_scan("example.com", "webscan", {})
-        await db.upsert_vulnerability(sid, _finding())
+        await db.upsert_vulnerabilities(sid, [_finding()])
         vulns = await db.get_vulnerabilities_for_scan(sid)
         fid = vulns[0]["_id"]
         found = await db.get_finding(fid)
@@ -69,8 +69,8 @@ def test_dedup_by_vuln_type_across_scans(tmp_path):
 
     async def run():
         s1 = await db.create_scan("example.com", "webscan", {})
-        await db.upsert_vulnerability(s1, _finding(vuln_type="missing_hsts"))
-        await db.upsert_vulnerability(s1, _finding(vuln_type="open_port", order=5))
+        await db.upsert_vulnerabilities(s1, [_finding(vuln_type="missing_hsts")])
+        await db.upsert_vulnerabilities(s1, [_finding(vuln_type="open_port", order=5)])
         latest = await db.get_all_vulnerabilities_for_target("example.com")
         types = {v["vuln_type"] for v in latest}
         assert types == {"missing_hsts", "open_port"}

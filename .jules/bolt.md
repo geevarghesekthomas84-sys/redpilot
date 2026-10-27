@@ -1,3 +1,7 @@
 ## 2025-02-23 - Adding Composite Index for Sorting Vulnerabilities
 **Learning:** In SQLite databases, queries that filter by one column and sort by another (e.g. `WHERE scan_id=? ORDER BY severity_order ASC`) can be significantly slower if only the filtered column is indexed, as the engine still has to perform a sort phase on the results. Creating a composite index (in this case `(scan_id, severity_order)`) allows the database engine to retrieve the rows already in the requested order without an explicit sort step.
 **Action:** When adding or updating SQLite queries in this codebase that filter by a foreign key and sort the results, always ensure that a composite index covering both the filter and the sort columns exists.
+
+## 2025-02-23 - Batch database writes to prevent N+1 queries during scan persistence
+**Learning:** Looping over database insert calls (e.g. `upsert_vulnerability`) inside orchestration or service logic generates an N+1 performance bottleneck. In pipelines where multiple vulnerabilities are discovered during a scan, this can lead to excessive network round trips (MongoDB) or high IO overhead (SQLite).
+**Action:** Always batch updates when writing multiple items to the database from python loop orchestration logic. Utilize `bulk_write` for MongoDB or a single transaction with multiple inserts/updates for SQLite by passing a list to the database method (e.g., `upsert_vulnerabilities(scan_id, findings_list)`).
