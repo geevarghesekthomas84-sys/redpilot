@@ -1,5 +1,6 @@
 import os
 from typing import Any, Dict, List, Optional
+from pymongo import UpdateOne
 from motor.motor_asyncio import AsyncIOMotorClient
 from bson import ObjectId
 from datetime import datetime
@@ -180,6 +181,38 @@ class MongoDB:
         }
         
         await self.db.vulnerabilities.update_one(filter_query, update_data, upsert=True)
+
+    async def upsert_vulnerabilities(self, scan_id: str, findings: List[Dict[str, Any]]):
+        """
+        Batch inserts or updates multiple vulnerability records in a single network call.
+        """
+        if not findings:
+            return
+
+        now = datetime.utcnow()
+        operations = []
+
+        for finding in findings:
+            vuln_dict = dict(finding)
+            vuln_dict["scan_id"] = scan_id
+            vuln_dict["updated_at"] = now
+            vuln_dict.pop("created_at", None)
+
+            filter_query = {
+                "scan_id": scan_id,
+                "vuln_type": vuln_dict["vuln_type"],
+                "target": vuln_dict.get("target", "")
+            }
+
+            update_data = {
+                "$set": vuln_dict,
+                "$setOnInsert": {"created_at": now}
+            }
+
+            operations.append(UpdateOne(filter_query, update_data, upsert=True))
+
+        if operations:
+            await self.db.vulnerabilities.bulk_write(operations)
 
     async def get_vulnerabilities_for_scan(self, scan_id: str) -> List[Dict[str, Any]]:
         """
