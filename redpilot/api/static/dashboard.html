@@ -25,6 +25,7 @@
   button{cursor:pointer;border-color:#3a4a33}
   button.primary{background:#1a1403;border-color:var(--amber);color:var(--amber)}
   button:hover{border-color:var(--amber)}
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
   main{display:grid;grid-template-columns:320px 1fr;gap:16px;padding:16px;max-width:1200px;margin:0 auto}
   @media(max-width:820px){main{grid-template-columns:1fr}}
   .panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px}
@@ -143,20 +144,31 @@ function renderFindings(list){
 function esc(s){ return (s==null?"":String(s)).replace(/[<>&]/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;"}[c])); }
 function logln(t){ const el=$("#log"); if(el.textContent==="—")el.textContent=""; el.textContent += t+"\n"; el.scrollTop=el.scrollHeight; }
 
-$("#save").onclick = ()=>{ KEY=$("#key").value.trim(); localStorage.setItem("redpilot_key",KEY); refresh(); };
+$("#save").onclick = async ()=>{
+  $("#save").disabled = true;
+  try {
+    KEY=$("#key").value.trim(); localStorage.setItem("redpilot_key",KEY); await refresh();
+  } finally {
+    $("#save").disabled = false;
+  }
+};
+function setBusy(busy) { $("#go").disabled = busy; $("#addScope").disabled = busy; }
 $("#module").onchange = ()=>{ $("#dryWrap").style.display = $("#module").value==="agent"?"flex":"none"; };
 $("#module").onchange();
 
 $("#addScope").onclick = async ()=>{
   const t=$("#target").value.trim(); if(!t)return;
-  try{ await api("/scope",{method:"POST",body:JSON.stringify({value:t})}); logln("+ scope: "+t); refresh(); }
+  setBusy(true);
+  try{ await api("/scope",{method:"POST",body:JSON.stringify({value:t})}); logln("+ scope: "+t); await refresh(); }
   catch(e){ logln("! "+e.message); }
+  finally{ setBusy(false); }
 };
 
 $("#go").onclick = async ()=>{
   const module=$("#module").value, target=$("#target").value.trim();
   if(!target){ logln("! enter a target"); return; }
   $("#log").textContent="—"; renderFindings([]);
+  setBusy(true);
   try{
     let job;
     if(module==="agent"){
@@ -169,7 +181,7 @@ $("#go").onclick = async ()=>{
     }
     $("#jobline").textContent = "job "+job.job_id+" · "+job.status;
     streamJob(job.job_id);
-  }catch(e){ logln("! "+e.message); }
+  }catch(e){ logln("! "+e.message); setBusy(false); }
 };
 
 function streamJob(id){
@@ -181,7 +193,7 @@ function streamJob(id){
     if(m.kind==="finding"){ logln("  + "+m.message+" ["+((m.data||{}).severity||"")+"]"); }
     else logln("· "+m.kind+(m.module?(" "+m.module):""));
   };
-  ws.onerror = ()=> logln("! ws error");
+  ws.onerror = ()=> { logln("! ws error"); setBusy(false); };
 }
 async function finishJob(id){
   try{
@@ -190,8 +202,9 @@ async function finishJob(id){
     renderFindings(res.findings||[]);
     if(res.plan){ logln("plan: "+res.plan.map(s=>s.module).join(" → ")); }
     if(res.assessment){ logln("\n== assessment ==\n"+res.assessment); }
-    loadAudit();
+    await loadAudit();
   }catch(e){ logln("! "+e.message); }
+  finally{ setBusy(false); }
 }
 
 refresh();
