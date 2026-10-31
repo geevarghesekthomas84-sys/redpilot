@@ -181,6 +181,39 @@ class MongoDB:
         
         await self.db.vulnerabilities.update_one(filter_query, update_data, upsert=True)
 
+    async def upsert_vulnerabilities(self, scan_id: str, vulnerabilities: List[Dict[str, Any]]):
+        """
+        Inserts or updates multiple vulnerability records using a bulk write operation.
+        """
+        if not vulnerabilities:
+            return
+
+        from pymongo import UpdateOne
+        now = datetime.utcnow()
+        operations = []
+
+        for vuln_dict in vulnerabilities:
+            vuln_dict = dict(vuln_dict)
+            vuln_dict["scan_id"] = scan_id
+            vuln_dict["updated_at"] = now
+            vuln_dict.pop("created_at", None)
+
+            filter_query = {
+                "scan_id": scan_id,
+                "vuln_type": vuln_dict["vuln_type"],
+                "target": vuln_dict["target"]
+            }
+
+            update_data = {
+                "$set": vuln_dict,
+                "$setOnInsert": {"created_at": now}
+            }
+
+            operations.append(UpdateOne(filter_query, update_data, upsert=True))
+
+        if operations:
+            await self.db.vulnerabilities.bulk_write(operations, ordered=False)
+
     async def get_vulnerabilities_for_scan(self, scan_id: str) -> List[Dict[str, Any]]:
         """
         Retrieves all findings for a specific scan.
