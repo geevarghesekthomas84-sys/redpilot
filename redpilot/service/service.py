@@ -187,8 +187,7 @@ class RedPilotService:
 
             if db_ready and scan_id:
                 from redpilot.database import db
-                for f in (raw or []):
-                    await db.upsert_vulnerability(scan_id, f)
+                await db.upsert_vulnerabilities(scan_id, raw or [])
                 await db.complete_scan(scan_id, len(findings))
 
             if bus:
