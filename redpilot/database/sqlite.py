@@ -217,36 +217,34 @@ class SQLiteDB:
         now = datetime.utcnow().isoformat()
 
         def _run():
+            batch_data = []
+            for vuln_dict in vulnerabilities:
+                record = dict(vuln_dict)
+                record["scan_id"] = scan_id
+                record["updated_at"] = now
+                record.setdefault("created_at", now)
+                target = record.get("target", "")
+                vuln_type = record.get("vuln_type", "")
+                sev_order = record.get("severity_order", 99)
+
+                batch_data.append((
+                    _new_id(), scan_id, target, vuln_type, sev_order,
+                    record["created_at"], now, json.dumps(record, default=str)
+                ))
+
             con = self._con()
             try:
-                for vuln_dict in vulnerabilities:
-                    record = dict(vuln_dict)
-                    record["scan_id"] = scan_id
-                    record["updated_at"] = now
-                    record.setdefault("created_at", now)
-                    target = record.get("target", "")
-                    vuln_type = record.get("vuln_type", "")
-                    sev_order = record.get("severity_order", 99)
-
-                    existing = con.execute(
-                        "SELECT id, created_at FROM vulnerabilities "
-                        "WHERE scan_id=? AND vuln_type=? AND target=?",
-                        (scan_id, vuln_type, target),
-                    ).fetchone()
-
-                    if existing:
-                        record["created_at"] = existing["created_at"]
-                        con.execute(
-                            "UPDATE vulnerabilities SET severity_order=?, updated_at=?, data=? WHERE id=?",
-                            (sev_order, now, json.dumps(record, default=str), existing["id"]),
-                        )
-                    else:
-                        con.execute(
-                            "INSERT INTO vulnerabilities (id, scan_id, target, vuln_type, "
-                            "severity_order, created_at, updated_at, data) VALUES (?,?,?,?,?,?,?,?)",
-                            (_new_id(), scan_id, target, vuln_type, sev_order,
-                             record["created_at"], now, json.dumps(record, default=str)),
-                        )
+                # ⚡ Bolt Optimization: Batch database write operations to prevent N+1 queries.
+                # executemany with UPSERT is substantially faster than looping SELECT + UPDATE/INSERT
+                con.executemany(
+                    "INSERT INTO vulnerabilities (id, scan_id, target, vuln_type, "
+                    "severity_order, created_at, updated_at, data) VALUES (?,?,?,?,?,?,?,?) "
+                    "ON CONFLICT(scan_id, vuln_type, target) DO UPDATE SET "
+                    "severity_order=excluded.severity_order, "
+                    "updated_at=excluded.updated_at, "
+                    "data=json_set(excluded.data, '$.created_at', vulnerabilities.created_at)",
+                    batch_data
+                )
                 con.commit()
             finally:
                 con.close()
