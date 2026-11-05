@@ -25,6 +25,7 @@ def rbac_client(tmp_path, monkeypatch):
     monkeypatch.setitem(svcmod.MODULE_MAP, "webscan", _FakeModule)
 
     from redpilot.workspaces import EngagementManager
+
     mgr = EngagementManager(root=str(eng_dir))
     acme = mgr.create("Acme", in_scope=["acme.com"])
     globex = mgr.create("Globex", in_scope=["globex.com"])
@@ -58,51 +59,56 @@ def test_viewer_cannot_launch_active_scan(rbac_client):
     r = rbac_client.get("/scope", headers={"X-API-Key": "VIEWKEY", "X-Engagement": rbac_client.acme})
     assert r.status_code == 200
     # ...but cannot start a scan (needs operator).
-    r = rbac_client.post("/scans",
-                         json={"module": "webscan", "target": "acme.com", "options": {"no_db": True}},
-                         headers={"X-API-Key": "VIEWKEY", "X-Engagement": rbac_client.acme})
+    r = rbac_client.post(
+        "/scans",
+        json={"module": "webscan", "target": "acme.com", "options": {"no_db": True}},
+        headers={"X-API-Key": "VIEWKEY", "X-Engagement": rbac_client.acme},
+    )
     assert r.status_code == 403
 
 
 def test_operator_can_launch_in_its_engagement(rbac_client):
-    r = rbac_client.post("/scans",
-                         json={"module": "webscan", "target": "acme.com", "options": {"no_db": True}},
-                         headers={"X-API-Key": "OPKEY", "X-Engagement": rbac_client.acme})
+    r = rbac_client.post(
+        "/scans",
+        json={"module": "webscan", "target": "acme.com", "options": {"no_db": True}},
+        headers={"X-API-Key": "OPKEY", "X-Engagement": rbac_client.acme},
+    )
     assert r.status_code == 202
 
 
 def test_operator_blocked_from_other_engagement(rbac_client):
     # OPKEY is only granted the acme engagement.
-    r = rbac_client.get("/scope",
-                        headers={"X-API-Key": "OPKEY", "X-Engagement": rbac_client.globex})
+    r = rbac_client.get("/scope", headers={"X-API-Key": "OPKEY", "X-Engagement": rbac_client.globex})
     assert r.status_code == 403
 
 
 def test_engagement_scope_isolation(rbac_client):
-    acme_scope = rbac_client.get(
-        "/scope", headers={"X-API-Key": "LEADKEY", "X-Engagement": rbac_client.acme}).json()
+    acme_scope = rbac_client.get("/scope", headers={"X-API-Key": "LEADKEY", "X-Engagement": rbac_client.acme}).json()
     globex_scope = rbac_client.get(
-        "/scope", headers={"X-API-Key": "LEADKEY", "X-Engagement": rbac_client.globex}).json()
+        "/scope", headers={"X-API-Key": "LEADKEY", "X-Engagement": rbac_client.globex}
+    ).json()
     assert acme_scope["in_scope"] == ["acme.com"]
     assert globex_scope["in_scope"] == ["globex.com"]
     # A target in one engagement's scope is out-of-scope in the other.
-    r = rbac_client.post("/scans",
-                        json={"module": "webscan", "target": "globex.com", "options": {"no_db": True}},
-                        headers={"X-API-Key": "LEADKEY", "X-Engagement": rbac_client.acme})
+    r = rbac_client.post(
+        "/scans",
+        json={"module": "webscan", "target": "globex.com", "options": {"no_db": True}},
+        headers={"X-API-Key": "LEADKEY", "X-Engagement": rbac_client.acme},
+    )
     assert r.status_code == 403  # globex.com not in acme scope
 
 
 def test_only_lead_creates_engagements(rbac_client):
     body = {"name": "New Client", "in_scope": ["new.com"]}
-    assert rbac_client.post("/engagements", json=body,
-                            headers=H("OPKEY")).status_code == 403
+    assert rbac_client.post("/engagements", json=body, headers=H("OPKEY")).status_code == 403
     r = rbac_client.post("/engagements", json=body, headers=H("LEADKEY"))
     assert r.status_code == 201 and r.json()["id"]
 
 
 def test_viewer_cannot_add_scope(rbac_client):
-    r = rbac_client.post("/scope", json={"value": "x.com"},
-                        headers={"X-API-Key": "VIEWKEY", "X-Engagement": rbac_client.acme})
+    r = rbac_client.post(
+        "/scope", json={"value": "x.com"}, headers={"X-API-Key": "VIEWKEY", "X-Engagement": rbac_client.acme}
+    )
     assert r.status_code == 403
 
 

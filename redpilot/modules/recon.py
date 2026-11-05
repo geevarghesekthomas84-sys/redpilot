@@ -20,25 +20,38 @@ except ImportError:
 
 
 class ReconModule(BaseModule):
-    COMMON_SUBDOMAINS = ["dev", "staging", "test", "prod", "vpn", "admin", "mail", "remote", "api", "git", "cloud", "portal"]
+    COMMON_SUBDOMAINS = [
+        "dev",
+        "staging",
+        "test",
+        "prod",
+        "vpn",
+        "admin",
+        "mail",
+        "remote",
+        "api",
+        "git",
+        "cloud",
+        "portal",
+    ]
 
     async def run(self, progress: Progress) -> List[Dict[str, Any]]:
         task = progress.add_task("[green]Starting passive reconnaissance...", total=100)
         findings = []
-        
+
         domain = self.target
         is_passive = self.options.get("passive", False)
 
         # 1. Subdomain Enumeration via crt.sh
         progress.update(task, description="[cyan]Enumerating subdomains via crt.sh...", completed=10)
         subdomains = await self._get_subdomains(domain)
-        
+
         # 1b. Active Subdomain Brute-force (if enabled)
         if not is_passive:
             progress.update(task, description="[cyan]Brute-forcing common subdomains...", completed=20)
             brute_subs = [f"{s}.{domain}" for s in self.COMMON_SUBDOMAINS]
             subdomains = list(set(subdomains + brute_subs))
-            
+
         progress.update(task, completed=30)
 
         # 2. DNS Resolution (Limit to 100)
@@ -59,7 +72,7 @@ class ReconModule(BaseModule):
         # 5. Analyze Findings
         findings.extend(self._analyze_dns(domain, dns_records))
         findings.extend(self._analyze_whois(domain, whois_info))
-        
+
         # 6. Active Checks (Zone Transfer)
         if not is_passive and dns_records.get("NS"):
             progress.update(task, description="[cyan]Attempting DNS zone transfer (AXFR)...", completed=95)
@@ -74,12 +87,17 @@ class ReconModule(BaseModule):
             logger.warning("SHODAN_API_KEY set but 'shodan' package not installed. Run: pip install shodan")
 
         if len(resolved_subs) > 20:
-            findings.append(build_finding(
-                domain, "large_subdomain_attack_surface",
-                f"Identified {len(resolved_subs)} live subdomains.",
-                "Low", "Consider reviewing subdomains for unnecessary exposure.",
-                "recon", extra={"count": len(resolved_subs)}
-            ))
+            findings.append(
+                build_finding(
+                    domain,
+                    "large_subdomain_attack_surface",
+                    f"Identified {len(resolved_subs)} live subdomains.",
+                    "Low",
+                    "Consider reviewing subdomains for unnecessary exposure.",
+                    "recon",
+                    extra={"count": len(resolved_subs)},
+                )
+            )
 
         progress.update(task, completed=100)
         return findings
@@ -94,8 +112,8 @@ class ReconModule(BaseModule):
                         data = await resp.json()
                         for entry in data:
                             name = entry.get("name_value", "")
-                            for sub in name.split('\n'):
-                                if sub.endswith(domain) and '*' not in sub:
+                            for sub in name.split("\n"):
+                                if sub.endswith(domain) and "*" not in sub:
                                     subdomains.add(sub.lower())
         except Exception as e:
             logger.error(f"crt.sh error: {e}")
@@ -124,7 +142,7 @@ class ReconModule(BaseModule):
 
     async def _get_dns_records(self, domain: str) -> Dict[str, List[str]]:
         records = {}
-        types = ['A', 'AAAA', 'MX', 'NS', 'TXT', 'CNAME']
+        types = ["A", "AAAA", "MX", "NS", "TXT", "CNAME"]
         resolver = dns.resolver.Resolver()
         resolver.timeout = 2
         resolver.lifetime = 2
@@ -141,16 +159,20 @@ class ReconModule(BaseModule):
         findings = []
         for ns in ns_records:
             try:
-                loop  = asyncio.get_running_loop()
+                loop = asyncio.get_running_loop()
                 ns_ip = socket.gethostbyname(ns)
                 z = await loop.run_in_executor(None, dns.zone.from_xfr, dns.query.xfr(ns_ip, domain))
                 if z:
-                    findings.append(build_finding(
-                        domain, "dns_zone_transfer_enabled",
-                        f"DNS zone transfer enabled on {ns} ({ns_ip}). Significant information exposure.",
-                        "Critical", f"Disable AXFR zone transfers on the name server {ns}.",
-                        "recon"
-                    ))
+                    findings.append(
+                        build_finding(
+                            domain,
+                            "dns_zone_transfer_enabled",
+                            f"DNS zone transfer enabled on {ns} ({ns_ip}). Significant information exposure.",
+                            "Critical",
+                            f"Disable AXFR zone transfers on the name server {ns}.",
+                            "recon",
+                        )
+                    )
             except Exception:
                 pass
         return findings
@@ -168,40 +190,55 @@ class ReconModule(BaseModule):
     def _analyze_dns(self, domain: str, records: Dict[str, List[str]]) -> List[Dict[str, Any]]:
         findings = []
         txt_records = "".join(records.get("TXT", [])).lower()
-        
+
         if "v=spf1" not in txt_records:
-            findings.append(build_finding(
-                domain, "missing_spf_record",
-                "No SPF record found in DNS TXT records.",
-                "Medium", "Implement a valid SPF record (v=spf1) to prevent email spoofing.",
-                "recon"
-            ))
-            
+            findings.append(
+                build_finding(
+                    domain,
+                    "missing_spf_record",
+                    "No SPF record found in DNS TXT records.",
+                    "Medium",
+                    "Implement a valid SPF record (v=spf1) to prevent email spoofing.",
+                    "recon",
+                )
+            )
+
         if "v=dmarc1" not in txt_records:
-            findings.append(build_finding(
-                domain, "missing_dmarc_record",
-                "No DMARC record found in DNS TXT records.",
-                "Medium", "Implement a DMARC policy (v=DMARC1) to handle email authentication failures.",
-                "recon"
-            ))
-            
+            findings.append(
+                build_finding(
+                    domain,
+                    "missing_dmarc_record",
+                    "No DMARC record found in DNS TXT records.",
+                    "Medium",
+                    "Implement a DMARC policy (v=DMARC1) to handle email authentication failures.",
+                    "recon",
+                )
+            )
+
         return findings
 
     def _analyze_whois(self, domain: str, info: Dict[str, Any]) -> List[Dict[str, Any]]:
         findings = []
         emails = info.get("emails", [])
         if emails:
-            if isinstance(emails, str): emails = [emails]
-            findings.append(build_finding(
-                domain, "info_exposure_whois_email",
-                f"WHOIS record exposes registrant emails: {', '.join(emails)}",
-                "Low", "Enable WHOIS privacy protection (Redaction) via your registrar.",
-                "recon", extra={"emails": emails}
-            ))
+            if isinstance(emails, str):
+                emails = [emails]
+            findings.append(
+                build_finding(
+                    domain,
+                    "info_exposure_whois_email",
+                    f"WHOIS record exposes registrant emails: {', '.join(emails)}",
+                    "Low",
+                    "Enable WHOIS privacy protection (Redaction) via your registrar.",
+                    "recon",
+                    extra={"emails": emails},
+                )
+            )
         return findings
 
     def render_results(self, results: List[Dict[str, Any]]):
         from redpilot.utils import ui
+
         if not results:
             self.console.print(f"[{ui.FAINT}]No recon findings.[/]")
             return
@@ -224,31 +261,33 @@ class ReconModule(BaseModule):
         """
         findings = []
         try:
-            loop    = asyncio.get_running_loop()
-            api     = shodan_lib.Shodan(api_key)
+            loop = asyncio.get_running_loop()
+            api = shodan_lib.Shodan(api_key)
             ip_addr = socket.gethostbyname(domain)
 
             host = await loop.run_in_executor(None, api.host, ip_addr)
 
             ports = host.get("ports", [])
-            org   = host.get("org", "Unknown")
-            isp   = host.get("isp", "Unknown")
+            org = host.get("org", "Unknown")
+            isp = host.get("isp", "Unknown")
             country = host.get("country_name", "Unknown")
 
             if ports:
-                findings.append(build_finding(
-                    domain, "shodan_open_ports",
-                    f"Shodan reports {len(ports)} open ports on {ip_addr} ({org}): {sorted(ports)}. "
-                    f"ISP: {isp}, Country: {country}.",
-                    "Medium",
-                    "Validate that all open ports are intentional. Close or firewall any unneeded services.",
-                    "recon",
-                    extra={"ip": ip_addr, "ports": ports, "org": org, "isp": isp, "country": country},
-                ))
+                findings.append(
+                    build_finding(
+                        domain,
+                        "shodan_open_ports",
+                        f"Shodan reports {len(ports)} open ports on {ip_addr} ({org}): {sorted(ports)}. "
+                        f"ISP: {isp}, Country: {country}.",
+                        "Medium",
+                        "Validate that all open ports are intentional. Close or firewall any unneeded services.",
+                        "recon",
+                        extra={"ip": ip_addr, "ports": ports, "org": org, "isp": isp, "country": country},
+                    )
+                )
             logger.debug(f"Shodan: {ip_addr} — {len(ports)} ports, org={org}")
 
         except Exception as exc:
             logger.warning(f"Shodan lookup failed for {domain}: {exc}")
 
         return findings
-

@@ -37,8 +37,9 @@ def test_agent_goal_payload_capped(client):
 
 
 def test_mock_mode_scan_touches_nothing(client):
-    r = client.post("/scans", json={"module": "scan", "target": "example.com",
-                                     "options": {"mock": True, "no_db": True}}, headers=H)
+    r = client.post(
+        "/scans", json={"module": "scan", "target": "example.com", "options": {"mock": True, "no_db": True}}, headers=H
+    )
     assert r.status_code == 202
     jid = r.json()["job_id"]
     result = None
@@ -54,8 +55,7 @@ def test_mock_mode_scan_touches_nothing(client):
 
 
 def test_pipeline_endpoint_mock(client):
-    r = client.post("/pipeline", json={"target": "example.com",
-                                        "options": {"mock": True, "no_db": True}}, headers=H)
+    r = client.post("/pipeline", json={"target": "example.com", "options": {"mock": True, "no_db": True}}, headers=H)
     assert r.status_code == 202
     jid = r.json()["job_id"]
     result = None

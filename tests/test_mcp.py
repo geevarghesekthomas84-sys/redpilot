@@ -19,8 +19,17 @@ def _server(tmp_path, scope=None):
 def test_server_registers_expected_tools(tmp_path):
     s = _server(tmp_path)
     names = asyncio.run(_tool_names(s))
-    assert names >= {"recon", "toolkit", "scan", "webscan", "crawl",
-                     "agent_run", "scope_show", "scope_add", "tools_status"}
+    assert names >= {
+        "recon",
+        "toolkit",
+        "scan",
+        "webscan",
+        "crawl",
+        "agent_run",
+        "scope_show",
+        "scope_add",
+        "tools_status",
+    }
 
 
 async def _tool_names(s):
@@ -61,10 +70,8 @@ def test_agent_run_dry_run_returns_plan(tmp_path):
 
 
 def test_shaping_caps_findings():
-    findings = [Finding(target="t", vuln_type=f"v{i}", severity="Info",
-                        detail="x" * 500) for i in range(100)]
-    r = ScanResult(module="toolkit", target="t", findings=findings,
-                   counts={"Info": 100}, scan_id="abc")
+    findings = [Finding(target="t", vuln_type=f"v{i}", severity="Info", detail="x" * 500) for i in range(100)]
+    r = ScanResult(module="toolkit", target="t", findings=findings, counts={"Info": 100}, scan_id="abc")
     payload = shaping.scan_payload(r)
     assert payload["total_findings"] == 100
     assert payload["showing"] == shaping.MAX_FINDINGS

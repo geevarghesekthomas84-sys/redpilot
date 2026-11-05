@@ -124,12 +124,10 @@ def create_app(scope_file: str = "scope.json") -> FastAPI:
         principal = principals.authenticate(x_api_key)
         if principal is None:
             metrics.inc("redpilot_auth_failures_total")
-            raise HTTPException(status.HTTP_401_UNAUTHORIZED,
-                                "Missing or invalid API key (send it in 'X-API-Key').")
+            raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Missing or invalid API key (send it in 'X-API-Key').")
         if not limiter.allow(principal.key_id):
             metrics.inc("redpilot_rate_limited_total")
-            raise HTTPException(status.HTTP_429_TOO_MANY_REQUESTS,
-                                "Rate limit exceeded — slow down.")
+            raise HTTPException(status.HTTP_429_TOO_MANY_REQUESTS, "Rate limit exceeded — slow down.")
         return principal
 
     def get_engagement(x_engagement: str = Header(default=""), principal=Depends(get_principal)):
@@ -145,13 +143,13 @@ def create_app(scope_file: str = "scope.json") -> FastAPI:
         return eng
 
     def service_for(principal, eng) -> RedPilotService:
-        return RedPilotService(scope_file=eng.scope_file, audit_path=eng.audit_path,
-                           actor=principal.key_id, engagement=eng.id)
+        return RedPilotService(
+            scope_file=eng.scope_file, audit_path=eng.audit_path, actor=principal.key_id, engagement=eng.id
+        )
 
     def require(principal, role: Role) -> None:
         if not principal.has_role(role):
-            raise HTTPException(403, f"role '{principal.role.label}' insufficient; "
-                                     f"'{role.label}' or higher required.")
+            raise HTTPException(403, f"role '{principal.role.label}' insufficient; '{role.label}' or higher required.")
 
     def require_active_authorization(eng) -> None:
         """Active runs on a persisted engagement need a valid signed authorization
@@ -159,8 +157,7 @@ def create_app(scope_file: str = "scope.json") -> FastAPI:
         if eng.id == "default" or not authorization.signing_configured():
             return
         if not manager.authorization_valid(eng):
-            raise HTTPException(403, f"engagement '{eng.id}' has no valid signed "
-                                     f"authorization for active testing.")
+            raise HTTPException(403, f"engagement '{eng.id}' has no valid signed authorization for active testing.")
 
     def _record_scan(result: Dict[str, Any]) -> None:
         module = result.get("module", "unknown")
@@ -188,6 +185,7 @@ def create_app(scope_file: str = "scope.json") -> FastAPI:
     @app.get("/schema")
     async def schema():
         from redpilot.service.schema import combined_schema
+
         return combined_schema()
 
     @app.get("/", response_class=HTMLResponse)
@@ -198,8 +196,12 @@ def create_app(scope_file: str = "scope.json") -> FastAPI:
     # ── Identity ──────────────────────────────────────────────────────
     @app.get("/whoami")
     async def whoami(principal=Depends(get_principal)):
-        return {"key_id": principal.key_id, "name": principal.name,
-                "role": principal.role.label, "engagements": principal.engagements}
+        return {
+            "key_id": principal.key_id,
+            "name": principal.name,
+            "role": principal.role.label,
+            "engagements": principal.engagements,
+        }
 
     # ── Engagements ───────────────────────────────────────────────────
     @app.get("/engagements")
@@ -207,20 +209,34 @@ def create_app(scope_file: str = "scope.json") -> FastAPI:
         out = []
         for e in manager.list():
             if principal.can_access(e.id):
-                out.append({"id": e.id, "name": e.name, "created_at": e.created_at.isoformat(),
-                            "authorized": manager.authorization_valid(e),
-                            "retention_days": e.retention.days})
+                out.append(
+                    {
+                        "id": e.id,
+                        "name": e.name,
+                        "created_at": e.created_at.isoformat(),
+                        "authorized": manager.authorization_valid(e),
+                        "retention_days": e.retention.days,
+                    }
+                )
         return {"engagements": out}
 
     @app.post("/engagements", status_code=201)
     async def create_engagement(req: EngagementRequest, principal=Depends(get_principal)):
         require(principal, Role.LEAD)
-        eng = manager.create(req.name, created_by=principal.key_id,
-                             in_scope=req.in_scope, out_of_scope=req.out_of_scope,
-                             retention_days=req.retention_days,
-                             authorized_by=req.authorized_by or None)
-        return {"id": eng.id, "name": eng.name, "scope_file": eng.scope_file,
-                "authorized": manager.authorization_valid(eng)}
+        eng = manager.create(
+            req.name,
+            created_by=principal.key_id,
+            in_scope=req.in_scope,
+            out_of_scope=req.out_of_scope,
+            retention_days=req.retention_days,
+            authorized_by=req.authorized_by or None,
+        )
+        return {
+            "id": eng.id,
+            "name": eng.name,
+            "scope_file": eng.scope_file,
+            "authorized": manager.authorization_valid(eng),
+        }
 
     # ── Scope & status (engagement-scoped) ────────────────────────────
     @app.get("/scope")
@@ -228,8 +244,7 @@ def create_app(scope_file: str = "scope.json") -> FastAPI:
         return service_for(principal, eng).scope_state().model_dump()
 
     @app.post("/scope")
-    async def add_scope(req: ScopeAddRequest, eng=Depends(get_engagement),
-                        principal=Depends(get_principal)):
+    async def add_scope(req: ScopeAddRequest, eng=Depends(get_engagement), principal=Depends(get_principal)):
         require(principal, Role.LEAD)
         return service_for(principal, eng).scope_add(req.value).model_dump()
 
@@ -238,14 +253,12 @@ def create_app(scope_file: str = "scope.json") -> FastAPI:
         return {"tools": [t.model_dump() for t in service_for(principal, eng).tools_status()]}
 
     @app.get("/audit")
-    async def audit(limit: int = 100, eng=Depends(get_engagement),
-                   principal=Depends(get_principal)):
+    async def audit(limit: int = 100, eng=Depends(get_engagement), principal=Depends(get_principal)):
         return {"entries": _tail_audit(eng.audit_path, limit)}
 
     # ── Scans & agent (async jobs) ────────────────────────────────────
     @app.post("/scans", status_code=202)
-    async def start_scan(req: ScanRequest, eng=Depends(get_engagement),
-                        principal=Depends(get_principal)):
+    async def start_scan(req: ScanRequest, eng=Depends(get_engagement), principal=Depends(get_principal)):
         require(principal, Role.OPERATOR)
         require_active_authorization(eng)
         svc = service_for(principal, eng)
@@ -262,8 +275,7 @@ def create_app(scope_file: str = "scope.json") -> FastAPI:
         return {"job_id": job.id, "status": job.status}
 
     @app.post("/agent", status_code=202)
-    async def start_agent(req: AgentRequest, eng=Depends(get_engagement),
-                         principal=Depends(get_principal)):
+    async def start_agent(req: AgentRequest, eng=Depends(get_engagement), principal=Depends(get_principal)):
         require(principal, Role.OPERATOR)
         svc = service_for(principal, eng)
         if not req.dry_run:
@@ -272,8 +284,9 @@ def create_app(scope_file: str = "scope.json") -> FastAPI:
         metrics.inc("redpilot_agent_runs_total", {"mode": "plan" if req.dry_run else "active"})
 
         async def run(bus: EventBus):
-            r = await svc.run_agent(req.target, req.goal, dry_run=req.dry_run,
-                                    aggressive=req.aggressive, bus=bus, surface="api")
+            r = await svc.run_agent(
+                req.target, req.goal, dry_run=req.dry_run, aggressive=req.aggressive, bus=bus, surface="api"
+            )
             payload = r.model_dump(mode="json")
             for sev, n in (payload.get("counts") or {}).items():
                 if n:
@@ -284,8 +297,7 @@ def create_app(scope_file: str = "scope.json") -> FastAPI:
         return {"job_id": job.id, "status": job.status}
 
     @app.post("/pipeline", status_code=202)
-    async def start_pipeline(req: PipelineRequest, eng=Depends(get_engagement),
-                            principal=Depends(get_principal)):
+    async def start_pipeline(req: PipelineRequest, eng=Depends(get_engagement), principal=Depends(get_principal)):
         require(principal, Role.OPERATOR)
         require_active_authorization(eng)
         svc = service_for(principal, eng)
@@ -309,19 +321,25 @@ def create_app(scope_file: str = "scope.json") -> FastAPI:
         job = jobs.get(job_id)
         if not job:
             raise HTTPException(404, "job not found")
-        return {"job_id": job.id, "kind": job.kind, "target": job.target,
-                "status": job.status, "result": job.result, "error": job.error}
+        return {
+            "job_id": job.id,
+            "kind": job.kind,
+            "target": job.target,
+            "status": job.status,
+            "result": job.result,
+            "error": job.error,
+        }
 
     # ── Reads ─────────────────────────────────────────────────────────
     @app.get("/scans/recent")
-    async def recent(target: Optional[str] = None, limit: int = 20,
-                    eng=Depends(get_engagement), principal=Depends(get_principal)):
+    async def recent(
+        target: Optional[str] = None, limit: int = 20, eng=Depends(get_engagement), principal=Depends(get_principal)
+    ):
         svc = service_for(principal, eng)
         return {"scans": [s.model_dump(mode="json") for s in await svc.list_scans(target, limit)]}
 
     @app.get("/findings/{scan_id}")
-    async def findings(scan_id: str, eng=Depends(get_engagement),
-                      principal=Depends(get_principal)):
+    async def findings(scan_id: str, eng=Depends(get_engagement), principal=Depends(get_principal)):
         svc = service_for(principal, eng)
         return {"findings": [f.model_dump() for f in await svc.get_findings(scan_id)]}
 
@@ -343,8 +361,9 @@ def create_app(scope_file: str = "scope.json") -> FastAPI:
             return
         try:
             async for ev in job.bus.subscribe():
-                await ws.send_json({"kind": ev.kind, "module": ev.module,
-                                    "message": ev.message, "pct": ev.pct, "data": ev.data})
+                await ws.send_json(
+                    {"kind": ev.kind, "module": ev.module, "message": ev.message, "pct": ev.pct, "data": ev.data}
+                )
             await ws.send_json({"kind": "done", "status": job.status, "error": job.error})
         except WebSocketDisconnect:
             pass
@@ -369,7 +388,7 @@ def _tail_audit(path: str, limit: int) -> list:
         return []
     try:
         with open(path, encoding="utf-8") as f:
-            lines = f.readlines()[-max(1, min(limit, 1000)):]
+            lines = f.readlines()[-max(1, min(limit, 1000)) :]
         out = []
         for ln in lines:
             try:
@@ -383,12 +402,14 @@ def _tail_audit(path: str, limit: int) -> list:
 
 def _dashboard_html() -> str:
     from importlib.resources import files
+
     return (files("redpilot.api") / "static" / "dashboard.html").read_text(encoding="utf-8")
 
 
 def _version() -> str:
     try:
         from redpilot.cli.main import get_version
+
         return get_version()
     except Exception:
         return "0"

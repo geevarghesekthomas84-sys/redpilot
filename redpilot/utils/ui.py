@@ -14,20 +14,20 @@ from rich.table import Table
 from rich.text import Text
 
 # ── Palette ────────────────────────────────────────────────────────────────
-AMBER = "#E0A82E"   # the one signature accent — the mark, key figures
+AMBER = "#E0A82E"  # the one signature accent — the mark, key figures
 AMBER_SOFT = "#C9972B"
-STEEL = "#9AA0A6"   # secondary text, headers
-FAINT = "#5C6370"   # tertiary / dividers / hints
+STEEL = "#9AA0A6"  # secondary text, headers
+FAINT = "#5C6370"  # tertiary / dividers / hints
 OK = "#30A46C"
 DANGER = "#E5484D"
 
 # Severity is information, not decoration — a fixed, semantic ramp.
 SEVERITY = {
     "Critical": "#E5484D",
-    "High":     "#F0883E",
-    "Medium":   "#E0A82E",
-    "Low":      "#3FA7E0",
-    "Info":     "#6B7280",
+    "High": "#F0883E",
+    "Medium": "#E0A82E",
+    "Low": "#3FA7E0",
+    "Info": "#6B7280",
 }
 
 PANEL_BOX = box.ROUNDED

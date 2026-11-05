@@ -5,12 +5,14 @@ import time
 import importlib.util
 from datetime import datetime
 from dotenv import load_dotenv, find_dotenv
+
 # Load .env from the directory the user runs `redpilot` in (usecwd=True), not from
 # the installed package location. Must run before redpilot.database is imported so
 # REDPILOT_DB_BACKEND is honored by the backend selector.
 load_dotenv(find_dotenv(usecwd=True))
 # Mirror any legacy SPAF_* vars from the just-loaded .env onto REDPILOT_*.
 import redpilot as _redpilot
+
 _redpilot._apply_env_compat()
 import typer
 from typing import Optional, List
@@ -36,7 +38,7 @@ from rich.panel import Panel
 app = typer.Typer(
     help="AI-orchestrated offensive security automation (RedPilot) - AI-Augmented Offensive Security Framework. Developed by gg",
     rich_markup_mode="rich",
-    add_completion=True,    # enables: redpilot --install-completion / --show-completion
+    add_completion=True,  # enables: redpilot --install-completion / --show-completion
 )
 console = Console()
 engine = ScanEngine()
@@ -46,6 +48,7 @@ def get_version() -> str:
     """Return the installed RedPilot version (falls back gracefully)."""
     try:
         from importlib.metadata import version, PackageNotFoundError
+
         try:
             return version("redpilot")
         except PackageNotFoundError:
@@ -66,13 +69,17 @@ def _version_callback(value: bool):
 @app.callback()
 def _main(
     version: bool = typer.Option(
-        False, "--version", "-V",
+        False,
+        "--version",
+        "-V",
         help="Show the RedPilot version and exit.",
-        callback=_version_callback, is_eager=True,
+        callback=_version_callback,
+        is_eager=True,
     ),
 ):
     """AI-orchestrated offensive security automation (RedPilot)."""
     pass
+
 
 def load_targets(target_arg: str) -> List[str]:
     """Loads targets from a file or returns a list with a single target."""
@@ -81,9 +88,12 @@ def load_targets(target_arg: str) -> List[str]:
             return [line.strip() for line in f if line.strip()]
     return [target_arg]
 
+
 def print_banner(compact: bool = False):
     from redpilot.utils import ui
+
     console.print(ui.banner(get_version(), auth_manager.is_logged_in(), compact=compact))
+
 
 def load_plugins(app_instance: typer.Typer):
     """Dynamically loads plugins from the 'plugins' directory."""
@@ -91,7 +101,7 @@ def load_plugins(app_instance: typer.Typer):
     if not os.path.exists(plugins_dir):
         os.makedirs(plugins_dir, exist_ok=True)
         return
-        
+
     for filename in os.listdir(plugins_dir):
         if filename.endswith(".py") and not filename.startswith("__"):
             plugin_path = os.path.join(plugins_dir, filename)
@@ -106,19 +116,22 @@ def load_plugins(app_instance: typer.Typer):
                 except Exception as e:
                     logger.error(f"Failed to load plugin {filename}: {e}")
 
+
 async def _init_db():
     await db.connect()
+
 
 @app.command()
 def chat(
     query: str = typer.Argument(..., help="Question or prompt for the configured AI"),
 ):
     """Directly chat with the configured AI provider (Google, Claude, Ollama, etc.)."""
+
     async def run():
         with console.status(f"[bold cyan]{ai_orchestrator.provider.capitalize()} is thinking..."):
             response = await ai_orchestrator.chat(query)
             console.print(Panel(response, title=f"{ai_orchestrator.provider.capitalize()} AI", border_style="blue"))
-            
+
     asyncio.run(run())
 
 
@@ -128,19 +141,21 @@ def test_ai():
     from rich.table import Table
 
     async def run():
-        console.print(f"\n[bold cyan]Testing AI provider:[/bold cyan] [white]{ai_orchestrator.provider.upper()}[/white]\n")
+        console.print(
+            f"\n[bold cyan]Testing AI provider:[/bold cyan] [white]{ai_orchestrator.provider.upper()}[/white]\n"
+        )
         with console.status("[bold cyan]Connecting to AI provider...[/bold cyan]", spinner="dots"):
             result = await ai_orchestrator.health_check()
 
         status_color = "green" if "OK" in result["status"] else "red"
 
         table = Table(title="AI Provider Health Check", show_header=True, header_style="bold white")
-        table.add_column("Field",  style="cyan",  width=16)
-        table.add_column("Value",  style="white")
+        table.add_column("Field", style="cyan", width=16)
+        table.add_column("Value", style="white")
 
         table.add_row("Provider", result["provider"].upper())
-        table.add_row("Model",    result["model"])
-        table.add_row("Status",   f"[{status_color}]{result['status']}[/{status_color}]")
+        table.add_row("Model", result["model"])
+        table.add_row("Status", f"[{status_color}]{result['status']}[/{status_color}]")
         table.add_row("Response", result["detail"] or "—")
 
         console.print(table)
@@ -165,6 +180,7 @@ def gemini(
     query: str = typer.Argument(..., help="Question or prompt for Gemini AI"),
 ):
     """Shortcut to chat specifically with Google Gemini AI."""
+
     async def run():
         # Temporarily switch to google provider if not already
         old_provider = ai_orchestrator.provider
@@ -175,7 +191,7 @@ def gemini(
                 console.print(Panel(response, title="Gemini AI", border_style="blue"))
         finally:
             ai_orchestrator.provider = old_provider
-            
+
     asyncio.run(run())
 
 
@@ -184,6 +200,7 @@ def ollama(
     query: str = typer.Argument(..., help="Question or prompt for Ollama (local AI)"),
 ):
     """Shortcut to chat with a locally running Ollama model (streaming output)."""
+
     async def run():
         old_provider = ai_orchestrator.provider
         ai_orchestrator.provider = "ollama"
@@ -202,6 +219,7 @@ def lmstudio(
     query: str = typer.Argument(..., help="Question or prompt for LM Studio (local AI)"),
 ):
     """Shortcut to chat with the currently loaded LM Studio model (streaming output)."""
+
     async def run():
         old_provider = ai_orchestrator.provider
         ai_orchestrator.provider = "lmstudio"
@@ -220,6 +238,7 @@ def claude(
     query: str = typer.Argument(..., help="Question or prompt for Anthropic Claude"),
 ):
     """Shortcut to chat specifically with Anthropic Claude."""
+
     async def run():
         old_provider = ai_orchestrator.provider
         ai_orchestrator.provider = "claude"
@@ -236,9 +255,10 @@ def claude(
 @app.command()
 def poc(
     finding_id: str = typer.Argument(..., help="The ID of the finding to generate a POC for"),
-    output: Optional[str] = typer.Option(None, "--output", help="Save the POC to a file")
+    output: Optional[str] = typer.Option(None, "--output", help="Save the POC to a file"),
 ):
     """Generate a functional Proof-of-Concept (POC) script for a specific finding."""
+
     async def run():
         await _init_db()
         finding = await db.get_finding(finding_id)
@@ -261,30 +281,33 @@ def poc(
             5. ONLY output the code, wrapped in markdown code blocks.
             """
             poc_code = await ai_orchestrator.chat(prompt)
-            
+
             # Extract code from markdown blocks
             import re
+
             code_match = re.search(r"```(?:python)?\n(.*?)\n```", poc_code, re.DOTALL)
             clean_code = code_match.group(1) if code_match else poc_code
-            
+
             console.print(Panel(clean_code, title=f"POC Script: {finding['vuln_type']}", border_style="yellow"))
-            
+
             if output:
                 with open(output, "w") as f:
                     f.write(clean_code)
                 console.print(f"[bold green]Saved POC to:[/bold green] {output}")
-            
+
     asyncio.run(run())
+
 
 @app.command()
 def watch(
-    target: str   = typer.Argument(..., help="Target to monitor"),
-    interval: int = typer.Option(3600,    "--interval", help="Scan interval in seconds (default: 1 hour)"),
-    module: str   = typer.Option("recon", "--module",   help="Module to run: recon|webscan|network|crawl|toolkit"),
-    no_ai: bool   = typer.Option(False,   "--no-ai",    help="Skip AI analysis after each scheduled scan"),
-    no_db: bool   = typer.Option(False,   "--no-db",    help="Run without database logging"),
+    target: str = typer.Argument(..., help="Target to monitor"),
+    interval: int = typer.Option(3600, "--interval", help="Scan interval in seconds (default: 1 hour)"),
+    module: str = typer.Option("recon", "--module", help="Module to run: recon|webscan|network|crawl|toolkit"),
+    no_ai: bool = typer.Option(False, "--no-ai", help="Skip AI analysis after each scheduled scan"),
+    no_db: bool = typer.Option(False, "--no-db", help="Run without database logging"),
 ):
     """Monitor a target continuously and alert on changes (Shadow Scan)."""
+
     async def run():
         if not no_db:
             try:
@@ -295,10 +318,10 @@ def watch(
 
         console.print(f"[bold cyan]Shadow Scan started for {target}[/bold cyan] (Interval: {interval}s)")
         module_map = {
-            "recon":   ReconModule,
+            "recon": ReconModule,
             "webscan": WebscanModule,
             "network": NetworkModule,
-            "crawl":   CrawlerModule,
+            "crawl": CrawlerModule,
             "toolkit": ToolkitModule,
         }
         mod_class = module_map.get(module)
@@ -315,7 +338,7 @@ def watch(
 
             current_count = len(results) if results else 0
             if last_findings_count != -1 and current_count > last_findings_count:
-                new_count    = current_count - last_findings_count
+                new_count = current_count - last_findings_count
                 new_findings = results[last_findings_count:]
                 console.print(
                     Panel(
@@ -340,9 +363,13 @@ def watch(
 
 @app.command(name="ai")
 def ai_analyze(
-    scan_id: str    = typer.Argument(..., help="Scan ID to re-analyze"),
-    module: str     = typer.Option("",  "--module",   help="Module hint: recon|network|webscan|crawler (auto-detected if omitted)"),
-    provider: str   = typer.Option("",  "--provider", help="Override AI provider for this call: google|claude|ollama|lmstudio"),
+    scan_id: str = typer.Argument(..., help="Scan ID to re-analyze"),
+    module: str = typer.Option(
+        "", "--module", help="Module hint: recon|network|webscan|crawler (auto-detected if omitted)"
+    ),
+    provider: str = typer.Option(
+        "", "--provider", help="Override AI provider for this call: google|claude|ollama|lmstudio"
+    ),
 ):
     """
     Re-run AI threat analysis on a previous scan without re-scanning.
@@ -350,6 +377,7 @@ def ai_analyze(
     Fetches findings from MongoDB by scan ID and sends them through the
     module-specific AI prompt pipeline.
     """
+
     async def run():
         await _init_db()
 
@@ -367,17 +395,21 @@ def ai_analyze(
         # Optional provider override
         if provider:
             import os
+
             os.environ["AI_PROVIDER"] = provider.lower()
             # Re-instantiate to pick up the override
             from redpilot.utils.ai import AIOrchestrator
+
             orchestrator = AIOrchestrator()
         else:
             orchestrator = ai_orchestrator
 
-        console.print(f"\n[bold magenta]Re-analyzing scan [cyan]{scan_id}[/cyan] "
-                      f"([white]{len(findings)}[/white] findings) "
-                      f"using [cyan]{mod or 'generic'}[/cyan] prompt via "
-                      f"[cyan]{orchestrator.provider.upper()}[/cyan]...[/bold magenta]\n")
+        console.print(
+            f"\n[bold magenta]Re-analyzing scan [cyan]{scan_id}[/cyan] "
+            f"([white]{len(findings)}[/white] findings) "
+            f"using [cyan]{mod or 'generic'}[/cyan] prompt via "
+            f"[cyan]{orchestrator.provider.upper()}[/cyan]...[/bold magenta]\n"
+        )
 
         with console.status("[bold magenta]AI is analyzing findings...[/bold magenta]", spinner="dots"):
             analysis = await orchestrator.analyze_module(mod, findings)
@@ -394,24 +426,25 @@ def ai_analyze(
     asyncio.run(run())
 
 
-
 @app.command()
 def shell():
     """Enter the RedPilot Interactive Shell for real-time security assistance."""
     console.print("[bold green]Welcome to the RedPilot Interactive Shell![/bold green]")
     console.print("Type 'exit' to quit. Use 'chat <query>' or 'analyze <id>' for assistance.")
-    
+
     async def run_shell():
         while True:
             try:
                 command = console.input("[bold cyan]RedPilot > [/bold cyan]").strip()
-                if not command: continue
-                if command.lower() in ["exit", "quit"]: break
-                
+                if not command:
+                    continue
+                if command.lower() in ["exit", "quit"]:
+                    break
+
                 parts = command.split(" ", 1)
                 cmd = parts[0].lower()
                 arg = parts[1] if len(parts) > 1 else ""
-                
+
                 if cmd in ["chat", "gemini"]:
                     with console.status(f"[bold cyan]{ai_orchestrator.provider.capitalize()} is thinking..."):
                         response = await ai_orchestrator.chat(arg)
@@ -436,12 +469,16 @@ def shell():
 
     asyncio.run(run_shell())
 
+
 @app.command()
 def remediate(
     finding_id: str = typer.Argument(..., help="The ID of the finding to generate remediation code for"),
-    format: str = typer.Option("ansible", "--format", help="Remediation format (ansible, terraform, bash, cloud-config)")
+    format: str = typer.Option(
+        "ansible", "--format", help="Remediation format (ansible, terraform, bash, cloud-config)"
+    ),
 ):
     """Generate automated remediation code (Ansible, Terraform, etc.) to fix a finding."""
+
     async def run():
         await _init_db()
         finding = await db.get_finding(finding_id)
@@ -462,13 +499,17 @@ def remediate(
             4. ONLY output the code, wrapped in markdown code blocks.
             """
             remediation_code = await ai_orchestrator.chat(prompt)
-            console.print(Panel(remediation_code, title=f"Remediation: {finding['vuln_type']} ({format})", border_style="green"))
-            
+            console.print(
+                Panel(remediation_code, title=f"Remediation: {finding['vuln_type']} ({format})", border_style="green")
+            )
+
     asyncio.run(run())
+
 
 def _section(title: str, subtitle: str = ""):
     """Print a styled section header for the setup wizard."""
     from redpilot.utils import ui
+
     console.print()
     console.print(ui.eyebrow(title))
     if subtitle:
@@ -512,9 +553,20 @@ def _provision_mongodb(uri: str) -> bool:
     subprocess.run(["docker", "start", "redpilot-mongo"], capture_output=True, text=True)
     if not _reachable():
         subprocess.run(
-            ["docker", "run", "-d", "--name", "redpilot-mongo",
-             "-p", "27017:27017", "--restart", "unless-stopped", "mongo:7"],
-            capture_output=True, text=True,
+            [
+                "docker",
+                "run",
+                "-d",
+                "--name",
+                "redpilot-mongo",
+                "-p",
+                "27017:27017",
+                "--restart",
+                "unless-stopped",
+                "mongo:7",
+            ],
+            capture_output=True,
+            text=True,
         )
     # Give it a moment to accept connections.
     for _ in range(10):
@@ -529,6 +581,7 @@ def _provision_mongodb(uri: str) -> bool:
 def _provision_sqlite(path: str) -> bool:
     """SQLite needs no server — just make sure the file/dir is writable."""
     import sqlite3
+
     try:
         d = os.path.dirname(os.path.abspath(path))
         os.makedirs(d, exist_ok=True)
@@ -557,9 +610,7 @@ def setup():
 
     # ── AI provider ───────────────────────────────────────────────────
     _section("1 · AI Provider", "Pick the engine that analyzes your findings.")
-    provider = typer.prompt(
-        "AI provider (google / claude / ollama / lmstudio)", default="google"
-    ).strip().lower()
+    provider = typer.prompt("AI provider (google / claude / ollama / lmstudio)", default="google").strip().lower()
     config["AI_PROVIDER"] = provider
 
     if provider == "google":
@@ -632,25 +683,29 @@ def setup():
         f"[{ui.FAINT}]  then  [/][{ui.AMBER}]redpilot tools --install[/]"
     )
 
+
 # NOTE: `test-ai` is defined once above via @app.command(name="test-ai") — the
 # detailed health-check with a status table. A second, simpler definition used
 # to live here and silently overrode it (both resolved to the CLI name
 # "test-ai"); it has been removed.
 
+
 @app.command()
 def login(
     username: str = typer.Option(..., prompt=True, help="Antigravity Cloud Username"),
-    token: str = typer.Option(..., prompt=True, hide_input=True, help="API Token")
+    token: str = typer.Option(..., prompt=True, hide_input=True, help="API Token"),
 ):
     """Login to Antigravity Cloud to sync results and use AI features."""
     auth_manager.login(username, token)
 
+
 @app.command()
 def analyze(
     file: Optional[str] = typer.Option(None, "--file", help="JSON result file to analyze"),
-    scan_id: Optional[str] = typer.Option(None, "--id", help="Scan ID from database to analyze")
+    scan_id: Optional[str] = typer.Option(None, "--id", help="Scan ID from database to analyze"),
 ):
     """Use AI to analyze scan results and provide deep insights."""
+
     async def run():
         findings = []
         if file:
@@ -666,18 +721,19 @@ def analyze(
         with console.status("[bold cyan]AI is analyzing your findings..."):
             analysis = await ai_orchestrator.analyze_findings(findings)
             console.print(Panel(analysis, title="AI Security Insight", border_style="magenta"))
-            
+
     asyncio.run(run())
+
 
 @app.command()
 def recon(
-    target: str      = typer.Argument(..., help="Target domain or IP"),
-    passive: bool    = typer.Option(True,  "--passive/--active", help="Enable passive reconnaissance"),
+    target: str = typer.Argument(..., help="Target domain or IP"),
+    passive: bool = typer.Option(True, "--passive/--active", help="Enable passive reconnaissance"),
     output: Optional[str] = typer.Option(None, "--output", help="Output file for results (JSON)"),
-    no_db: bool      = typer.Option(False, "--no-db",  help="Run in offline mode without database logging"),
-    no_ai: bool      = typer.Option(False, "--no-ai",  help="Skip automatic AI analysis after scan"),
-    delay: float     = typer.Option(0.0,   "--delay",  help="Delay between requests in seconds"),
-    concurrency: int = typer.Option(5,     "--concurrency", help="Maximum concurrent requests")
+    no_db: bool = typer.Option(False, "--no-db", help="Run in offline mode without database logging"),
+    no_ai: bool = typer.Option(False, "--no-ai", help="Skip automatic AI analysis after scan"),
+    delay: float = typer.Option(0.0, "--delay", help="Delay between requests in seconds"),
+    concurrency: int = typer.Option(5, "--concurrency", help="Maximum concurrent requests"),
 ):
     """Perform reconnaissance on one or more targets."""
     targets = load_targets(target)
@@ -687,14 +743,16 @@ def recon(
             try:
                 await _init_db()
             except ConnectionError:
-                console.print("[bold red]Database Error:[/bold red] Could not connect to MongoDB. Use --no-db for offline mode.")
+                console.print(
+                    "[bold red]Database Error:[/bold red] Could not connect to MongoDB. Use --no-db for offline mode."
+                )
                 raise typer.Exit(1)
 
         options = {
-            "passive":     passive,
-            "no_db":       no_db,
-            "no_ai":       no_ai,
-            "delay":       delay,
+            "passive": passive,
+            "no_db": no_db,
+            "no_ai": no_ai,
+            "delay": delay,
             "concurrency": concurrency,
         }
 
@@ -709,16 +767,17 @@ def recon(
 
     asyncio.run(run())
 
+
 @app.command()
 def scan(
-    target: str      = typer.Argument(..., help="Target domain or IP"),
-    ports: str       = typer.Option("1-1024", "--ports",      help="Port range (e.g., 1-65535)"),
-    intensity: str   = typer.Option("normal", "--intensity",  help="Scan intensity: light|normal|aggressive"),
-    scanner: str     = typer.Option("nmap",   "--scanner",    help="Scanner engine: nmap|rustscan"),
-    ulimit: int      = typer.Option(5000,      "--ulimit",     help="RustScan: open file descriptor limit"),
-    batch_size: int  = typer.Option(2500,      "--batch-size", help="RustScan: ports per batch"),
-    no_db: bool      = typer.Option(False,     "--no-db",      help="Run in offline mode without database logging"),
-    no_ai: bool      = typer.Option(False,     "--no-ai",      help="Skip automatic AI analysis after scan"),
+    target: str = typer.Argument(..., help="Target domain or IP"),
+    ports: str = typer.Option("1-1024", "--ports", help="Port range (e.g., 1-65535)"),
+    intensity: str = typer.Option("normal", "--intensity", help="Scan intensity: light|normal|aggressive"),
+    scanner: str = typer.Option("nmap", "--scanner", help="Scanner engine: nmap|rustscan"),
+    ulimit: int = typer.Option(5000, "--ulimit", help="RustScan: open file descriptor limit"),
+    batch_size: int = typer.Option(2500, "--batch-size", help="RustScan: ports per batch"),
+    no_db: bool = typer.Option(False, "--no-db", help="Run in offline mode without database logging"),
+    no_ai: bool = typer.Option(False, "--no-ai", help="Skip automatic AI analysis after scan"),
 ):
     """Run a network port scan using Nmap or RustScan on one or more targets."""
     targets = load_targets(target)
@@ -748,13 +807,13 @@ def scan(
                 raise typer.Exit(1)
 
         options = {
-            "ports":      ports,
-            "intensity":  intensity,
-            "scanner":    scanner,
-            "ulimit":     ulimit,
+            "ports": ports,
+            "intensity": intensity,
+            "scanner": scanner,
+            "ulimit": ulimit,
             "batch_size": batch_size,
-            "no_db":      no_db,
-            "no_ai":      no_ai,
+            "no_db": no_db,
+            "no_ai": no_ai,
         }
         tasks = [engine.run_module(NetworkModule, t, options) for t in targets]
         await asyncio.gather(*tasks)
@@ -764,13 +823,13 @@ def scan(
 
 @app.command()
 def webscan(
-    url: str              = typer.Argument(..., help="Target URL (including protocol)"),
-    headers_only: bool    = typer.Option(False, "--headers-only",  help="Only check security headers"),
-    output: Optional[str] = typer.Option(None,  "--output",        help="Output file for results (JSON)"),
-    no_db: bool           = typer.Option(False, "--no-db",         help="Run in offline mode without database logging"),
-    no_ai: bool           = typer.Option(False, "--no-ai",         help="Skip automatic AI analysis after scan"),
-    delay: float          = typer.Option(0.0,   "--delay",         help="Delay between requests in seconds"),
-    concurrency: int      = typer.Option(5,     "--concurrency",   help="Maximum concurrent requests")
+    url: str = typer.Argument(..., help="Target URL (including protocol)"),
+    headers_only: bool = typer.Option(False, "--headers-only", help="Only check security headers"),
+    output: Optional[str] = typer.Option(None, "--output", help="Output file for results (JSON)"),
+    no_db: bool = typer.Option(False, "--no-db", help="Run in offline mode without database logging"),
+    no_ai: bool = typer.Option(False, "--no-ai", help="Skip automatic AI analysis after scan"),
+    delay: float = typer.Option(0.0, "--delay", help="Delay between requests in seconds"),
+    concurrency: int = typer.Option(5, "--concurrency", help="Maximum concurrent requests"),
 ):
     """Perform a web security assessment on one or more targets."""
     targets = load_targets(url)
@@ -784,10 +843,10 @@ def webscan(
 
         options = {
             "headers_only": headers_only,
-            "no_db":        no_db,
-            "no_ai":        no_ai,
-            "delay":        delay,
-            "concurrency":  concurrency,
+            "no_db": no_db,
+            "no_ai": no_ai,
+            "delay": delay,
+            "concurrency": concurrency,
         }
         tasks = [engine.run_module(WebscanModule, t, options) for t in targets]
         all_results = await asyncio.gather(*tasks)
@@ -800,14 +859,15 @@ def webscan(
 
     asyncio.run(run())
 
+
 @app.command()
 def crawl(
-    url: str              = typer.Argument(..., help="Target URL (including protocol)"),
-    depth: int            = typer.Option(2,     "--depth",     help="Maximum crawl depth"),
-    max_pages: int        = typer.Option(50,    "--max-pages", help="Maximum pages to crawl"),
-    output: Optional[str] = typer.Option(None,  "--output",    help="Output file for results (JSON)"),
-    no_db: bool           = typer.Option(False, "--no-db",     help="Run in offline mode"),
-    no_ai: bool           = typer.Option(False, "--no-ai",     help="Skip automatic AI analysis after scan"),
+    url: str = typer.Argument(..., help="Target URL (including protocol)"),
+    depth: int = typer.Option(2, "--depth", help="Maximum crawl depth"),
+    max_pages: int = typer.Option(50, "--max-pages", help="Maximum pages to crawl"),
+    output: Optional[str] = typer.Option(None, "--output", help="Output file for results (JSON)"),
+    no_db: bool = typer.Option(False, "--no-db", help="Run in offline mode"),
+    no_ai: bool = typer.Option(False, "--no-ai", help="Skip automatic AI analysis after scan"),
 ):
     """Spider a web application and identify interesting endpoints."""
     targets = load_targets(url)
@@ -820,10 +880,10 @@ def crawl(
                 raise typer.Exit(1)
 
         options = {
-            "depth":     depth,
+            "depth": depth,
             "max_pages": max_pages,
-            "no_db":     no_db,
-            "no_ai":     no_ai,
+            "no_db": no_db,
+            "no_ai": no_ai,
         }
         tasks = [engine.run_module(CrawlerModule, t, options) for t in targets]
         all_results = await asyncio.gather(*tasks)
@@ -839,22 +899,28 @@ def crawl(
 
 @app.command()
 def toolkit(
-    target: str           = typer.Argument(..., help="Target domain (or file of targets)"),
-    no_subs: bool         = typer.Option(False, "--no-subs",   help="Skip subdomain enumeration (subfinder/assetfinder)"),
-    no_probe: bool        = typer.Option(False, "--no-probe",  help="Skip HTTP probing (httpx)"),
-    no_crawl: bool        = typer.Option(False, "--no-crawl",  help="Skip active crawling (katana/hakrawler)"),
-    no_urls: bool         = typer.Option(False, "--no-urls",   help="Skip historical URL harvesting (waybackurls/gau)"),
-    no_nuclei: bool       = typer.Option(False, "--no-nuclei", help="Skip nuclei vulnerability scanning"),
-    fuzz: bool            = typer.Option(False, "--fuzz",      help="Enable content fuzzing (ffuf) — requires --wordlist"),
+    target: str = typer.Argument(..., help="Target domain (or file of targets)"),
+    no_subs: bool = typer.Option(False, "--no-subs", help="Skip subdomain enumeration (subfinder/assetfinder)"),
+    no_probe: bool = typer.Option(False, "--no-probe", help="Skip HTTP probing (httpx)"),
+    no_crawl: bool = typer.Option(False, "--no-crawl", help="Skip active crawling (katana/hakrawler)"),
+    no_urls: bool = typer.Option(False, "--no-urls", help="Skip historical URL harvesting (waybackurls/gau)"),
+    no_nuclei: bool = typer.Option(False, "--no-nuclei", help="Skip nuclei vulnerability scanning"),
+    fuzz: bool = typer.Option(False, "--fuzz", help="Enable content fuzzing (ffuf) — requires --wordlist"),
     wordlist: Optional[str] = typer.Option(None, "--wordlist", help="Wordlist path for ffuf content fuzzing"),
-    depth: int            = typer.Option(2,     "--depth",     help="Crawl depth for katana"),
-    nuclei_severity: str  = typer.Option("critical,high,medium", "--nuclei-severity", help="Comma-separated nuclei severities"),
-    nuclei_dast: bool     = typer.Option(False, "--nuclei-dast", help="Run nuclei DAST/fuzzing templates against the crawled URL corpus"),
-    scope_file: str       = typer.Option("scope.json", "--scope-file", help="Engagement scope file consulted before active scanning"),
-    ignore_scope: bool    = typer.Option(False, "--ignore-scope", help="Skip engagement-scope enforcement (dangerous)"),
-    output: Optional[str] = typer.Option(None,  "--output",    help="Output file for results (JSON)"),
-    no_db: bool           = typer.Option(False, "--no-db",     help="Run in offline mode without database logging"),
-    no_ai: bool           = typer.Option(False, "--no-ai",     help="Skip automatic AI analysis after scan"),
+    depth: int = typer.Option(2, "--depth", help="Crawl depth for katana"),
+    nuclei_severity: str = typer.Option(
+        "critical,high,medium", "--nuclei-severity", help="Comma-separated nuclei severities"
+    ),
+    nuclei_dast: bool = typer.Option(
+        False, "--nuclei-dast", help="Run nuclei DAST/fuzzing templates against the crawled URL corpus"
+    ),
+    scope_file: str = typer.Option(
+        "scope.json", "--scope-file", help="Engagement scope file consulted before active scanning"
+    ),
+    ignore_scope: bool = typer.Option(False, "--ignore-scope", help="Skip engagement-scope enforcement (dangerous)"),
+    output: Optional[str] = typer.Option(None, "--output", help="Output file for results (JSON)"),
+    no_db: bool = typer.Option(False, "--no-db", help="Run in offline mode without database logging"),
+    no_ai: bool = typer.Option(False, "--no-ai", help="Skip automatic AI analysis after scan"),
 ):
     """Run the chained external recon pipeline (subfinder → httpx → katana → nuclei, etc.)."""
     from redpilot.utils.scope import load_scope, has_scope, is_in_scope
@@ -890,23 +956,25 @@ def toolkit(
             try:
                 await _init_db()
             except ConnectionError:
-                console.print("[bold red]Database Error:[/bold red] Could not connect to MongoDB. Use --no-db for offline mode.")
+                console.print(
+                    "[bold red]Database Error:[/bold red] Could not connect to MongoDB. Use --no-db for offline mode."
+                )
                 raise typer.Exit(1)
 
         options = {
-            "subs":            not no_subs,
-            "probe":           not no_probe,
-            "crawl":           not no_crawl,
-            "urls":            not no_urls,
-            "nuclei":          not no_nuclei,
-            "fuzz":            fuzz,
-            "wordlist":        wordlist,
-            "depth":           depth,
+            "subs": not no_subs,
+            "probe": not no_probe,
+            "crawl": not no_crawl,
+            "urls": not no_urls,
+            "nuclei": not no_nuclei,
+            "fuzz": fuzz,
+            "wordlist": wordlist,
+            "depth": depth,
             "nuclei_severity": nuclei_severity,
-            "nuclei_dast":     nuclei_dast,
-            "scope":           scope_data,
-            "no_db":           no_db,
-            "no_ai":           no_ai,
+            "nuclei_dast": nuclei_dast,
+            "scope": scope_data,
+            "no_db": no_db,
+            "no_ai": no_ai,
         }
         tasks = [engine.run_module(ToolkitModule, t, options) for t in targets]
         all_results = await asyncio.gather(*tasks)
@@ -930,6 +998,7 @@ def tools(
 
     def render_table():
         from redpilot.utils import ui
+
         table = ui.table("Recon Toolkit")
         table.add_column("Tool", style=ui.AMBER)
         table.add_column("Installed", justify="center")
@@ -952,10 +1021,7 @@ def tools(
         return
 
     if missing:
-        console.print(
-            f"\n[yellow]Missing {len(missing)}/{len(TOOL_REGISTRY)} tool(s):[/yellow] "
-            f"{', '.join(missing)}"
-        )
+        console.print(f"\n[yellow]Missing {len(missing)}/{len(TOOL_REGISTRY)} tool(s):[/yellow] {', '.join(missing)}")
         console.print(
             "[dim]Install them automatically with [bold]redpilot tools --install[/bold] (requires Go), "
             "or grab release binaries from each tool's page above.[/dim]"
@@ -991,37 +1057,43 @@ def _install_tools(missing: list, force: bool):
         if not spec:
             continue
         with console.status(f"[bold cyan]go install {name}…[/bold cyan]"):
-            proc = subprocess.run(
-                ["go", "install", spec], capture_output=True, text=True
-            )
+            proc = subprocess.run(["go", "install", spec], capture_output=True, text=True)
         if proc.returncode == 0:
             console.print(f"  [green]✓[/green] {name}")
             ok.append(name)
         else:
-            console.print(f"  [red]✗[/red] {name}: {proc.stderr.strip().splitlines()[-1] if proc.stderr.strip() else 'failed'}")
+            console.print(
+                f"  [red]✗[/red] {name}: {proc.stderr.strip().splitlines()[-1] if proc.stderr.strip() else 'failed'}"
+            )
             failed.append(name)
 
-    console.print(f"\n[bold green]Installed {len(ok)}[/bold green]"
-                  + (f", [bold red]{len(failed)} failed[/bold red]" if failed else ""))
+    console.print(
+        f"\n[bold green]Installed {len(ok)}[/bold green]"
+        + (f", [bold red]{len(failed)} failed[/bold red]" if failed else "")
+    )
     if shutil.which(ok[0]) is None if ok else False:
         console.print(
             f"[yellow]Note:[/yellow] add Go's bin dir to your PATH so RedPilot can find the tools:\n"
-            f"  [dim]export PATH=\"$PATH:{gobin}\"[/dim]"
+            f'  [dim]export PATH="$PATH:{gobin}"[/dim]'
         )
 
 
 @app.command()
 def agent(
-    target: str           = typer.Argument(..., help="Target domain, IP, or URL"),
-    goal: str             = typer.Option("", "--goal", "-g", help="Natural-language objective for the assessment"),
-    yes: bool             = typer.Option(False, "--yes", "-y", help="Run the plan without the confirmation prompt"),
-    dry_run: bool         = typer.Option(False, "--dry-run", help="Show the plan and exit without running anything"),
-    aggressive: bool      = typer.Option(False, "--aggressive", help="Deeper/active settings (aggressive nmap, nuclei DAST, active recon)"),
-    scope_file: str       = typer.Option("scope.json", "--scope-file", help="Engagement scope file for active steps"),
-    ignore_scope: bool    = typer.Option(False, "--ignore-scope", help="Disable scope enforcement (dangerous)"),
+    target: str = typer.Argument(..., help="Target domain, IP, or URL"),
+    goal: str = typer.Option("", "--goal", "-g", help="Natural-language objective for the assessment"),
+    yes: bool = typer.Option(False, "--yes", "-y", help="Run the plan without the confirmation prompt"),
+    dry_run: bool = typer.Option(False, "--dry-run", help="Show the plan and exit without running anything"),
+    aggressive: bool = typer.Option(
+        False, "--aggressive", help="Deeper/active settings (aggressive nmap, nuclei DAST, active recon)"
+    ),
+    scope_file: str = typer.Option("scope.json", "--scope-file", help="Engagement scope file for active steps"),
+    ignore_scope: bool = typer.Option(False, "--ignore-scope", help="Disable scope enforcement (dangerous)"),
     output: Optional[str] = typer.Option(None, "--output", help="Save all findings to a JSON file"),
-    no_db: bool           = typer.Option(False, "--no-db", help="Run without database logging"),
-    no_ai: bool           = typer.Option(False, "--no-ai", help="Skip AI planning and the final assessment (uses the default playbook)"),
+    no_db: bool = typer.Option(False, "--no-db", help="Run without database logging"),
+    no_ai: bool = typer.Option(
+        False, "--no-ai", help="Skip AI planning and the final assessment (uses the default playbook)"
+    ),
 ):
     """Autonomous agent — the AI plans and chains RedPilot modules to assess a target end-to-end."""
     from redpilot.agent import PentestAgent
@@ -1044,7 +1116,10 @@ def agent(
         raise typer.Exit(1)
 
     options = {
-        "no_db": no_db, "no_ai": no_ai, "aggressive": aggressive, "scope": scope_data,
+        "no_db": no_db,
+        "no_ai": no_ai,
+        "aggressive": aggressive,
+        "scope": scope_data,
     }
 
     async def run():
@@ -1072,7 +1147,9 @@ def agent(
         for i, s in enumerate(steps, 1):
             blocked = ag.scope_blocks(s["module"])
             plan_table.add_row(
-                str(i), s["module"], s.get("reason", "") or "—",
+                str(i),
+                s["module"],
+                s.get("reason", "") or "—",
                 f"[{ui.DANGER}]skip[/]" if blocked else f"[{ui.OK}]ok[/]",
             )
         console.print(plan_table)
@@ -1083,10 +1160,8 @@ def agent(
 
         # 2) Confirm (active steps touch the target)
         if not yes:
-            active = [s["module"] for s in steps
-                      if s["module"] in ACTIVE_ACTIONS and not ag.scope_blocks(s["module"])]
-            msg = ("This will actively scan the target"
-                   if active else "This will run passive steps only")
+            active = [s["module"] for s in steps if s["module"] in ACTIVE_ACTIONS and not ag.scope_blocks(s["module"])]
+            msg = "This will actively scan the target" if active else "This will run passive steps only"
             if not typer.confirm(f"{msg}. Proceed? (authorized targets only)", default=False):
                 console.print("[yellow]Aborted.[/yellow]")
                 return
@@ -1096,6 +1171,7 @@ def agent(
 
         # 4) Final assessment
         from redpilot.utils import ui as _ui
+
         console.print()
         console.print(_ui.eyebrow("Agent Assessment"))
         if findings:
@@ -1103,9 +1179,7 @@ def agent(
             for f in findings:
                 sev[f.get("severity", "Info")] = sev.get(f.get("severity", "Info"), 0) + 1
             parts = [f"[{_ui.SEVERITY[k]}]{k} {v}[/]" for k, v in sev.items() if v]
-            console.print(
-                f"[bold]{len(findings)}[/bold] [dim]finding(s)[/dim]   " + "  ".join(parts)
-            )
+            console.print(f"[bold]{len(findings)}[/bold] [dim]finding(s)[/dim]   " + "  ".join(parts))
             summary = await ag.summarize()
             if summary:
                 console.print(_ui.panel(summary, title=f"AI Assessment · {target}"))
@@ -1122,7 +1196,9 @@ def agent(
 
 @app.command()
 def serve(
-    host: str = typer.Option("127.0.0.1", "--host", help="Bind address (default localhost; use 0.0.0.0 behind a gateway)"),
+    host: str = typer.Option(
+        "127.0.0.1", "--host", help="Bind address (default localhost; use 0.0.0.0 behind a gateway)"
+    ),
     port: int = typer.Option(8000, "--port", help="Port to listen on"),
     scope_file: str = typer.Option("scope.json", "--scope-file", help="Engagement scope file the API enforces"),
 ):
@@ -1133,12 +1209,14 @@ def serve(
     except ModuleNotFoundError:
         console.print(
             "[bold red]API support is not installed.[/bold red]\n"
-            "[dim]Install it with:[/dim] [cyan]pip install \"redpilot[api]\"[/cyan]"
+            '[dim]Install it with:[/dim] [cyan]pip install "redpilot[api]"[/cyan]'
         )
         raise typer.Exit(1)
     print_banner(compact=True)
-    console.print(f"[dim]API on[/dim] [cyan]http://{host}:{port}[/cyan]  "
-                  f"[dim]· docs at[/dim] [cyan]/docs[/cyan]  [dim]· set REDPILOT_API_KEYS, or watch stderr for a generated key.[/dim]")
+    console.print(
+        f"[dim]API on[/dim] [cyan]http://{host}:{port}[/cyan]  "
+        f"[dim]· docs at[/dim] [cyan]/docs[/cyan]  [dim]· set REDPILOT_API_KEYS, or watch stderr for a generated key.[/dim]"
+    )
     uvicorn.run(create_app(scope_file), host=host, port=port, log_level="info")
 
 
@@ -1152,7 +1230,7 @@ def mcp(
     except ModuleNotFoundError:
         console.print(
             "[bold red]MCP support is not installed.[/bold red]\n"
-            "[dim]Install it with:[/dim] [cyan]pip install \"redpilot[mcp]\"[/cyan]"
+            '[dim]Install it with:[/dim] [cyan]pip install "redpilot[mcp]"[/cyan]'
         )
         raise typer.Exit(1)
     # Do NOT print anything else to stdout here — stdio carries the MCP protocol.
@@ -1161,22 +1239,27 @@ def mcp(
 
 @app.command(name="mcp-tools")
 def mcp_tools(
-    config: str = typer.Option("mcp_servers.json", "--config", help="External MCP servers config (Claude-Desktop shape)"),
+    config: str = typer.Option(
+        "mcp_servers.json", "--config", help="External MCP servers config (Claude-Desktop shape)"
+    ),
     server: Optional[str] = typer.Option(None, "--server", help="Only this server"),
 ):
     """List tools from external MCP servers RedPilot is configured to consume."""
     from redpilot.utils import ui
+
     try:
         from redpilot.mcp.client import MCPClientManager
     except ModuleNotFoundError:
-        console.print("[bold red]MCP support not installed.[/bold red] [dim]pip install \"redpilot[mcp]\"[/dim]")
+        console.print('[bold red]MCP support not installed.[/bold red] [dim]pip install "redpilot[mcp]"[/dim]')
         raise typer.Exit(1)
 
     mgr = MCPClientManager(config_path=config)
     if not mgr.names():
         console.print(f"[{ui.FAINT}]No external MCP servers configured in {config}.[/]")
-        console.print(f"[{ui.FAINT}]Add them in Claude-Desktop shape: "
-                      '{"mcpServers": {"name": {"command": "...", "args": ["..."]}}}[/]')
+        console.print(
+            f"[{ui.FAINT}]Add them in Claude-Desktop shape: "
+            '{"mcpServers": {"name": {"command": "...", "args": ["..."]}}}[/]'
+        )
         return
 
     async def run():
@@ -1198,10 +1281,13 @@ def plugins():
     """List RedPilot scan-module plugins discovered via entry points or registration."""
     from redpilot.utils import ui
     from redpilot import plugins as plug
+
     mods = plug.registered_modules()
     if not mods:
-        console.print(f"[{ui.FAINT}]No plugins registered.[/] "
-                      f"[dim]Advertise a BaseModule under the 'redpilot.modules' entry-point group.[/dim]")
+        console.print(
+            f"[{ui.FAINT}]No plugins registered.[/] "
+            f"[dim]Advertise a BaseModule under the 'redpilot.modules' entry-point group.[/dim]"
+        )
         return
     table = ui.table("Plugins")
     table.add_column("Module", style=ui.AMBER)
@@ -1221,15 +1307,19 @@ def engagements(
     """List engagement workspaces, or create one with --create (Phase 7)."""
     from redpilot.utils import ui
     from redpilot.workspaces import EngagementManager
+
     mgr = EngagementManager()
 
     if create:
         in_scope = [s.strip() for s in (scope or "").split(",") if s.strip()]
-        eng = mgr.create(create, created_by="cli", in_scope=in_scope,
-                         retention_days=retention_days,
-                         authorized_by=authorized_by or None)
-        console.print(f"[{ui.OK}]created[/] engagement [bold]{eng.id}[/] "
-                      f"at [dim]{eng.storage_dir}[/dim]")
+        eng = mgr.create(
+            create,
+            created_by="cli",
+            in_scope=in_scope,
+            retention_days=retention_days,
+            authorized_by=authorized_by or None,
+        )
+        console.print(f"[{ui.OK}]created[/] engagement [bold]{eng.id}[/] at [dim]{eng.storage_dir}[/dim]")
         if authorized_by:
             ok = mgr.authorization_valid(eng)
             console.print(f"  authorization: {'[green]signed & valid[/]' if ok else '[red]invalid[/]'}")
@@ -1237,8 +1327,10 @@ def engagements(
 
     rows = mgr.list()
     if not rows:
-        console.print(f"[{ui.FAINT}]No engagements yet.[/] "
-                      f"[dim]Create one: redpilot engagements --create 'Acme' --scope acme.com[/dim]")
+        console.print(
+            f"[{ui.FAINT}]No engagements yet.[/] "
+            f"[dim]Create one: redpilot engagements --create 'Acme' --scope acme.com[/dim]"
+        )
         return
     table = ui.table("Engagements")
     table.add_column("ID", style=ui.AMBER)
@@ -1254,11 +1346,11 @@ def engagements(
 
 @app.command()
 def pipeline(
-    target: str          = typer.Argument(..., help="Target domain, IP, or URL"),
-    scope_file: str      = typer.Option("scope.json", "--scope-file", help="Engagement scope file"),
-    report_dir: str      = typer.Option("./reports", "--report-dir", help="Where to write the report"),
-    no_db: bool          = typer.Option(False, "--no-db", help="Run without database logging"),
-    mock: bool           = typer.Option(False, "--mock", help="Dry-run: synthetic findings, no target contacted"),
+    target: str = typer.Argument(..., help="Target domain, IP, or URL"),
+    scope_file: str = typer.Option("scope.json", "--scope-file", help="Engagement scope file"),
+    report_dir: str = typer.Option("./reports", "--report-dir", help="Where to write the report"),
+    no_db: bool = typer.Option(False, "--no-db", help="Run without database logging"),
+    mock: bool = typer.Option(False, "--mock", help="Dry-run: synthetic findings, no target contacted"),
 ):
     """Staged assessment: discovery → validation → remediation → report."""
     from redpilot.service import RedPilotService
@@ -1280,8 +1372,7 @@ def pipeline(
             table.add_row(s.stage.value, f"[{color}]{s.status}[/]", s.summary or "—")
         console.print(table)
 
-        parts = [f"[{ui.SEVERITY.get(k, 'default')}]{k} {v}[/]"
-                 for k, v in res.counts.items() if v]
+        parts = [f"[{ui.SEVERITY.get(k, 'default')}]{k} {v}[/]" for k, v in res.counts.items() if v]
         console.print(f"\n[bold]{len(res.findings)}[/bold] finding(s)   " + "  ".join(parts))
         if res.report_path:
             console.print(f"[{ui.OK}]report:[/] {res.report_path}")
@@ -1296,9 +1387,11 @@ def schema(
 ):
     """Emit the machine-readable JSON Schema for RedPilot's result models."""
     from redpilot.service import schema as schema_mod
+
     if write:
         paths = schema_mod.write_schemas(write)
         from redpilot.utils import ui
+
         console.print(f"[{ui.OK}]wrote[/] {len(paths)} schema file(s) to [dim]{write}[/dim]")
         for p in paths:
             console.print(f"  [{ui.FAINT}]·[/] {p}")
@@ -1323,12 +1416,14 @@ def report(
 ):
     """Generate a security report for a target from database history or local file."""
     if not target and not from_file:
-        console.print("[bold red]Error:[/bold red] You must provide either a target or a results file using --from-file.")
+        console.print(
+            "[bold red]Error:[/bold red] You must provide either a target or a results file using --from-file."
+        )
         raise typer.Exit(1)
 
     if target:
         target = sanitize_domain(target)
-    
+
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
 
@@ -1342,8 +1437,8 @@ def report(
                     findings = json.load(f)
                 if not report_target:
                     # Try to infer target from findings
-                    if findings and isinstance(findings, list) and 'target' in findings[0]:
-                        report_target = findings[0]['target']
+                    if findings and isinstance(findings, list) and "target" in findings[0]:
+                        report_target = findings[0]["target"]
                     else:
                         report_target = "imported_scan"
                 console.print(f"[cyan]Loaded {len(findings)} findings from file: {from_file}[/cyan]")
@@ -1353,11 +1448,11 @@ def report(
         else:
             await _init_db()
             findings = await db.get_all_vulnerabilities_for_target(report_target)
-            
+
         if not findings:
             console.print(f"[yellow]No findings found for target: {report_target}[/yellow]")
             return
-            
+
         ai_analysis = None
         if with_ai:
             with console.status("[bold magenta]AI is analyzing findings for the report…[/bold magenta]"):
@@ -1365,14 +1460,14 @@ def report(
 
         meta = {"target": report_target, "total_findings": len(findings)}
         generator = ReportGenerator(report_target, findings, meta, ai_analysis=ai_analysis)
-        
+
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        
+
         if format in ["json", "both"]:
             json_path = os.path.join(output_dir, f"redpilot_report_{report_target}_{timestamp}.json")
             generator.generate_json(json_path)
             console.print(f"[green]JSON report generated:[/green] {json_path}")
-            
+
         if format in ["html", "both"]:
             html_path = os.path.join(output_dir, f"redpilot_report_{report_target}_{timestamp}.html")
             generator.generate_html(html_path)
@@ -1380,18 +1475,19 @@ def report(
 
     asyncio.run(run())
 
+
 @app.command()
 def history(
     target: Optional[str] = typer.Argument(None, help="Target domain or IP (optional)"),
-    limit: int = typer.Option(20, "--limit", help="Number of entries to show")
+    limit: int = typer.Option(20, "--limit", help="Number of entries to show"),
 ):
     """View scan history."""
     print_banner()
-    
+
     async def run():
         await _init_db()
         scans = await db.get_scan_history(target, limit)
-        
+
         if not scans:
             console.print("[yellow]No scan history found.[/yellow]")
             return
@@ -1404,18 +1500,19 @@ def history(
         table.add_column("Findings", style="green")
 
         for s in scans:
-            status_color = "green" if s['status'] == "completed" else "red" if s['status'] == "failed" else "yellow"
+            status_color = "green" if s["status"] == "completed" else "red" if s["status"] == "failed" else "yellow"
             table.add_row(
-                s['started_at'].strftime("%Y-%m-%d %H:%M"),
-                s['target'],
-                s['type'].upper(),
+                s["started_at"].strftime("%Y-%m-%d %H:%M"),
+                s["target"],
+                s["type"].upper(),
                 f"[{status_color}]{s['status']}[/{status_color}]",
-                str(s.get('findings_count', 0))
+                str(s.get("findings_count", 0)),
             )
-        
+
         console.print(table)
 
     asyncio.run(run())
+
 
 # ─────────────────────────────────────────────────────────────────────────────
 # EXPORT
@@ -1423,8 +1520,8 @@ def history(
 @app.command()
 def export(
     target: str = typer.Argument(..., help="Target domain/IP to export findings for"),
-    format: str = typer.Option("csv",  "--format", help="Output format: csv | json"),
-    output: str = typer.Option("",     "--output", help="Output file path (default: <target>_findings.<ext>)"),
+    format: str = typer.Option("csv", "--format", help="Output format: csv | json"),
+    output: str = typer.Option("", "--output", help="Output file path (default: <target>_findings.<ext>)"),
 ):
     """Export all findings for a target to CSV or JSON for client deliverables."""
     import csv
@@ -1436,7 +1533,7 @@ def export(
             console.print(f"[yellow]No findings found for target:[/yellow] {target}")
             return
 
-        fmt   = format.lower()
+        fmt = format.lower()
         fname = output or f"{target.replace('.', '_')}_findings.{fmt}"
 
         # Sanitise ObjectId / datetime for serialisation
@@ -1473,6 +1570,7 @@ def diff(
     scan_b: str = typer.Argument(..., help="Newer scan ID"),
 ):
     """Compare two scans and show new, fixed, and unchanged findings."""
+
     async def run():
         await _init_db()
 
@@ -1480,9 +1578,11 @@ def diff(
         meta_b = await db.get_scan_meta(scan_b)
 
         if not meta_a:
-            console.print(f"[red]Scan not found:[/red] {scan_a}"); return
+            console.print(f"[red]Scan not found:[/red] {scan_a}")
+            return
         if not meta_b:
-            console.print(f"[red]Scan not found:[/red] {scan_b}"); return
+            console.print(f"[red]Scan not found:[/red] {scan_b}")
+            return
 
         findings_a = await db.get_vulnerabilities_for_scan(scan_a)
         findings_b = await db.get_vulnerabilities_for_scan(scan_b)
@@ -1490,12 +1590,16 @@ def diff(
         keys_a = {f["vuln_type"] for f in findings_a}
         keys_b = {f["vuln_type"] for f in findings_b}
 
-        new_vulns   = keys_b - keys_a
+        new_vulns = keys_b - keys_a
         fixed_vulns = keys_a - keys_b
-        same_vulns  = keys_a & keys_b
+        same_vulns = keys_a & keys_b
 
         def ts(meta):
-            return meta.get("started_at", "").strftime("%Y-%m-%d %H:%M") if hasattr(meta.get("started_at"), "strftime") else str(meta.get("started_at", ""))
+            return (
+                meta.get("started_at", "").strftime("%Y-%m-%d %H:%M")
+                if hasattr(meta.get("started_at"), "strftime")
+                else str(meta.get("started_at", ""))
+            )
 
         console.print(f"\n[bold]Scan Diff[/bold]  [dim]{ts(meta_a)}[/dim] → [dim]{ts(meta_b)}[/dim]")
         console.print(f"Target: [cyan]{meta_a.get('target')}[/cyan]\n")
@@ -1503,13 +1607,15 @@ def diff(
         if new_vulns:
             t = Table(title=f"🆕 New Findings ({len(new_vulns)})", border_style="red")
             t.add_column("vuln_type", style="red")
-            for k in sorted(new_vulns): t.add_row(k)
+            for k in sorted(new_vulns):
+                t.add_row(k)
             console.print(t)
 
         if fixed_vulns:
             t = Table(title=f"✅ Fixed / Resolved ({len(fixed_vulns)})", border_style="green")
             t.add_column("vuln_type", style="green")
-            for k in sorted(fixed_vulns): t.add_row(k)
+            for k in sorted(fixed_vulns):
+                t.add_row(k)
             console.print(t)
 
         console.print(f"[dim]Unchanged: {len(same_vulns)} findings[/dim]")
@@ -1523,7 +1629,7 @@ def diff(
 @app.command()
 def scope(
     action: str = typer.Argument(..., help="Action: show | add | remove"),
-    value:  str = typer.Argument("",  help="Domain/IP/CIDR to add or remove"),
+    value: str = typer.Argument("", help="Domain/IP/CIDR to add or remove"),
     scope_file: str = typer.Option("scope.json", "--file", help="Scope config file path"),
 ):
     """
@@ -1537,23 +1643,24 @@ def scope(
     from redpilot.utils.scope import load_scope, save_scope
 
     data = load_scope(scope_file)
-    act  = action.lower()
+    act = action.lower()
 
     if act == "show":
         t = Table(title=f"Engagement Scope ({scope_file})", show_header=True)
-        t.add_column("In Scope",  style="green")
+        t.add_column("In Scope", style="green")
         t.add_column("Out of Scope", style="red")
         rows = max(len(data["in_scope"]), len(data["out_of_scope"]))
         for i in range(rows):
             t.add_row(
-                data["in_scope"][i]     if i < len(data["in_scope"])     else "",
+                data["in_scope"][i] if i < len(data["in_scope"]) else "",
                 data["out_of_scope"][i] if i < len(data["out_of_scope"]) else "",
             )
         console.print(t)
 
     elif act == "add":
         if not value:
-            console.print("[red]Provide a value to add.[/red]"); return
+            console.print("[red]Provide a value to add.[/red]")
+            return
         if value not in data["in_scope"]:
             data["in_scope"].append(value)
             save_scope(scope_file, data)
@@ -1581,8 +1688,7 @@ def update():
     console.print("[bold cyan]Checking for RedPilot updates...[/bold cyan]")
     try:
         result = subprocess.run(
-            [sys.executable, "-m", "pip", "install", "--upgrade", "redpilot"],
-            capture_output=True, text=True
+            [sys.executable, "-m", "pip", "install", "--upgrade", "redpilot"], capture_output=True, text=True
         )
         if result.returncode == 0:
             lines = [l for l in result.stdout.splitlines() if l.strip()]
@@ -1603,6 +1709,7 @@ def update():
 def entry_point():
     load_plugins(app)
     app()
+
 
 if __name__ == "__main__":
     entry_point()

@@ -19,9 +19,10 @@ from pydantic import BaseModel, Field
 
 class Role(IntEnum):
     """Ordered RBAC roles — higher value grants everything a lower one can do."""
-    VIEWER = 10      # read-only: status, scope, findings, audit
-    OPERATOR = 20    # + launch scans / active agent runs within allowed engagements
-    LEAD = 30        # + manage scope, create engagements, sign authorizations
+
+    VIEWER = 10  # read-only: status, scope, findings, audit
+    OPERATOR = 20  # + launch scans / active agent runs within allowed engagements
+    LEAD = 30  # + manage scope, create engagements, sign authorizations
 
     @classmethod
     def parse(cls, value: "str | int | Role") -> "Role":
@@ -41,6 +42,7 @@ class Role(IntEnum):
 
 class Principal(BaseModel):
     """An authenticated identity. The raw key is never stored here."""
+
     key_id: str = Field(description="short, non-secret id for the key (hash prefix)")
     name: str = "anonymous"
     role: Role = Role.VIEWER
@@ -56,6 +58,7 @@ class Principal(BaseModel):
 
 class EngagementAuthorization(BaseModel):
     """A signed record that active testing of an engagement was authorized."""
+
     authorized_by: str
     authorized_at: datetime = Field(default_factory=datetime.utcnow)
     expires_at: Optional[datetime] = None
@@ -70,17 +73,20 @@ class EngagementAuthorization(BaseModel):
 
 class RetentionPolicy(BaseModel):
     """How long engagement results are kept. days=0 means keep indefinitely."""
+
     days: int = 0
 
     def cutoff(self, now: Optional[datetime] = None) -> Optional[datetime]:
         if self.days <= 0:
             return None
         from datetime import timedelta
+
         return (now or datetime.utcnow()) - timedelta(days=self.days)
 
 
 class Engagement(BaseModel):
     """An isolated workspace: scope + audit + storage + authorization."""
+
     id: str
     name: str
     created_at: datetime = Field(default_factory=datetime.utcnow)

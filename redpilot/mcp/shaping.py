@@ -37,8 +37,11 @@ def scan_payload(r: ScanResult) -> Dict[str, Any]:
         "total_findings": len(r.findings),
         "showing": len(shown),
         "findings": [_finding(f) for f in shown],
-        "note": (f"Showing {len(shown)} of {len(r.findings)}; full set at scan://{r.scan_id}"
-                 if r.scan_id and len(r.findings) > len(shown) else None),
+        "note": (
+            f"Showing {len(shown)} of {len(r.findings)}; full set at scan://{r.scan_id}"
+            if r.scan_id and len(r.findings) > len(shown)
+            else None
+        ),
     }
 
 
@@ -51,10 +54,12 @@ def agent_payload(r: AgentResult) -> Dict[str, Any]:
     }
     if not r.dry_run:
         shown = r.findings[:MAX_FINDINGS]
-        out.update({
-            "counts": r.counts,
-            "total_findings": len(r.findings),
-            "findings": [_finding(f) for f in shown],
-            "assessment": r.assessment,
-        })
+        out.update(
+            {
+                "counts": r.counts,
+                "total_findings": len(r.findings),
+                "findings": [_finding(f) for f in shown],
+                "assessment": r.assessment,
+            }
+        )
     return out

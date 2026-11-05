@@ -29,13 +29,36 @@ MAX_AI_TEXT = 20_000
 
 # Substrings/patterns that mark a destructive or system-altering shell command.
 _DANGEROUS_PATTERNS = [
-    r"\brm\s+-rf?\b", r"\brmdir\b", r"\bmkfs\.", r"\bdd\s+if=", r"\b>\s*/dev/sd",
-    r":\(\)\s*\{", r"\bfork\b\s*bomb", r"\bshutdown\b", r"\breboot\b", r"\bhalt\b",
-    r"\bchmod\s+-R\s+0?777\b", r"\bchown\s+-R\b", r"/etc/passwd", r"/etc/shadow",
-    r"\bcurl\b[^|]*\|\s*(sh|bash|zsh)\b", r"\bwget\b[^|]*\|\s*(sh|bash|zsh)\b",
-    r"\bnc\b.*\s-e\b", r"\bbash\s+-i\b", r"\b/dev/tcp/", r"\beval\b", r"\bexec\b",
-    r"\bsudo\b", r"\bsu\s+-", r"\bkill(all)?\s+-9\b", r"\bcrontab\b",
-    r"\biptables\b", r"\bsystemctl\b", r"\bexport\s+\w+=", r"\$\(", r"`",
+    r"\brm\s+-rf?\b",
+    r"\brmdir\b",
+    r"\bmkfs\.",
+    r"\bdd\s+if=",
+    r"\b>\s*/dev/sd",
+    r":\(\)\s*\{",
+    r"\bfork\b\s*bomb",
+    r"\bshutdown\b",
+    r"\breboot\b",
+    r"\bhalt\b",
+    r"\bchmod\s+-R\s+0?777\b",
+    r"\bchown\s+-R\b",
+    r"/etc/passwd",
+    r"/etc/shadow",
+    r"\bcurl\b[^|]*\|\s*(sh|bash|zsh)\b",
+    r"\bwget\b[^|]*\|\s*(sh|bash|zsh)\b",
+    r"\bnc\b.*\s-e\b",
+    r"\bbash\s+-i\b",
+    r"\b/dev/tcp/",
+    r"\beval\b",
+    r"\bexec\b",
+    r"\bsudo\b",
+    r"\bsu\s+-",
+    r"\bkill(all)?\s+-9\b",
+    r"\bcrontab\b",
+    r"\biptables\b",
+    r"\bsystemctl\b",
+    r"\bexport\s+\w+=",
+    r"\$\(",
+    r"`",
 ]
 _DANGEROUS_RE = re.compile("|".join(_DANGEROUS_PATTERNS), re.IGNORECASE)
 
@@ -83,8 +106,7 @@ def sanitize_ai_text(text: str, *, max_len: int = MAX_AI_TEXT) -> str:
         return ""
     s = _CONTROL_CHARS.sub("", str(text))
     # Defang common injection framing without destroying readability.
-    s = re.sub(r"(?i)\b(ignore|disregard)\s+(all\s+)?previous\s+instructions\b",
-               "[redacted-injection]", s)
+    s = re.sub(r"(?i)\b(ignore|disregard)\s+(all\s+)?previous\s+instructions\b", "[redacted-injection]", s)
     s = s.replace(" ", " ").replace(" ", " ")
     if len(s) > max_len:
         s = s[:max_len] + "\n…[truncated]"

@@ -9,6 +9,7 @@ from redpilot.utils.logger import logger
 MONGO_URI = os.getenv("REDPILOT_MONGO_URI", "mongodb://localhost:27017")
 MONGO_DB = os.getenv("REDPILOT_MONGO_DB", "redpilot")
 
+
 class MongoDB:
     def __init__(self):
         self.client: Optional[AsyncIOMotorClient] = None
@@ -22,7 +23,7 @@ class MongoDB:
             self.client = AsyncIOMotorClient(MONGO_URI, serverSelectionTimeoutMS=2000)
             self.db = self.client[MONGO_DB]
             # Verify connection
-            await self.client.admin.command('ping')
+            await self.client.admin.command("ping")
             await self._ensure_indexes()
             logger.info(f"Connected to MongoDB at {MONGO_URI}")
         except Exception as e:
@@ -67,14 +68,8 @@ class MongoDB:
         """
         now = datetime.utcnow()
         update_data = {
-            "$set": {
-                "updated_at": now,
-                **(metadata or {})
-            },
-            "$setOnInsert": {
-                "created_at": now,
-                "domain": domain
-            }
+            "$set": {"updated_at": now, **(metadata or {})},
+            "$setOnInsert": {"created_at": now, "domain": domain},
         }
         await self.db.targets.update_one({"domain": domain}, update_data, upsert=True)
 
@@ -90,7 +85,7 @@ class MongoDB:
             "started_at": datetime.utcnow(),
             "completed_at": None,
             "findings_count": 0,
-            "error": None
+            "error": None,
         }
         result = await self.db.scans.insert_one(scan_doc)
         return str(result.inserted_id)
@@ -101,13 +96,7 @@ class MongoDB:
         """
         await self.db.scans.update_one(
             {"_id": ObjectId(scan_id)},
-            {
-                "$set": {
-                    "status": "completed",
-                    "completed_at": datetime.utcnow(),
-                    "findings_count": findings_count
-                }
-            }
+            {"$set": {"status": "completed", "completed_at": datetime.utcnow(), "findings_count": findings_count}},
         )
 
     async def fail_scan(self, scan_id: str, error: str):
@@ -116,13 +105,7 @@ class MongoDB:
         """
         await self.db.scans.update_one(
             {"_id": ObjectId(scan_id)},
-            {
-                "$set": {
-                    "status": "failed",
-                    "completed_at": datetime.utcnow(),
-                    "error": error
-                }
-            }
+            {"$set": {"status": "failed", "completed_at": datetime.utcnow(), "error": error}},
         )
 
     async def get_scan(self, scan_id: str) -> Optional[Dict[str, Any]]:
@@ -146,12 +129,7 @@ class MongoDB:
         pipeline = [
             {"$match": {"target": target}},
             {"$sort": {"started_at": -1}},
-            {
-                "$group": {
-                    "_id": "$type",
-                    "latest_scan": {"$first": "$$ROOT"}
-                }
-            }
+            {"$group": {"_id": "$type", "latest_scan": {"$first": "$$ROOT"}}},
         ]
         cursor = self.db.scans.aggregate(pipeline)
         results = await cursor.to_list(length=10)
@@ -168,19 +146,11 @@ class MongoDB:
         # with $setOnInsert when MongoDB processes both operators on the same field.
         vuln_dict.pop("created_at", None)
 
-        filter_query = {
-            "scan_id": scan_id,
-            "vuln_type": vuln_dict["vuln_type"],
-            "target": vuln_dict["target"]
-        }
+        filter_query = {"scan_id": scan_id, "vuln_type": vuln_dict["vuln_type"], "target": vuln_dict["target"]}
 
-        update_data = {
-            "$set": vuln_dict,
-            "$setOnInsert": {"created_at": now}
-        }
-        
+        update_data = {"$set": vuln_dict, "$setOnInsert": {"created_at": now}}
+
         await self.db.vulnerabilities.update_one(filter_query, update_data, upsert=True)
-
 
     async def upsert_vulnerabilities(self, scan_id: str, vulnerabilities: List[Dict[str, Any]]):
         """
@@ -190,6 +160,7 @@ class MongoDB:
             return
 
         from pymongo import UpdateOne
+
         now = datetime.utcnow()
 
         operations = []
@@ -199,16 +170,9 @@ class MongoDB:
             v_dict["updated_at"] = now
             v_dict.pop("created_at", None)
 
-            filter_query = {
-                "scan_id": scan_id,
-                "vuln_type": v_dict["vuln_type"],
-                "target": v_dict["target"]
-            }
+            filter_query = {"scan_id": scan_id, "vuln_type": v_dict["vuln_type"], "target": v_dict["target"]}
 
-            update_data = {
-                "$set": v_dict,
-                "$setOnInsert": {"created_at": now}
-            }
+            update_data = {"$set": v_dict, "$setOnInsert": {"created_at": now}}
 
             operations.append(UpdateOne(filter_query, update_data, upsert=True))
 
@@ -229,14 +193,9 @@ class MongoDB:
         pipeline = [
             {"$match": {"target": target}},
             {"$sort": {"severity_order": 1, "created_at": -1}},
-            {
-                "$group": {
-                    "_id": "$vuln_type",
-                    "latest_finding": {"$first": "$$ROOT"}
-                }
-            },
+            {"$group": {"_id": "$vuln_type", "latest_finding": {"$first": "$$ROOT"}}},
             {"$replaceRoot": {"newRoot": "$latest_finding"}},
-            {"$sort": {"severity_order": 1}}
+            {"$sort": {"severity_order": 1}},
         ]
         cursor = self.db.vulnerabilities.aggregate(pipeline)
         return await cursor.to_list(length=1000)
@@ -262,9 +221,7 @@ class MongoDB:
         Returns a list of scan_id strings for a target, newest first.
         Used by redpilot diff to validate scan IDs.
         """
-        cursor = self.db.scans.find(
-            {"target": target}, {"_id": 1}
-        ).sort("started_at", -1).limit(limit)
+        cursor = self.db.scans.find({"target": target}, {"_id": 1}).sort("started_at", -1).limit(limit)
         docs = await cursor.to_list(length=limit)
         return [str(d["_id"]) for d in docs]
 

@@ -55,8 +55,7 @@ class ResponseCache:
             return
         try:
             con = sqlite3.connect(self.path)
-            con.execute("INSERT OR REPLACE INTO cache (k, v, ts) VALUES (?,?,?)",
-                        (key, value, time.time()))
+            con.execute("INSERT OR REPLACE INTO cache (k, v, ts) VALUES (?,?,?)", (key, value, time.time()))
             con.commit()
             con.close()
         except sqlite3.Error:

@@ -46,26 +46,35 @@ def scope_hash(in_scope: List[str], out_of_scope: Optional[List[str]] = None) ->
     return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
 
-def _payload(engagement_id: str, authorized_by: str, scope_hash_: str,
-             authorized_at: datetime, expires_at: Optional[datetime]) -> bytes:
-    canonical = json.dumps({
-        "eid": engagement_id,
-        "by": authorized_by,
-        "scope": scope_hash_,
-        "at": authorized_at.isoformat(),
-        "exp": expires_at.isoformat() if expires_at else None,
-    }, separators=(",", ":"))
+def _payload(
+    engagement_id: str, authorized_by: str, scope_hash_: str, authorized_at: datetime, expires_at: Optional[datetime]
+) -> bytes:
+    canonical = json.dumps(
+        {
+            "eid": engagement_id,
+            "by": authorized_by,
+            "scope": scope_hash_,
+            "at": authorized_at.isoformat(),
+            "exp": expires_at.isoformat() if expires_at else None,
+        },
+        separators=(",", ":"),
+    )
     return canonical.encode("utf-8")
 
 
-def sign(engagement_id: str, authorized_by: str, scope_hash_: str, *,
-         expires_at: Optional[datetime] = None) -> EngagementAuthorization:
+def sign(
+    engagement_id: str, authorized_by: str, scope_hash_: str, *, expires_at: Optional[datetime] = None
+) -> EngagementAuthorization:
     at = datetime.utcnow()
-    sig = hmac.new(_key(), _payload(engagement_id, authorized_by, scope_hash_, at, expires_at),
-                   hashlib.sha256).hexdigest()
+    sig = hmac.new(
+        _key(), _payload(engagement_id, authorized_by, scope_hash_, at, expires_at), hashlib.sha256
+    ).hexdigest()
     return EngagementAuthorization(
-        authorized_by=authorized_by, authorized_at=at,
-        expires_at=expires_at, scope_hash=scope_hash_, signature=sig,
+        authorized_by=authorized_by,
+        authorized_at=at,
+        expires_at=expires_at,
+        scope_hash=scope_hash_,
+        signature=sig,
     )
 
 
@@ -75,8 +84,7 @@ def verify(engagement_id: str, auth: EngagementAuthorization) -> bool:
         return False
     expected = hmac.new(
         _key(),
-        _payload(engagement_id, auth.authorized_by, auth.scope_hash,
-                 auth.authorized_at, auth.expires_at),
+        _payload(engagement_id, auth.authorized_by, auth.scope_hash, auth.authorized_at, auth.expires_at),
         hashlib.sha256,
     ).hexdigest()
     if not hmac.compare_digest(expected, auth.signature):

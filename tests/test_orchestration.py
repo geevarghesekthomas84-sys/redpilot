@@ -3,7 +3,12 @@ import asyncio
 import pytest
 
 from redpilot.orchestration import (
-    Orchestrator, ModelRouter, Budget, BudgetExceeded, ResponseCache, make_key,
+    Orchestrator,
+    ModelRouter,
+    Budget,
+    BudgetExceeded,
+    ResponseCache,
+    make_key,
 )
 
 
@@ -56,8 +61,7 @@ def test_cache_disabled_is_noop(tmp_path):
 # ── Orchestrator ──────────────────────────────────────────────────────
 def _orch(tmp_path, complete_fn, **kw):
     cache = ResponseCache(str(tmp_path / "o.db"), enabled=kw.pop("cache", True))
-    return Orchestrator(complete_fn=complete_fn, provider="test",
-                        router=ModelRouter(), cache=cache)
+    return Orchestrator(complete_fn=complete_fn, provider="test", router=ModelRouter(), cache=cache)
 
 
 def test_orchestrator_caches(tmp_path, monkeypatch):

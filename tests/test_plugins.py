@@ -9,9 +9,17 @@ from redpilot.service import RedPilotService
 
 class _MyPlugin(BaseModule):
     async def run(self, progress):
-        return [{"target": self.target, "vuln_type": "custom_finding", "detail": "hi",
-                 "severity": "Low", "severity_order": 4, "recommendation": "ok",
-                 "scan_type": "myplugin"}]
+        return [
+            {
+                "target": self.target,
+                "vuln_type": "custom_finding",
+                "detail": "hi",
+                "severity": "Low",
+                "severity_order": 4,
+                "recommendation": "ok",
+                "scan_type": "myplugin",
+            }
+        ]
 
     def render_results(self, results):
         pass
@@ -44,6 +52,7 @@ def test_register_rejects_non_module():
 
 def test_service_runs_registered_plugin(tmp_path):
     import json
+
     plugins.register_module("myplugin", _MyPlugin)
     p = tmp_path / "scope.json"
     p.write_text(json.dumps({"in_scope": ["example.com"], "out_of_scope": []}))
@@ -55,6 +64,7 @@ def test_service_runs_registered_plugin(tmp_path):
 
 def test_service_unknown_module_lists_plugins(tmp_path):
     import json
+
     p = tmp_path / "scope.json"
     p.write_text(json.dumps({"in_scope": ["example.com"], "out_of_scope": []}))
     svc = RedPilotService(str(p))

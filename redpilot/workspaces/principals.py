@@ -89,18 +89,18 @@ def load_registry() -> PrincipalRegistry:
             if principals:
                 return PrincipalRegistry(principals)
         except (ValueError, json.JSONDecodeError) as exc:
-            logger.warning(f"principals: invalid REDPILOT_PRINCIPALS ({exc}); "
-                           f"falling back to REDPILOT_API_KEYS.")
+            logger.warning(f"principals: invalid REDPILOT_PRINCIPALS ({exc}); falling back to REDPILOT_API_KEYS.")
 
     # Fallback: existing API keys become all-access leads (opt-in RBAC).
     from redpilot.api.auth import load_keys
+
     keys = load_keys()
-    principals = {
-        k: Principal(key_id=_key_id(k), name="lead", role=Role.LEAD, engagements=["*"])
-        for k in keys
-    }
+    principals = {k: Principal(key_id=_key_id(k), name="lead", role=Role.LEAD, engagements=["*"]) for k in keys}
     if principals:
-        print("[redpilot.rbac] no REDPILOT_PRINCIPALS set — existing API key(s) act as "
-              "all-access 'lead'. Set REDPILOT_PRINCIPALS to enable roles.",
-              file=sys.stderr, flush=True)
+        print(
+            "[redpilot.rbac] no REDPILOT_PRINCIPALS set — existing API key(s) act as "
+            "all-access 'lead'. Set REDPILOT_PRINCIPALS to enable roles.",
+            file=sys.stderr,
+            flush=True,
+        )
     return PrincipalRegistry(principals)

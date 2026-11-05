@@ -43,8 +43,7 @@ def load_config(path: str = DEFAULT_CONFIG) -> Dict[str, Dict[str, Any]]:
 
 
 class MCPClientManager:
-    def __init__(self, config: Optional[Dict[str, Dict[str, Any]]] = None,
-                 config_path: str = DEFAULT_CONFIG):
+    def __init__(self, config: Optional[Dict[str, Dict[str, Any]]] = None, config_path: str = DEFAULT_CONFIG):
         self.servers = config if config is not None else load_config(config_path)
 
     def names(self) -> List[str]:
@@ -56,6 +55,7 @@ class MCPClientManager:
             raise KeyError(f"unknown MCP server '{name}'. Configured: {', '.join(self.servers) or 'none'}")
         from mcp import ClientSession
         from mcp.client.stdio import stdio_client, StdioServerParameters
+
         spec = self.servers[name]
         params = StdioServerParameters(
             command=spec["command"],

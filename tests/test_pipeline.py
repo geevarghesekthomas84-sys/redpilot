@@ -21,8 +21,7 @@ def _run(coro):
 
 # ── golden: full staged run in mock mode ─────────────────────────────────
 def test_pipeline_runs_all_stages_in_order(svc, tmp_path):
-    res = _run(svc.run_pipeline("example.com", {"mock": True, "no_db": True},
-                                report_dir=str(tmp_path / "rep")))
+    res = _run(svc.run_pipeline("example.com", {"mock": True, "no_db": True}, report_dir=str(tmp_path / "rep")))
     stages = [s.stage for s in res.stages]
     assert stages == [Stage.DISCOVERY, Stage.VALIDATION, Stage.REMEDIATION, Stage.REPORT]
     assert all(s.status in ("completed", "skipped") for s in res.stages)
@@ -31,8 +30,7 @@ def test_pipeline_runs_all_stages_in_order(svc, tmp_path):
 def test_final_set_includes_discovery_and_validation(svc, tmp_path):
     # mock mode yields one finding per module: recon/toolkit/crawl + webscan/scan = 5,
     # all distinct, all carried through remediation into the final set.
-    res = _run(svc.run_pipeline("example.com", {"mock": True, "no_db": True},
-                                report_dir=str(tmp_path / "rep")))
+    res = _run(svc.run_pipeline("example.com", {"mock": True, "no_db": True}, report_dir=str(tmp_path / "rep")))
     assert len(res.findings) == 5
     scan_types = {f.scan_type for f in res.findings}
     assert {"recon", "webscan", "scan"} <= scan_types
@@ -51,8 +49,7 @@ def test_pipeline_report_written(svc, tmp_path):
 def test_discovery_only_runs_allowed_modules(svc):
     # Mock findings carry their scan_type = module name; discovery must only
     # contain discovery-stage modules, never a validation module.
-    res = _run(svc.run_pipeline("example.com", {"mock": True, "no_db": True},
-                                stages=[Stage.DISCOVERY]))
+    res = _run(svc.run_pipeline("example.com", {"mock": True, "no_db": True}, stages=[Stage.DISCOVERY]))
     disc = res.stage(Stage.DISCOVERY)
     scan_types = {f.scan_type for f in disc.findings}
     assert scan_types <= set(STAGE_MODULES[Stage.DISCOVERY])

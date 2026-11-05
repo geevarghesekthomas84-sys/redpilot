@@ -150,11 +150,11 @@ class ReportGenerator:
     </div>
 
     <div class="summary-grid">
-        <div class="stat-card"><div class="stat-value c-Critical">{counts['Critical']}</div><div class="stat-label">Critical</div></div>
-        <div class="stat-card"><div class="stat-value c-High">{counts['High']}</div><div class="stat-label">High</div></div>
-        <div class="stat-card"><div class="stat-value c-Medium">{counts['Medium']}</div><div class="stat-label">Medium</div></div>
-        <div class="stat-card"><div class="stat-value c-Low">{counts['Low']}</div><div class="stat-label">Low</div></div>
-        <div class="stat-card"><div class="stat-value">{counts['Total']}</div><div class="stat-label">Total Findings</div></div>
+        <div class="stat-card"><div class="stat-value c-Critical">{counts["Critical"]}</div><div class="stat-label">Critical</div></div>
+        <div class="stat-card"><div class="stat-value c-High">{counts["High"]}</div><div class="stat-label">High</div></div>
+        <div class="stat-card"><div class="stat-value c-Medium">{counts["Medium"]}</div><div class="stat-label">Medium</div></div>
+        <div class="stat-card"><div class="stat-value c-Low">{counts["Low"]}</div><div class="stat-label">Low</div></div>
+        <div class="stat-card"><div class="stat-value">{counts["Total"]}</div><div class="stat-label">Total Findings</div></div>
     </div>
 
     <div class="panel">
@@ -224,10 +224,7 @@ class ReportGenerator:
         modules = self._counts_by_module()
         if not modules:
             return ""
-        tags = "".join(
-            f'<span class="module-tag">{html.escape(str(m))} · {n}</span>'
-            for m, n in modules.items()
-        )
+        tags = "".join(f'<span class="module-tag">{html.escape(str(m))} · {n}</span>' for m, n in modules.items())
         return f'<div class="panel"><h2>Findings by Module</h2>{tags}</div>'
 
     def _build_ai_section(self) -> str:
@@ -235,7 +232,7 @@ class ReportGenerator:
             return ""
         return (
             '<div class="panel ai-section">'
-            '<h2>🤖 AI Threat Intelligence</h2>'
+            "<h2>🤖 AI Threat Intelligence</h2>"
             f"{self._md_to_html(self.ai_analysis)}"
             "</div>"
         )
@@ -297,20 +294,24 @@ class ReportGenerator:
             bullet = re.match(r"^[-*]\s+(.*)$", stripped)
             if heading:
                 if in_list:
-                    html_lines.append("</ul>"); in_list = False
+                    html_lines.append("</ul>")
+                    in_list = False
                 level = min(len(heading.group(1)) + 1, 5)
                 html_lines.append(f"<h{level}>{self._inline_md(heading.group(2))}</h{level}>")
             elif bullet:
                 if not in_list:
-                    html_lines.append("<ul>"); in_list = True
+                    html_lines.append("<ul>")
+                    in_list = True
                 html_lines.append(f"<li>{self._inline_md(bullet.group(1))}</li>")
             elif stripped == "":
                 if in_list:
-                    html_lines.append("</ul>"); in_list = False
+                    html_lines.append("</ul>")
+                    in_list = False
                 html_lines.append("")
             else:
                 if in_list:
-                    html_lines.append("</ul>"); in_list = False
+                    html_lines.append("</ul>")
+                    in_list = False
                 html_lines.append(f"<p>{self._inline_md(stripped)}</p>")
         if in_list:
             html_lines.append("</ul>")

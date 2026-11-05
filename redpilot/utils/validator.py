@@ -4,15 +4,16 @@ from urllib.parse import urlparse
 
 # Reject scans that are accidentally (or maliciously) enormous. A target may be
 # a single host or a modest network, never the whole internet. Default caps:
-MAX_CIDR_HOSTS = 65536          # /16 for IPv4; anything larger is "overly broad"
-MAX_PROMPT_CHARS = 4000         # agent goal / free-text payload cap
-MAX_TARGET_CHARS = 253          # DNS name limit; URLs validated separately
+MAX_CIDR_HOSTS = 65536  # /16 for IPv4; anything larger is "overly broad"
+MAX_PROMPT_CHARS = 4000  # agent goal / free-text payload cap
+MAX_TARGET_CHARS = 253  # DNS name limit; URLs validated separately
 
 # Regex for domain validation
 DOMAIN_REGEX = re.compile(
-    r'^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*'
-    r'([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])$'
+    r"^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*"
+    r"([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])$"
 )
+
 
 def validate_domain(domain: str) -> bool:
     """
@@ -21,6 +22,7 @@ def validate_domain(domain: str) -> bool:
     if not domain or len(domain) > 253:
         return False
     return bool(DOMAIN_REGEX.match(domain))
+
 
 def validate_ip(ip_str: str) -> bool:
     """
@@ -35,11 +37,13 @@ def validate_ip(ip_str: str) -> bool:
     except ValueError:
         return False
 
+
 def validate_target(target: str) -> bool:
     """
     Validates if a target is either a valid domain or a valid IP.
     """
     return validate_domain(target) or validate_ip(target)
+
 
 def validate_url(url: str) -> bool:
     """
@@ -47,9 +51,10 @@ def validate_url(url: str) -> bool:
     """
     try:
         result = urlparse(url)
-        return all([result.scheme in ('http', 'https'), result.netloc])
+        return all([result.scheme in ("http", "https"), result.netloc])
     except Exception:
         return False
+
 
 def sanitize_domain(domain: str) -> str:
     """
@@ -60,12 +65,11 @@ def sanitize_domain(domain: str) -> str:
         domain = domain[7:]
     elif domain.startswith("https://"):
         domain = domain[8:]
-    return domain.split('/')[0]
+    return domain.split("/")[0]
 
 
 # ── Overly-broad / abusive input rejection ───────────────────────────────────
-_WILDCARD_TARGETS = {"*", "0.0.0.0", "0.0.0.0/0", "::/0", "::", "any", "all",
-                     "internet", "0/0"}
+_WILDCARD_TARGETS = {"*", "0.0.0.0", "0.0.0.0/0", "::/0", "::", "any", "all", "internet", "0/0"}
 
 
 def is_overly_broad_target(target: str) -> bool:
