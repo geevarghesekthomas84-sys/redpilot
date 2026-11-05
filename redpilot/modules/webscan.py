@@ -42,7 +42,7 @@ class WebscanModule(BaseModule):
     async def run(self, progress: Progress) -> List[Dict[str, Any]]:
         url = self.target if self.target.startswith("http") else f"https://{self.target}"
         findings = []
-        
+
         task = progress.add_task("[green]Performing web security scan...", total=100)
 
         async with self.get_session() as session:
@@ -110,7 +110,7 @@ class WebscanModule(BaseModule):
                 "Low", "Disable or obfuscate the 'Server' header in production.",
                 "webscan"
             ))
-        
+
         powered_by = headers.get("X-Powered-By")
         if powered_by:
             findings.append(build_finding(
@@ -128,20 +128,20 @@ class WebscanModule(BaseModule):
                 "Medium", "Restrict 'Access-Control-Allow-Origin' to specific trusted domains.",
                 "webscan"
             ))
-            
+
         return findings
 
     async def _check_tls(self, url: str) -> List[Dict[str, Any]]:
         findings = []
         hostname = url.split("//")[-1].split("/")[0].split(":")[0]
-        
+
         # 1. Check for deprecated protocols
         # We test for TLS 1.0 and 1.1 explicitly
         deprecated_protocols = [
             (ssl.TLSVersion.TLSv1, "TLS 1.0", "High"),
             (ssl.TLSVersion.TLSv1_1, "TLS 1.1", "High")
         ]
-        
+
         for version, name, severity in deprecated_protocols:
             ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
             ctx.minimum_version = version
@@ -206,7 +206,7 @@ class WebscanModule(BaseModule):
         concurrency = self.options.get("concurrency", 5)
         delay = self.options.get("delay", 0.0)
         semaphore = asyncio.Semaphore(concurrency)
-        
+
         async def check_path(path, severity, rec):
             async with semaphore:
                 if delay > 0:

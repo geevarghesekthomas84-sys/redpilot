@@ -178,7 +178,7 @@ class MongoDB:
             "$set": vuln_dict,
             "$setOnInsert": {"created_at": now}
         }
-        
+
         await self.db.vulnerabilities.update_one(filter_query, update_data, upsert=True)
 
 

@@ -91,7 +91,7 @@ def load_plugins(app_instance: typer.Typer):
     if not os.path.exists(plugins_dir):
         os.makedirs(plugins_dir, exist_ok=True)
         return
-        
+
     for filename in os.listdir(plugins_dir):
         if filename.endswith(".py") and not filename.startswith("__"):
             plugin_path = os.path.join(plugins_dir, filename)
@@ -118,7 +118,7 @@ def chat(
         with console.status(f"[bold cyan]{ai_orchestrator.provider.capitalize()} is thinking..."):
             response = await ai_orchestrator.chat(query)
             console.print(Panel(response, title=f"{ai_orchestrator.provider.capitalize()} AI", border_style="blue"))
-            
+
     asyncio.run(run())
 
 
@@ -175,7 +175,7 @@ def gemini(
                 console.print(Panel(response, title="Gemini AI", border_style="blue"))
         finally:
             ai_orchestrator.provider = old_provider
-            
+
     asyncio.run(run())
 
 
@@ -261,19 +261,19 @@ def poc(
             5. ONLY output the code, wrapped in markdown code blocks.
             """
             poc_code = await ai_orchestrator.chat(prompt)
-            
+
             # Extract code from markdown blocks
             import re
             code_match = re.search(r"```(?:python)?\n(.*?)\n```", poc_code, re.DOTALL)
             clean_code = code_match.group(1) if code_match else poc_code
-            
+
             console.print(Panel(clean_code, title=f"POC Script: {finding['vuln_type']}", border_style="yellow"))
-            
+
             if output:
                 with open(output, "w") as f:
                     f.write(clean_code)
                 console.print(f"[bold green]Saved POC to:[/bold green] {output}")
-            
+
     asyncio.run(run())
 
 @app.command()
@@ -400,18 +400,18 @@ def shell():
     """Enter the RedPilot Interactive Shell for real-time security assistance."""
     console.print("[bold green]Welcome to the RedPilot Interactive Shell![/bold green]")
     console.print("Type 'exit' to quit. Use 'chat <query>' or 'analyze <id>' for assistance.")
-    
+
     async def run_shell():
         while True:
             try:
                 command = console.input("[bold cyan]RedPilot > [/bold cyan]").strip()
                 if not command: continue
                 if command.lower() in ["exit", "quit"]: break
-                
+
                 parts = command.split(" ", 1)
                 cmd = parts[0].lower()
                 arg = parts[1] if len(parts) > 1 else ""
-                
+
                 if cmd in ["chat", "gemini"]:
                     with console.status(f"[bold cyan]{ai_orchestrator.provider.capitalize()} is thinking..."):
                         response = await ai_orchestrator.chat(arg)
@@ -463,7 +463,7 @@ def remediate(
             """
             remediation_code = await ai_orchestrator.chat(prompt)
             console.print(Panel(remediation_code, title=f"Remediation: {finding['vuln_type']} ({format})", border_style="green"))
-            
+
     asyncio.run(run())
 
 def _section(title: str, subtitle: str = ""):
@@ -666,7 +666,7 @@ def analyze(
         with console.status("[bold cyan]AI is analyzing your findings..."):
             analysis = await ai_orchestrator.analyze_findings(findings)
             console.print(Panel(analysis, title="AI Security Insight", border_style="magenta"))
-            
+
     asyncio.run(run())
 
 @app.command()
@@ -1328,7 +1328,7 @@ def report(
 
     if target:
         target = sanitize_domain(target)
-    
+
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
 
@@ -1353,11 +1353,11 @@ def report(
         else:
             await _init_db()
             findings = await db.get_all_vulnerabilities_for_target(report_target)
-            
+
         if not findings:
             console.print(f"[yellow]No findings found for target: {report_target}[/yellow]")
             return
-            
+
         ai_analysis = None
         if with_ai:
             with console.status("[bold magenta]AI is analyzing findings for the report…[/bold magenta]"):
@@ -1365,14 +1365,14 @@ def report(
 
         meta = {"target": report_target, "total_findings": len(findings)}
         generator = ReportGenerator(report_target, findings, meta, ai_analysis=ai_analysis)
-        
+
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        
+
         if format in ["json", "both"]:
             json_path = os.path.join(output_dir, f"redpilot_report_{report_target}_{timestamp}.json")
             generator.generate_json(json_path)
             console.print(f"[green]JSON report generated:[/green] {json_path}")
-            
+
         if format in ["html", "both"]:
             html_path = os.path.join(output_dir, f"redpilot_report_{report_target}_{timestamp}.html")
             generator.generate_html(html_path)
@@ -1387,11 +1387,11 @@ def history(
 ):
     """View scan history."""
     print_banner()
-    
+
     async def run():
         await _init_db()
         scans = await db.get_scan_history(target, limit)
-        
+
         if not scans:
             console.print("[yellow]No scan history found.[/yellow]")
             return
@@ -1412,7 +1412,7 @@ def history(
                 f"[{status_color}]{s['status']}[/{status_color}]",
                 str(s.get('findings_count', 0))
             )
-        
+
         console.print(table)
 
     asyncio.run(run())

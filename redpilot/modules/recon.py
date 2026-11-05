@@ -25,20 +25,20 @@ class ReconModule(BaseModule):
     async def run(self, progress: Progress) -> List[Dict[str, Any]]:
         task = progress.add_task("[green]Starting passive reconnaissance...", total=100)
         findings = []
-        
+
         domain = self.target
         is_passive = self.options.get("passive", False)
 
         # 1. Subdomain Enumeration via crt.sh
         progress.update(task, description="[cyan]Enumerating subdomains via crt.sh...", completed=10)
         subdomains = await self._get_subdomains(domain)
-        
+
         # 1b. Active Subdomain Brute-force (if enabled)
         if not is_passive:
             progress.update(task, description="[cyan]Brute-forcing common subdomains...", completed=20)
             brute_subs = [f"{s}.{domain}" for s in self.COMMON_SUBDOMAINS]
             subdomains = list(set(subdomains + brute_subs))
-            
+
         progress.update(task, completed=30)
 
         # 2. DNS Resolution (Limit to 100)
@@ -59,7 +59,7 @@ class ReconModule(BaseModule):
         # 5. Analyze Findings
         findings.extend(self._analyze_dns(domain, dns_records))
         findings.extend(self._analyze_whois(domain, whois_info))
-        
+
         # 6. Active Checks (Zone Transfer)
         if not is_passive and dns_records.get("NS"):
             progress.update(task, description="[cyan]Attempting DNS zone transfer (AXFR)...", completed=95)
@@ -168,7 +168,7 @@ class ReconModule(BaseModule):
     def _analyze_dns(self, domain: str, records: Dict[str, List[str]]) -> List[Dict[str, Any]]:
         findings = []
         txt_records = "".join(records.get("TXT", [])).lower()
-        
+
         if "v=spf1" not in txt_records:
             findings.append(build_finding(
                 domain, "missing_spf_record",
@@ -176,7 +176,7 @@ class ReconModule(BaseModule):
                 "Medium", "Implement a valid SPF record (v=spf1) to prevent email spoofing.",
                 "recon"
             ))
-            
+
         if "v=dmarc1" not in txt_records:
             findings.append(build_finding(
                 domain, "missing_dmarc_record",
@@ -184,7 +184,7 @@ class ReconModule(BaseModule):
                 "Medium", "Implement a DMARC policy (v=DMARC1) to handle email authentication failures.",
                 "recon"
             ))
-            
+
         return findings
 
     def _analyze_whois(self, domain: str, info: Dict[str, Any]) -> List[Dict[str, Any]]:
@@ -251,4 +251,3 @@ class ReconModule(BaseModule):
             logger.warning(f"Shodan lookup failed for {domain}: {exc}")
 
         return findings
-

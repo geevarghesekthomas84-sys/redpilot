@@ -11,13 +11,13 @@ class CrawlerModule(BaseModule):
         url = self.target if self.target.startswith("http") else f"https://{self.target}"
         max_depth = self.options.get("depth", 2)
         max_pages = self.options.get("max_pages", 50)
-        
+
         visited = set()
         to_visit = [url]
         findings = []
-        
+
         task = progress.add_task("[green]Crawling web application...", total=max_pages)
-        
+
         async with self.get_session() as session:
             depth = 0
             while to_visit and depth < max_depth and len(visited) < max_pages:
@@ -26,16 +26,16 @@ class CrawlerModule(BaseModule):
                 for current_url in current_level:
                     if current_url in visited or len(visited) >= max_pages:
                         continue
-                        
+
                     visited.add(current_url)
                     progress.update(task, advance=1, description=f"[cyan]Crawling: {current_url[:50]}...")
-                    
+
                     try:
                         async with session.get(current_url, timeout=5, **self.get_request_params()) as resp:
                             if resp.status == 200:
                                 html = await resp.text()
                                 soup = BeautifulSoup(html, 'html.parser')
-                                
+
                                 # Extract links
                                 for a in soup.find_all('a', href=True):
                                     link = urljoin(current_url, a['href'])
@@ -44,16 +44,16 @@ class CrawlerModule(BaseModule):
                                     if parsed_link.netloc == urlparse(url).netloc:
                                         if link not in visited:
                                             to_visit.append(link)
-                                            
+
                                 # Check for interesting things (forms, inputs, sensitive keywords)
                                 findings.extend(self._analyze_page(current_url, html, soup))
-                                
+
                     except Exception:
                         pass
                 depth += 1
-                
+
         progress.update(task, completed=max_pages)
-        
+
         if visited:
             findings.append(build_finding(
                 self.target, "crawl_summary",
@@ -61,7 +61,7 @@ class CrawlerModule(BaseModule):
                 "Info", "Review discovered pages for further testing.",
                 "crawler", extra={"pages_crawled": len(visited)}
             ))
-            
+
         return findings
 
     def _analyze_page(self, url: str, html: str, soup: BeautifulSoup) -> List[Dict[str, Any]]:
@@ -75,7 +75,7 @@ class CrawlerModule(BaseModule):
                 "Info", "Audit forms for CSRF protection and injection vulnerabilities.",
                 "crawler", extra={"forms_count": len(forms)}
             ))
-            
+
         # Check for sensitive keywords in source
         keywords = ["password", "secret", "token", "apikey", "config", "backup"]
         for kw in keywords:
