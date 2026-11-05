@@ -38,7 +38,6 @@ def test_engine_mock_mode(monkeypatch):
     import asyncio
     from redpilot.core.engine import ScanEngine
     from redpilot.modules.webscan import WebscanModule
-
     monkeypatch.setenv("REDPILOT_MOCK", "1")
     eng = ScanEngine()
     res = asyncio.run(eng.run_module(WebscanModule, "example.com", {"no_db": True}))

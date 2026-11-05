@@ -17,17 +17,11 @@ from redpilot.utils.logger import logger
 AUDIT_PATH = os.getenv("REDPILOT_AUDIT_LOG", os.path.join("logs", "audit.jsonl"))
 
 
-def record(
-    action: str,
-    target: str,
-    *,
-    actor: str = "local",
-    scope_ok: Optional[bool] = None,
-    surface: str = "service",
-    engagement: Optional[str] = None,
-    extra: Optional[Dict[str, Any]] = None,
-    path: Optional[str] = None,
-) -> None:
+def record(action: str, target: str, *, actor: str = "local",
+           scope_ok: Optional[bool] = None, surface: str = "service",
+           engagement: Optional[str] = None,
+           extra: Optional[Dict[str, Any]] = None,
+           path: Optional[str] = None) -> None:
     entry = {
         "ts": datetime.utcnow().isoformat() + "Z",
         "actor": actor,

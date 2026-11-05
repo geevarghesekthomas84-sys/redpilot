@@ -19,7 +19,7 @@ except ImportError:
 try:
     from openai import AsyncOpenAI, APIConnectionError as OAIConnectionError
 except ImportError:
-    AsyncOpenAI = None
+    AsyncOpenAI       = None
     OAIConnectionError = Exception
 
 from redpilot.utils.logger import logger
@@ -29,7 +29,6 @@ from redpilot.utils.logger import logger
 # Provider name normalisation
 # Accepts: ollama | lmstudio | lm-studio | lm_studio | claude | google
 # ---------------------------------------------------------------------------
-
 
 def _normalise_provider(raw: str) -> str:
     raw = raw.strip().lower().replace("-", "").replace("_", "")
@@ -121,17 +120,17 @@ Reference actual URLs and finding types from the data.
 
 class AIOrchestrator:
     def __init__(self):
-        raw_provider = os.getenv("AI_PROVIDER", "google")
-        self.provider = _normalise_provider(raw_provider)
-        self.google_key = os.getenv("GOOGLE_API_KEY")
-        self.anthropic_key = os.getenv("ANTHROPIC_API_KEY")
-        self.ollama_url = os.getenv("OLLAMA_URL", "http://localhost:11434/v1")
-        self.lm_studio_url = os.getenv("LM_STUDIO_URL", "http://localhost:1234/v1")
-        self.google_model = os.getenv("GOOGLE_MODEL", "gemini-2.0-flash")
+        raw_provider         = os.getenv("AI_PROVIDER", "google")
+        self.provider        = _normalise_provider(raw_provider)
+        self.google_key      = os.getenv("GOOGLE_API_KEY")
+        self.anthropic_key   = os.getenv("ANTHROPIC_API_KEY")
+        self.ollama_url      = os.getenv("OLLAMA_URL",      "http://localhost:11434/v1")
+        self.lm_studio_url   = os.getenv("LM_STUDIO_URL",   "http://localhost:1234/v1")
+        self.google_model    = os.getenv("GOOGLE_MODEL",    "gemini-2.0-flash")
         self.anthropic_model = os.getenv("ANTHROPIC_MODEL", "claude-3-5-sonnet-20241022")
         # Provider-specific model overrides (fallback to shared LOCAL_MODEL)
-        self.ollama_model = os.getenv("OLLAMA_MODEL") or os.getenv("LOCAL_MODEL")
-        self.lmstudio_model = os.getenv("LM_STUDIO_MODEL") or os.getenv("LOCAL_MODEL")
+        self.ollama_model    = os.getenv("OLLAMA_MODEL")    or os.getenv("LOCAL_MODEL")
+        self.lmstudio_model  = os.getenv("LM_STUDIO_MODEL") or os.getenv("LOCAL_MODEL")
 
         # ── Google GenAI ──────────────────────────────────────────────────
         self._google_client = None
@@ -140,7 +139,9 @@ class AIOrchestrator:
 
         # ── Anthropic ─────────────────────────────────────────────────────
         self.anthropic_client = (
-            anthropic.AsyncAnthropic(api_key=self.anthropic_key) if (self.anthropic_key and anthropic) else None
+            anthropic.AsyncAnthropic(api_key=self.anthropic_key)
+            if (self.anthropic_key and anthropic)
+            else None
         )
 
         # ── Local: Ollama ─────────────────────────────────────────────────
@@ -148,7 +149,7 @@ class AIOrchestrator:
         if AsyncOpenAI and self.provider == "ollama":
             self._ollama_client = AsyncOpenAI(
                 base_url=self.ollama_url,
-                api_key="ollama",  # Ollama ignores the key but the field is required
+                api_key="ollama",          # Ollama ignores the key but the field is required
             )
 
         # ── Local: LM Studio ──────────────────────────────────────────────
@@ -156,7 +157,7 @@ class AIOrchestrator:
         if AsyncOpenAI and self.provider == "lmstudio":
             self._lmstudio_client = AsyncOpenAI(
                 base_url=self.lm_studio_url,
-                api_key="lm-studio",  # LM Studio ignores the key
+                api_key="lm-studio",       # LM Studio ignores the key
             )
 
     # ------------------------------------------------------------------
@@ -171,7 +172,9 @@ class AIOrchestrator:
         if self.ollama_model:
             return self.ollama_model
         try:
-            response = await asyncio.wait_for(self._ollama_client.models.list(), timeout=5)
+            response = await asyncio.wait_for(
+                self._ollama_client.models.list(), timeout=5
+            )
             if response.data:
                 model = response.data[0].id
                 logger.debug(f"Ollama: auto-selected model '{model}'")
@@ -191,7 +194,9 @@ class AIOrchestrator:
         if self.lmstudio_model:
             return self.lmstudio_model
         try:
-            response = await asyncio.wait_for(self._lmstudio_client.models.list(), timeout=5)
+            response = await asyncio.wait_for(
+                self._lmstudio_client.models.list(), timeout=5
+            )
             if response.data:
                 model = response.data[0].id
                 logger.debug(f"LM Studio: auto-selected model '{model}'")
@@ -216,9 +221,9 @@ class AIOrchestrator:
         """
         result: Dict[str, Any] = {
             "provider": self.provider,
-            "status": "❌ FAIL",
-            "model": "—",
-            "detail": "",
+            "status":   "❌ FAIL",
+            "model":    "—",
+            "detail":   "",
         }
 
         try:
@@ -247,43 +252,46 @@ class AIOrchestrator:
                     ),
                     timeout=15,
                 )
-                result.update(status="✅ OK", model=self.anthropic_model, detail=resp.content[0].text.strip()[:60])
+                result.update(status="✅ OK", model=self.anthropic_model,
+                               detail=resp.content[0].text.strip()[:60])
 
             elif self.provider == "ollama":
                 if not self._ollama_client:
                     result["detail"] = "openai package not installed. Run: pip install openai"
                     return result
                 model = await self._resolve_ollama_model()
-                resp = await asyncio.wait_for(
+                resp  = await asyncio.wait_for(
                     self._ollama_client.chat.completions.create(
                         model=model,
                         max_tokens=16,
                         messages=[
                             {"role": "system", "content": "You are a helpful assistant."},
-                            {"role": "user", "content": "Reply with OK"},
+                            {"role": "user",   "content": "Reply with OK"},
                         ],
                     ),
                     timeout=30,
                 )
-                result.update(status="✅ OK", model=model, detail=resp.choices[0].message.content.strip()[:60])
+                result.update(status="✅ OK", model=model,
+                               detail=resp.choices[0].message.content.strip()[:60])
 
             elif self.provider == "lmstudio":
                 if not self._lmstudio_client:
                     result["detail"] = "openai package not installed. Run: pip install openai"
                     return result
                 model = await self._resolve_lmstudio_model()
-                resp = await asyncio.wait_for(
+                resp  = await asyncio.wait_for(
                     self._lmstudio_client.chat.completions.create(
                         model=model,
                         max_tokens=16,
                         messages=[
                             {"role": "system", "content": "You are a helpful assistant."},
-                            {"role": "user", "content": "Reply with OK"},
+                            {"role": "user",   "content": "Reply with OK"},
                         ],
                     ),
                     timeout=30,
                 )
-                result.update(status="✅ OK", model=model, detail=resp.choices[0].message.content.strip()[:60])
+                result.update(status="✅ OK", model=model,
+                               detail=resp.choices[0].message.content.strip()[:60])
 
             else:
                 result["detail"] = f"Unknown provider: '{self.provider}'"
@@ -338,13 +346,13 @@ class AIOrchestrator:
                         "Run: pip install openai\n"
                         "Then set AI_PROVIDER=ollama and OLLAMA_URL in .env"
                     )
-                model = await self._resolve_ollama_model()
+                model    = await self._resolve_ollama_model()
                 response = await self._ollama_client.chat.completions.create(
                     model=model,
                     max_tokens=max_tokens,
                     messages=[
                         {"role": "system", "content": system_msg},
-                        {"role": "user", "content": user_prompt},
+                        {"role": "user",   "content": user_prompt},
                     ],
                 )
                 return response.choices[0].message.content
@@ -357,19 +365,20 @@ class AIOrchestrator:
                         "Run: pip install openai\n"
                         "Then set AI_PROVIDER=lmstudio and LM_STUDIO_URL in .env"
                     )
-                model = await self._resolve_lmstudio_model()
+                model    = await self._resolve_lmstudio_model()
                 response = await self._lmstudio_client.chat.completions.create(
                     model=model,
                     max_tokens=max_tokens,
                     messages=[
                         {"role": "system", "content": system_msg},
-                        {"role": "user", "content": user_prompt},
+                        {"role": "user",   "content": user_prompt},
                     ],
                 )
                 return response.choices[0].message.content
 
             return (
-                f"⚠️  Unknown AI provider: '{self.provider}'.\nSet AI_PROVIDER to: google | claude | ollama | lmstudio"
+                f"⚠️  Unknown AI provider: '{self.provider}'.\n"
+                "Set AI_PROVIDER to: google | claude | ollama | lmstudio"
             )
 
         except OAIConnectionError:
@@ -400,13 +409,12 @@ class AIOrchestrator:
 
     # Attribute holding the active model for each provider (for overrides).
     _MODEL_ATTR = {
-        "google": "google_model",
-        "claude": "anthropic_model",
-        "ollama": "ollama_model",
-        "lmstudio": "lmstudio_model",
+        "google": "google_model", "claude": "anthropic_model",
+        "ollama": "ollama_model", "lmstudio": "lmstudio_model",
     }
 
-    async def complete(self, system: str, prompt: str, *, model: Optional[str] = None, max_tokens: int = 4096) -> str:
+    async def complete(self, system: str, prompt: str, *, model: Optional[str] = None,
+                       max_tokens: int = 4096) -> str:
         """
         Provider call with an optional per-call model override (used by the
         orchestration router). Restores the configured model afterwards.
@@ -429,7 +437,6 @@ class AIOrchestrator:
         Returns the full accumulated response text.
         """
         from rich.console import Console as RichConsole
-
         _console = console or RichConsole()
 
         # Remote providers: no streaming — delegate to normal _call()
@@ -437,16 +444,16 @@ class AIOrchestrator:
             return await self._call(_SYSTEM_BASE, prompt)
 
         client = (
-            self._ollama_client
-            if self.provider == "ollama"
-            else self._lmstudio_client
-            if self.provider == "lmstudio"
-            else None
+            self._ollama_client   if self.provider == "ollama"    else
+            self._lmstudio_client if self.provider == "lmstudio"  else None
         )
         if not client:
             return await self._call(_SYSTEM_BASE, prompt)
 
-        resolve = self._resolve_ollama_model if self.provider == "ollama" else self._resolve_lmstudio_model
+        resolve = (
+            self._resolve_ollama_model   if self.provider == "ollama"
+            else self._resolve_lmstudio_model
+        )
 
         try:
             model = await resolve()
@@ -456,14 +463,14 @@ class AIOrchestrator:
                 stream=True,
                 messages=[
                     {"role": "system", "content": _SYSTEM_BASE},
-                    {"role": "user", "content": prompt},
+                    {"role": "user",   "content": prompt},
                 ],
             )
             async for chunk in stream:
                 delta = chunk.choices[0].delta.content or ""
                 full_text += delta
                 _console.print(delta, end="", markup=False, highlight=False)
-            _console.print()  # newline after stream ends
+            _console.print()   # newline after stream ends
             return full_text
 
         except OAIConnectionError:

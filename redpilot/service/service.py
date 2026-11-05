@@ -26,14 +26,8 @@ from redpilot.utils import scope as scopelib
 from redpilot.service import audit
 from redpilot.service.events import Event, EventBus
 from redpilot.service.models import (
-    AgentPlanStep,
-    AgentResult,
-    Finding,
-    ScanResult,
-    ScanSummary,
-    ScopeState,
-    ToolStatus,
-    severity_counts,
+    AgentPlanStep, AgentResult, Finding, ScanResult, ScanSummary,
+    ScopeState, ToolStatus, severity_counts,
 )
 
 MODULE_MAP: Dict[str, Any] = {
@@ -61,14 +55,9 @@ def _mock_enabled(options: Dict[str, Any]) -> bool:
 
 
 class RedPilotService:
-    def __init__(
-        self,
-        scope_file: str = "scope.json",
-        *,
-        audit_path: Optional[str] = None,
-        actor: str = "local",
-        engagement: Optional[str] = None,
-    ):
+    def __init__(self, scope_file: str = "scope.json", *,
+                 audit_path: Optional[str] = None, actor: str = "local",
+                 engagement: Optional[str] = None):
         self.scope_file = scope_file
         self.audit_path = audit_path
         self.actor = actor
@@ -77,7 +66,8 @@ class RedPilotService:
 
     def _audit(self, action: str, target: str, **kw: Any) -> None:
         kw.setdefault("actor", self.actor)
-        audit.record(action, target, engagement=self.engagement, path=self.audit_path, **kw)
+        audit.record(action, target, engagement=self.engagement,
+                     path=self.audit_path, **kw)
 
     # ------------------------------------------------------------------
     # Scope
@@ -119,7 +109,6 @@ class RedPilotService:
         if self._db_ready is not None:
             return self._db_ready
         from redpilot.database import db
-
         try:
             await db.connect()
             self._db_ready = True
@@ -137,22 +126,16 @@ class RedPilotService:
         if module in MODULE_MAP:
             return MODULE_MAP[module]
         from redpilot import plugins
-
         cls = plugins.get_module(module)
         if cls is None:
             valid = list(MODULE_MAP) + list(plugins.registered_modules())
             raise ValueError(f"unknown module '{module}'. Valid: {', '.join(sorted(set(valid)))}")
         return cls
 
-    async def run_module(
-        self,
-        module: str,
-        target: str,
-        options: Optional[Dict[str, Any]] = None,
-        *,
-        bus: Optional[EventBus] = None,
-        surface: str = "service",
-    ) -> ScanResult:
+    async def run_module(self, module: str, target: str,
+                         options: Optional[Dict[str, Any]] = None,
+                         *, bus: Optional[EventBus] = None,
+                         surface: str = "service") -> ScanResult:
         module = module.strip().lower()
         mod_cls = self._resolve_module(module)
 
@@ -164,19 +147,17 @@ class RedPilotService:
         # mode so the pipeline can be exercised with synthetic targets.
         if not mock:
             from redpilot.utils import validator
-
             if validator.is_overly_broad_target(target):
-                self._audit(
-                    f"rejected:{module}", target, scope_ok=False, surface=surface, extra={"reason": "overly_broad"}
-                )
+                self._audit(f"rejected:{module}", target, scope_ok=False, surface=surface,
+                            extra={"reason": "overly_broad"})
                 raise InputError(
-                    f"target '{target}' is overly broad (wildcard or huge CIDR). Narrow it to the authorized hosts."
+                    f"target '{target}' is overly broad (wildcard or huge CIDR). "
+                    f"Narrow it to the authorized hosts."
                 )
             self._check_scope(target, surface)
 
-        self._audit(
-            f"run_module:{module}", target, scope_ok=True, surface=surface, extra={"mock": True} if mock else None
-        )
+        self._audit(f"run_module:{module}", target, scope_ok=True, surface=surface,
+                    extra={"mock": True} if mock else None)
 
         if bus:
             bus.publish(Event("run_started", target=target, module=module))
@@ -190,7 +171,6 @@ class RedPilotService:
         scan_id = None
         if db_ready:
             from redpilot.database import db
-
             scan_id = await db.create_scan(target, module, options)
 
         result = ScanResult(scan_id=scan_id, module=module, target=target, started_at=started)
@@ -207,64 +187,48 @@ class RedPilotService:
 
             if db_ready and scan_id:
                 from redpilot.database import db
-
                 if raw:
                     await db.upsert_vulnerabilities(scan_id, raw)
                 await db.complete_scan(scan_id, len(findings))
 
             if bus:
                 for f in findings:
-                    bus.publish(
-                        Event(
-                            "finding", target=target, module=module, message=f.vuln_type, data={"severity": f.severity}
-                        )
-                    )
-                bus.publish(Event("run_completed", target=target, module=module, data={"count": len(findings)}))
+                    bus.publish(Event("finding", target=target, module=module,
+                                      message=f.vuln_type, data={"severity": f.severity}))
+                bus.publish(Event("run_completed", target=target, module=module,
+                                  data={"count": len(findings)}))
         except Exception as exc:
             result.status = "failed"
             result.error = str(exc)
             result.completed_at = datetime.utcnow()
             if db_ready and scan_id:
                 from redpilot.database import db
-
                 await db.fail_scan(scan_id, str(exc))
             if bus:
                 bus.publish(Event("run_failed", target=target, module=module, message=str(exc)))
             logger.error(f"service.run_module({module}) failed: {exc}")
         return result
 
-    def _mock_result(self, module: str, target: str, started: datetime, bus: Optional[EventBus]) -> ScanResult:
+    def _mock_result(self, module: str, target: str, started: datetime,
+                     bus: Optional[EventBus]) -> ScanResult:
         """Deterministic synthetic result — no network, no DB, for safe testing."""
-        raw = [
-            {
-                "target": target,
-                "vuln_type": f"mock_{module}_finding",
-                "detail": f"[MOCK] synthetic {module} finding for {target}; no target was touched.",
-                "severity": "Info",
-                "severity_order": 5,
-                "recommendation": "Mock mode — disable REDPILOT_MOCK / remove --mock to run for real.",
-                "scan_type": module,
-                "discovered_at": started.isoformat(),
-            }
-        ]
+        raw = [{
+            "target": target, "vuln_type": f"mock_{module}_finding",
+            "detail": f"[MOCK] synthetic {module} finding for {target}; no target was touched.",
+            "severity": "Info", "severity_order": 5,
+            "recommendation": "Mock mode — disable REDPILOT_MOCK / remove --mock to run for real.",
+            "scan_type": module, "discovered_at": started.isoformat(),
+        }]
         findings = [Finding.from_dict(f) for f in raw]
-        result = ScanResult(
-            scan_id=None,
-            module=module,
-            target=target,
-            started_at=started,
-            findings=findings,
-            counts=severity_counts(findings),
-        )
+        result = ScanResult(scan_id=None, module=module, target=target, started_at=started,
+                            findings=findings, counts=severity_counts(findings))
         result.completed_at = datetime.utcnow()
         if bus:
             for f in findings:
-                bus.publish(
-                    Event("finding", target=target, module=module, message=f.vuln_type, data={"severity": f.severity})
-                )
-            bus.publish(
-                Event("run_completed", target=target, module=module, data={"count": len(findings), "mock": True})
-            )
+                bus.publish(Event("finding", target=target, module=module,
+                                  message=f.vuln_type, data={"severity": f.severity}))
+            bus.publish(Event("run_completed", target=target, module=module,
+                              data={"count": len(findings), "mock": True}))
         return result
 
     # ------------------------------------------------------------------
@@ -273,25 +237,15 @@ class RedPilotService:
     async def plan_agent(self, target: str, goal: str = "") -> List[AgentPlanStep]:
         from redpilot.agent.orchestrator import PentestAgent
         from rich.console import Console
-
         scope_data = scopelib.load_scope(self.scope_file)
         ag = PentestAgent(target, goal, {"scope": scope_data}, Console(quiet=True))
         steps = await ag.plan()
-        return [
-            AgentPlanStep(module=s["module"], reason=s.get("reason", ""), scope_ok=not ag.scope_blocks(s["module"]))
-            for s in steps
-        ]
+        return [AgentPlanStep(module=s["module"], reason=s.get("reason", ""),
+                              scope_ok=not ag.scope_blocks(s["module"])) for s in steps]
 
-    async def run_agent(
-        self,
-        target: str,
-        goal: str = "",
-        *,
-        dry_run: bool = True,
-        aggressive: bool = False,
-        bus: Optional[EventBus] = None,
-        surface: str = "service",
-    ) -> AgentResult:
+    async def run_agent(self, target: str, goal: str = "", *, dry_run: bool = True,
+                        aggressive: bool = False, bus: Optional[EventBus] = None,
+                        surface: str = "service") -> AgentResult:
         plan = await self.plan_agent(target, goal)
         result = AgentResult(target=target, goal=goal, dry_run=dry_run, plan=plan)
         if dry_run:
@@ -300,7 +254,8 @@ class RedPilotService:
 
         # Active execution: target must be in scope; each step runs headless.
         self._check_scope(target, surface)
-        self._audit("agent_run", target, scope_ok=True, surface=surface, extra={"aggressive": aggressive})
+        self._audit("agent_run", target, scope_ok=True, surface=surface,
+                    extra={"aggressive": aggressive})
         all_findings: List[Finding] = []
         for step in plan:
             if not step.scope_ok:
@@ -321,8 +276,9 @@ class RedPilotService:
         if all_findings:
             try:
                 from redpilot.utils.ai import ai_orchestrator
-
-                result.assessment = await ai_orchestrator.analyze_findings([f.model_dump() for f in all_findings])
+                result.assessment = await ai_orchestrator.analyze_findings(
+                    [f.model_dump() for f in all_findings]
+                )
             except Exception as exc:
                 logger.warning(f"service: agent assessment failed ({exc}).")
         return result
@@ -330,21 +286,16 @@ class RedPilotService:
     # ------------------------------------------------------------------
     # Staged pipeline
     # ------------------------------------------------------------------
-    async def run_pipeline(
-        self,
-        target: str,
-        options: Optional[Dict[str, Any]] = None,
-        *,
-        stages: Optional[List[Any]] = None,
-        report_dir: Optional[str] = None,
-        bus: Optional[EventBus] = None,
-        surface: str = "pipeline",
-    ):
+    async def run_pipeline(self, target: str, options: Optional[Dict[str, Any]] = None, *,
+                           stages: Optional[List[Any]] = None,
+                           report_dir: Optional[str] = None,
+                           bus: Optional[EventBus] = None, surface: str = "pipeline"):
         """Run discovery → validation → remediation → report through the staged
         pipeline. Each module step is still scope-gated and audited via run_module."""
         from redpilot.pipeline import Pipeline
-
-        return await Pipeline(self, bus=bus, surface=surface).run(target, options, stages=stages, report_dir=report_dir)
+        return await Pipeline(self, bus=bus, surface=surface).run(
+            target, options, stages=stages, report_dir=report_dir
+        )
 
     # ------------------------------------------------------------------
     # Reads
@@ -353,34 +304,28 @@ class RedPilotService:
         if not await self._ensure_db(False):
             return []
         from redpilot.database import db
-
         rows = await db.get_scan_history(target, limit)
         out = []
         for r in rows:
-            out.append(
-                ScanSummary(
-                    scan_id=str(r.get("_id")),
-                    target=r.get("target", ""),
-                    module=r.get("type", ""),
-                    status=r.get("status", ""),
-                    findings_count=r.get("findings_count", 0),
-                    started_at=r.get("started_at"),
-                )
-            )
+            out.append(ScanSummary(
+                scan_id=str(r.get("_id")), target=r.get("target", ""),
+                module=r.get("type", ""), status=r.get("status", ""),
+                findings_count=r.get("findings_count", 0),
+                started_at=r.get("started_at"),
+            ))
         return out
 
     async def get_findings(self, scan_id: str) -> List[Finding]:
         if not await self._ensure_db(False):
             return []
         from redpilot.database import db
-
         rows = await db.get_vulnerabilities_for_scan(scan_id)
         return [Finding.from_dict(r) for r in rows]
 
     def tools_status(self) -> List[ToolStatus]:
         import shutil
-
         return [
-            ToolStatus(name=name, installed=shutil.which(name) is not None, role=meta["role"], url=meta["url"])
+            ToolStatus(name=name, installed=shutil.which(name) is not None,
+                       role=meta["role"], url=meta["url"])
             for name, meta in TOOL_REGISTRY.items()
         ]

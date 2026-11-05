@@ -13,7 +13,7 @@ def _apply_env_compat() -> None:
     """
     for key, val in list(_os.environ.items()):
         if key.startswith("SPAF_"):
-            new = "REDPILOT_" + key[len("SPAF_") :]
+            new = "REDPILOT_" + key[len("SPAF_"):]
             _os.environ.setdefault(new, val)
 
 

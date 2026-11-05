@@ -14,8 +14,8 @@ from redpilot.utils.logger import logger
 # API key: 50 req / 30 s → 1 req every 0.65 s
 # Set NIST_API_KEY in .env to increase throughput.
 # ---------------------------------------------------------------------------
-_NVD_API_KEY = os.getenv("NIST_API_KEY", "")
-_NVD_REQ_DELAY = 0.65 if _NVD_API_KEY else 6.5  # seconds between NVD requests
+_NVD_API_KEY   = os.getenv("NIST_API_KEY", "")
+_NVD_REQ_DELAY = 0.65 if _NVD_API_KEY else 6.5   # seconds between NVD requests
 # Semaphore created lazily inside the first coroutine that needs it
 _nvd_semaphore: asyncio.Semaphore | None = None
 
@@ -31,32 +31,26 @@ def _get_nvd_semaphore() -> asyncio.Semaphore:
 class NetworkModule(BaseModule):
     # Port to Severity/Recommendation mapping
     RISKY_PORTS = {
-        21: ("Medium", "FTP service detected. Ensure it uses FTPS or is disabled if unnecessary."),
-        23: ("High", "Telnet service detected. Replace with SSH (encrypted)."),
-        445: (
-            "Critical",
-            "SMB service detected. Ensure it is not exposed to the internet and is patched against EternalBlue/etc.",
-        ),
-        135: ("High", "RPC service detected. Potential for information disclosure or exploitation."),
-        139: ("High", "NetBIOS service detected. Potential for information gathering."),
-        1433: ("Critical", "MSSQL service detected. Ensure strong authentication and restrict access."),
-        1521: ("Critical", "Oracle DB service detected. Ensure strong authentication and restrict access."),
-        3306: ("Critical", "MySQL service detected. Ensure it is not publicly accessible and has strong credentials."),
-        5432: (
-            "Critical",
-            "PostgreSQL service detected. Ensure it is not publicly accessible and has strong credentials.",
-        ),
-        6379: ("Critical", "Redis service detected. Redis is often unauthenticated by default; ensure it is secured."),
+        21:    ("Medium",   "FTP service detected. Ensure it uses FTPS or is disabled if unnecessary."),
+        23:    ("High",     "Telnet service detected. Replace with SSH (encrypted)."),
+        445:   ("Critical", "SMB service detected. Ensure it is not exposed to the internet and is patched against EternalBlue/etc."),
+        135:   ("High",     "RPC service detected. Potential for information disclosure or exploitation."),
+        139:   ("High",     "NetBIOS service detected. Potential for information gathering."),
+        1433:  ("Critical", "MSSQL service detected. Ensure strong authentication and restrict access."),
+        1521:  ("Critical", "Oracle DB service detected. Ensure strong authentication and restrict access."),
+        3306:  ("Critical", "MySQL service detected. Ensure it is not publicly accessible and has strong credentials."),
+        5432:  ("Critical", "PostgreSQL service detected. Ensure it is not publicly accessible and has strong credentials."),
+        6379:  ("Critical", "Redis service detected. Redis is often unauthenticated by default; ensure it is secured."),
         27017: ("Critical", "MongoDB service detected. Ensure authentication is enabled and access is restricted."),
-        3389: ("High", "RDP service detected. Ensure it uses NLA and is not publicly accessible."),
-        5900: ("High", "VNC service detected. Ensure it is encrypted and requires strong authentication."),
-        4444: ("Critical", "Metasploit/Shell service detected. High indication of compromise or open backdoor."),
+        3389:  ("High",     "RDP service detected. Ensure it uses NLA and is not publicly accessible."),
+        5900:  ("High",     "VNC service detected. Ensure it is encrypted and requires strong authentication."),
+        4444:  ("Critical", "Metasploit/Shell service detected. High indication of compromise or open backdoor."),
     }
 
     async def run(self, progress: Progress) -> List[Dict[str, Any]]:
-        scanner = self.options.get("scanner", "nmap")
+        scanner  = self.options.get("scanner", "nmap")
         intensity = self.options.get("intensity", "normal")
-        ports = self.options.get("ports", "1-1024")
+        ports    = self.options.get("ports", "1-1024")
 
         if scanner == "rustscan":
             return await self._run_rustscan(progress, intensity, ports)
@@ -68,7 +62,9 @@ class NetworkModule(BaseModule):
 
     async def _run_nmap(self, progress: Progress, intensity: str, ports: str) -> List[Dict[str, Any]]:
         nmap_args = self._get_nmap_args(intensity, ports)
-        task = progress.add_task(f"[green]Running Nmap ({intensity}) on {self.target}...", total=100)
+        task = progress.add_task(
+            f"[green]Running Nmap ({intensity}) on {self.target}...", total=100
+        )
         try:
             # exec form (argument list, no shell) — target cannot inject commands.
             cmd = ["nmap", "-oX", "-", *nmap_args, self.target]
@@ -109,30 +105,24 @@ class NetworkModule(BaseModule):
     # ------------------------------------------------------------------
 
     async def _run_rustscan(self, progress: Progress, intensity: str, ports: str) -> List[Dict[str, Any]]:
-        ulimit = self.options.get("ulimit", 5000)
+        ulimit     = self.options.get("ulimit", 5000)
         batch_size = self.options.get("batch_size", 2500)
-        nmap_args = self._get_nmap_args_for_rustscan(intensity)
+        nmap_args  = self._get_nmap_args_for_rustscan(intensity)
 
-        task = progress.add_task(f"[green]Running RustScan ({intensity}) on {self.target}...", total=100)
+        task = progress.add_task(
+            f"[green]Running RustScan ({intensity}) on {self.target}...", total=100
+        )
         try:
             # RustScan discovers open ports, then invokes Nmap with -p <ports>.
             # Passing -oX - after -- tells Nmap to write XML to stdout,
             # which RustScan forwards to its own stdout.
             # exec form (argument list, no shell) — target cannot inject commands.
             cmd = [
-                "rustscan",
-                "-a",
-                self.target,
-                "--ulimit",
-                str(ulimit),
-                "--batch-size",
-                str(batch_size),
-                "--range",
-                ports,
-                "--",
-                *nmap_args,
-                "-oX",
-                "-",
+                "rustscan", "-a", self.target,
+                "--ulimit", str(ulimit),
+                "--batch-size", str(batch_size),
+                "--range", ports,
+                "--", *nmap_args, "-oX", "-",
             ]
             logger.debug(f"Executing: {' '.join(cmd)}")
 
@@ -165,7 +155,10 @@ class NetworkModule(BaseModule):
             return findings
 
         except FileNotFoundError:
-            logger.error("RustScan binary not found. Install it from https://github.com/RustScan/RustScan")
+            logger.error(
+                "RustScan binary not found. "
+                "Install it from https://github.com/RustScan/RustScan"
+            )
             return []
         except Exception as e:
             logger.error(f"RustScan error: {e}")
@@ -178,8 +171,8 @@ class NetworkModule(BaseModule):
     def _get_nmap_args(self, intensity: str, ports: str) -> List[str]:
         """Nmap args (as a list) with explicit port range for standalone runs."""
         profiles = {
-            "light": ["-T2", "-F", "-p", ports, "--open"],
-            "normal": ["-T3", "-sV", "-O", "-p", ports, "--open", "--osscan-limit"],
+            "light":      ["-T2", "-F", "-p", ports, "--open"],
+            "normal":     ["-T3", "-sV", "-O", "-p", ports, "--open", "--osscan-limit"],
             "aggressive": ["-T4", "-sV", "-sC", "-O", "-A", "-p", ports, "--open"],
         }
         return profiles.get(intensity, profiles["normal"])
@@ -187,8 +180,8 @@ class NetworkModule(BaseModule):
     def _get_nmap_args_for_rustscan(self, intensity: str) -> List[str]:
         """Nmap args (as a list) WITHOUT a port range — RustScan injects -p itself."""
         profiles = {
-            "light": ["-T2", "--open"],
-            "normal": ["-T3", "-sV", "-O", "--open", "--osscan-limit"],
+            "light":      ["-T2", "--open"],
+            "normal":     ["-T3", "-sV", "-O", "--open", "--osscan-limit"],
             "aggressive": ["-T4", "-sV", "-sC", "-O", "-A", "--open"],
         }
         return profiles.get(intensity, profiles["normal"])
@@ -217,7 +210,7 @@ class NetworkModule(BaseModule):
 
         progress.update(task, completed=90, description="[cyan]Performing CVE lookups for services...")
         for finding in findings:
-            extra = finding.get("extra", {})
+            extra   = finding.get("extra", {})
             product = extra.get("product")
             version = extra.get("version")
             if product and version and product != "unknown":
@@ -233,56 +226,44 @@ class NetworkModule(BaseModule):
         findings = []
         try:
             root = ET.fromstring(xml_data)
-            host = root.find("host")
+            host  = root.find("host")
             if host is None:
                 return []
 
             os_match = host.find(".//osmatch")
-            os_name = os_match.get("name") if os_match is not None else "Unknown"
+            os_name  = os_match.get("name") if os_match is not None else "Unknown"
 
             for port_elem in host.findall(".//port"):
-                port_id = int(port_elem.get("portid"))
+                port_id  = int(port_elem.get("portid"))
                 protocol = port_elem.get("protocol")
-                state = port_elem.find("state").get("state")
+                state    = port_elem.find("state").get("state")
 
                 service_elem = port_elem.find("service")
-                service_name = service_elem.get("name") if service_elem is not None else "unknown"
-                product = service_elem.get("product", "unknown") if service_elem is not None else "unknown"
-                version = service_elem.get("version", "unknown") if service_elem is not None else "unknown"
+                service_name = service_elem.get("name")             if service_elem is not None else "unknown"
+                product      = service_elem.get("product", "unknown") if service_elem is not None else "unknown"
+                version      = service_elem.get("version", "unknown") if service_elem is not None else "unknown"
 
                 if state == "open":
                     if port_id in self.RISKY_PORTS:
                         severity, rec = self.RISKY_PORTS[port_id]
-                        findings.append(
-                            build_finding(
-                                self.target,
-                                "risky_port_exposed",
-                                f"Port {port_id} ({service_name}) is open. Product: {product} {version}",
-                                severity,
-                                rec,
-                                "network",
-                                extra={
-                                    "port": port_id,
-                                    "protocol": protocol,
-                                    "service": service_name,
-                                    "product": product,
-                                    "version": version,
-                                    "os": os_name,
-                                },
-                            )
-                        )
+                        findings.append(build_finding(
+                            self.target, "risky_port_exposed",
+                            f"Port {port_id} ({service_name}) is open. Product: {product} {version}",
+                            severity, rec, "network",
+                            extra={
+                                "port": port_id, "protocol": protocol,
+                                "service": service_name, "product": product,
+                                "version": version, "os": os_name,
+                            },
+                        ))
                     else:
-                        findings.append(
-                            build_finding(
-                                self.target,
-                                "open_port",
-                                f"Port {port_id} ({service_name}) is open.",
-                                "Info",
-                                "Review if this port needs to be exposed.",
-                                "network",
-                                extra={"port": port_id, "service": service_name},
-                            )
-                        )
+                        findings.append(build_finding(
+                            self.target, "open_port",
+                            f"Port {port_id} ({service_name}) is open.",
+                            "Info", "Review if this port needs to be exposed.",
+                            "network",
+                            extra={"port": port_id, "service": service_name},
+                        ))
         except Exception as e:
             logger.error(f"XML Parsing error: {e}")
         return findings
@@ -291,15 +272,17 @@ class NetworkModule(BaseModule):
         if product == "unknown" or version == "unknown":
             return []
 
-        query = f"{product} {version}"
-        url = f"https://services.nvd.nist.gov/rest/json/cves/2.0?keywordSearch={query}"
-        headers = {"apiKey": _NVD_API_KEY} if _NVD_API_KEY else {}
+        query    = f"{product} {version}"
+        url      = f"https://services.nvd.nist.gov/rest/json/cves/2.0?keywordSearch={query}"
+        headers  = {"apiKey": _NVD_API_KEY} if _NVD_API_KEY else {}
         cve_list = []
 
         async with _get_nvd_semaphore():
             try:
                 async with self.get_session() as session:
-                    async with session.get(url, timeout=15, headers=headers, **self.get_request_params()) as resp:
+                    async with session.get(
+                        url, timeout=15, headers=headers, **self.get_request_params()
+                    ) as resp:
                         if resp.status == 429:
                             logger.warning(
                                 "NVD API rate limit hit — sleeping 30 s then retrying. "
@@ -335,7 +318,6 @@ class NetworkModule(BaseModule):
 
     def render_results(self, results: List[Dict[str, Any]]):
         from redpilot.utils import ui
-
         if not results:
             self.console.print(f"[{ui.FAINT}]No open ports found or scan failed.[/]")
             return
@@ -347,7 +329,7 @@ class NetworkModule(BaseModule):
         table.add_column("Severity")
 
         for r in sorted(results, key=lambda x: x.get("severity_order", 9)):
-            extra = r.get("extra", {})
+            extra   = r.get("extra", {})
             table.add_row(
                 str(extra.get("port", "—")),
                 extra.get("service", "unknown"),

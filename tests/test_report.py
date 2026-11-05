@@ -6,19 +6,14 @@ FINDINGS = [
     {
         "vuln_type": "server_version_disclosure",
         "detail": "Server header: <script>alert(1)</script> nginx/1.0",
-        "severity": "Low",
-        "severity_order": 4,
+        "severity": "Low", "severity_order": 4,
         "recommendation": "Hide the <Server> header",
-        "scan_type": "webscan",
-        "discovered_at": "2026-01-01",
+        "scan_type": "webscan", "discovered_at": "2026-01-01",
     },
     {
-        "vuln_type": "nuclei:cve-2021-1",
-        "detail": "boom",
-        "severity": "Critical",
-        "severity_order": 1,
-        "recommendation": "patch",
-        "scan_type": "toolkit",
+        "vuln_type": "nuclei:cve-2021-1", "detail": "boom",
+        "severity": "Critical", "severity_order": 1,
+        "recommendation": "patch", "scan_type": "toolkit",
         "discovered_at": "2026-01-01",
     },
 ]
@@ -62,7 +57,7 @@ def test_html_ai_section_only_when_provided(tmp_path):
 def test_md_to_html_escapes_then_formats():
     g = _gen()
     rendered = g._md_to_html("<b>x</b> **bold** `code`")
-    assert "&lt;b&gt;" in rendered  # raw HTML escaped
+    assert "&lt;b&gt;" in rendered            # raw HTML escaped
     assert "<strong>bold</strong>" in rendered  # markdown applied after escape
     assert "<code>code</code>" in rendered
 

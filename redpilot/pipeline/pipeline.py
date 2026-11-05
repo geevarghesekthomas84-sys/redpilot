@@ -16,10 +16,7 @@ from typing import Any, Dict, List, Optional
 from redpilot.service.events import Event, EventBus
 from redpilot.service.models import Finding, severity_counts
 from redpilot.pipeline.models import (
-    PipelineResult,
-    Stage,
-    StageResult,
-    STAGE_MODULES,
+    PipelineResult, Stage, StageResult, STAGE_MODULES,
 )
 
 
@@ -30,14 +27,9 @@ class Pipeline:
         self.surface = surface
 
     # ── public entry point ────────────────────────────────────────────
-    async def run(
-        self,
-        target: str,
-        options: Optional[Dict[str, Any]] = None,
-        *,
-        stages: Optional[List[Stage]] = None,
-        report_dir: Optional[str] = None,
-    ) -> PipelineResult:
+    async def run(self, target: str, options: Optional[Dict[str, Any]] = None, *,
+                  stages: Optional[List[Stage]] = None,
+                  report_dir: Optional[str] = None) -> PipelineResult:
         options = dict(options or {})
         order = stages or [Stage.DISCOVERY, Stage.VALIDATION, Stage.REMEDIATION, Stage.REPORT]
         result = PipelineResult(target=target)
@@ -72,14 +64,16 @@ class Pipeline:
         return result
 
     # ── stages ────────────────────────────────────────────────────────
-    async def _run_module_stage(self, stage: Stage, target: str, options: Dict[str, Any]) -> StageResult:
+    async def _run_module_stage(self, stage: Stage, target: str,
+                                options: Dict[str, Any]) -> StageResult:
         """Discovery/validation: run this stage's allowed modules, collect findings."""
         findings: List[Finding] = []
         ran: List[str] = []
         errors: List[str] = []
         for module in STAGE_MODULES[stage]:
             try:
-                scan = await self.svc.run_module(module, target, dict(options), bus=self.bus, surface=self.surface)
+                scan = await self.svc.run_module(module, target, dict(options),
+                                                 bus=self.bus, surface=self.surface)
                 ran.append(module)
                 if scan.status == "completed":
                     findings.extend(scan.findings)
@@ -89,12 +83,9 @@ class Pipeline:
                 errors.append(f"{module}: {exc}")
         status = "completed" if not errors or findings else ("failed" if not ran else "completed")
         return StageResult(
-            stage=stage,
-            status=status,
-            findings=_dedupe(findings),
+            stage=stage, status=status, findings=_dedupe(findings),
             summary=f"{len(findings)} finding(s) from {', '.join(ran) or 'no modules'}",
-            error="; ".join(errors) or None,
-            meta={"modules": ran},
+            error="; ".join(errors) or None, meta={"modules": ran},
         )
 
     def _remediate(self, findings: Optional[List[Finding]]) -> StageResult:
@@ -110,31 +101,28 @@ class Pipeline:
                 added += 1
             enriched.append(f.model_copy(update={"recommendation": rec}))
         return StageResult(
-            stage=Stage.REMEDIATION,
-            findings=enriched,
+            stage=Stage.REMEDIATION, findings=enriched,
             summary=f"remediation attached ({added} generated, {len(enriched) - added} from scanners)",
             meta={"generated": added},
         )
 
-    def _report(
-        self, target: str, findings: List[Finding], report_dir: Optional[str], options: Dict[str, Any]
-    ) -> StageResult:
+    def _report(self, target: str, findings: List[Finding],
+                report_dir: Optional[str], options: Dict[str, Any]) -> StageResult:
         """Render a JSON deliverable from the final findings."""
         report_dir = report_dir or options.get("report_dir") or "reports"
         try:
             from redpilot.reports.generator import ReportGenerator
-
             os.makedirs(report_dir, exist_ok=True)
             safe = target.replace("://", "_").replace("/", "_").replace(":", "_")
             path = os.path.join(report_dir, f"pipeline_{safe}.json")
             data = [f.model_dump() for f in findings]
             gen = ReportGenerator(target, data, meta={"source": "pipeline"})
             gen.generate_json(path)
-            return StageResult(
-                stage=Stage.REPORT, summary=f"report written: {path}", meta={"path": path, "findings": len(findings)}
-            )
+            return StageResult(stage=Stage.REPORT, summary=f"report written: {path}",
+                               meta={"path": path, "findings": len(findings)})
         except Exception as exc:
-            return StageResult(stage=Stage.REPORT, status="failed", error=str(exc), summary="report generation failed")
+            return StageResult(stage=Stage.REPORT, status="failed", error=str(exc),
+                               summary="report generation failed")
 
     # ── events ────────────────────────────────────────────────────────
     def _emit(self, kind: str, stage: Stage, **data: Any) -> None:

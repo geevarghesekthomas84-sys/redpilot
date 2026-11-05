@@ -17,13 +17,8 @@ import os
 from typing import Dict
 
 from redpilot.service.models import (
-    AgentPlanStep,
-    AgentResult,
-    Finding,
-    ScanResult,
-    ScanSummary,
-    ScopeState,
-    ToolStatus,
+    AgentPlanStep, AgentResult, Finding, ScanResult, ScanSummary,
+    ScopeState, ToolStatus,
 )
 from redpilot.pipeline.models import PipelineResult, StageResult
 

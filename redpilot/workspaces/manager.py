@@ -28,9 +28,7 @@ from typing import List, Optional
 from redpilot.utils.logger import logger
 from redpilot.workspaces import authorization as authz
 from redpilot.workspaces.models import (
-    Engagement,
-    EngagementAuthorization,
-    RetentionPolicy,
+    Engagement, EngagementAuthorization, RetentionPolicy,
 )
 
 _SLUG_RE = re.compile(r"[^a-z0-9]+")
@@ -64,35 +62,29 @@ class EngagementManager:
         return eid
 
     # ------------------------------------------------------------------
-    def create(
-        self,
-        name: str,
-        *,
-        created_by: str = "local",
-        in_scope: Optional[List[str]] = None,
-        out_of_scope: Optional[List[str]] = None,
-        retention_days: int = 0,
-        authorized_by: Optional[str] = None,
-        expires_at: Optional[datetime] = None,
-    ) -> Engagement:
+    def create(self, name: str, *, created_by: str = "local",
+               in_scope: Optional[List[str]] = None,
+               out_of_scope: Optional[List[str]] = None,
+               retention_days: int = 0,
+               authorized_by: Optional[str] = None,
+               expires_at: Optional[datetime] = None) -> Engagement:
         eid = self._unique_id(name)
         d = self._dir(eid)
         os.makedirs(os.path.join(d, "reports"), exist_ok=True)
 
         scope_file = os.path.join(d, "scope.json")
         with open(scope_file, "w", encoding="utf-8") as fh:
-            json.dump({"in_scope": list(in_scope or []), "out_of_scope": list(out_of_scope or [])}, fh, indent=2)
+            json.dump({"in_scope": list(in_scope or []),
+                       "out_of_scope": list(out_of_scope or [])}, fh, indent=2)
 
         auth: Optional[EngagementAuthorization] = None
         if authorized_by:
-            auth = authz.sign(
-                eid, authorized_by, authz.scope_hash(in_scope or [], out_of_scope or []), expires_at=expires_at
-            )
+            auth = authz.sign(eid, authorized_by,
+                              authz.scope_hash(in_scope or [], out_of_scope or []),
+                              expires_at=expires_at)
 
         eng = Engagement(
-            id=eid,
-            name=name,
-            created_by=created_by,
+            id=eid, name=name, created_by=created_by,
             scope_file=scope_file,
             audit_path=os.path.join(d, "audit.jsonl"),
             storage_dir=d,
@@ -141,11 +133,8 @@ class EngagementManager:
         engagement is selected, this stands in with id ``default``.
         """
         return Engagement(
-            id="default",
-            name="default",
-            created_by="local",
-            scope_file=scope_file,
-            audit_path=audit_path,
+            id="default", name="default", created_by="local",
+            scope_file=scope_file, audit_path=audit_path,
             storage_dir=os.path.dirname(audit_path) or ".",
         )
 

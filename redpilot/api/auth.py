@@ -25,11 +25,8 @@ def load_keys() -> Set[str]:
     if not keys:
         generated = secrets.token_urlsafe(24)
         keys.add(generated)
-        print(
-            f"[redpilot.api] no REDPILOT_API_KEYS set — generated one for this run:\n           X-API-Key: {generated}",
-            file=sys.stderr,
-            flush=True,
-        )
+        print(f"[redpilot.api] no REDPILOT_API_KEYS set — generated one for this run:\n"
+              f"           X-API-Key: {generated}", file=sys.stderr, flush=True)
     return keys
 
 
@@ -41,5 +38,4 @@ def make_auth_dependency(keys: Set[str]):
                 detail="Missing or invalid API key. Send it in the 'X-API-Key' header.",
             )
         return x_api_key
-
     return require_key

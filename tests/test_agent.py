@@ -48,8 +48,8 @@ def test_default_plan_includes_scan_for_hosts():
 def test_scope_blocks_active_steps_out_of_scope():
     scope = {"in_scope": ["allowed.com"], "out_of_scope": []}
     ag = _agent(target="evil.com", options={"scope": scope})
-    assert ag.scope_blocks("webscan") is True  # active + out of scope
-    assert ag.scope_blocks("recon") is False  # passive, never gated
+    assert ag.scope_blocks("webscan") is True   # active + out of scope
+    assert ag.scope_blocks("recon") is False     # passive, never gated
 
 
 def test_scope_allows_in_scope_target():

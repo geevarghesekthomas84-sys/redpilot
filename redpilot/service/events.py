@@ -12,7 +12,7 @@ from typing import Any, AsyncIterator, Dict, Optional
 
 @dataclass
 class Event:
-    kind: str  # run_started | step_started | step_progress | finding | run_completed | run_failed
+    kind: str                     # run_started | step_started | step_progress | finding | run_completed | run_failed
     target: str = ""
     module: str = ""
     message: str = ""

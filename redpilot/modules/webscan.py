@@ -9,7 +9,6 @@ from redpilot.core.engine import BaseModule
 from redpilot.utils.risk import build_finding
 from redpilot.utils.logger import logger
 
-
 class WebscanModule(BaseModule):
     # Security Header Config: {header_name: severity}
     SECURITY_HEADERS = {
@@ -19,7 +18,7 @@ class WebscanModule(BaseModule):
         "X-Content-Type-Options": "Medium",
         "Referrer-Policy": "Low",
         "Permissions-Policy": "Low",
-        "X-XSS-Protection": "Low",
+        "X-XSS-Protection": "Low"
     }
 
     SENSITIVE_PATHS = {
@@ -37,7 +36,7 @@ class WebscanModule(BaseModule):
         "/swagger-ui.html": ("Low", "Swagger UI documentation exposed."),
         "/crossdomain.xml": ("Medium", "Flash crossdomain policy found."),
         "/robots.txt": ("Info", "Robots.txt found."),
-        "/sitemap.xml": ("Info", "Sitemap found."),
+        "/sitemap.xml": ("Info", "Sitemap found.")
     }
 
     async def run(self, progress: Progress) -> List[Dict[str, Any]]:
@@ -74,85 +73,61 @@ class WebscanModule(BaseModule):
         findings = []
         for header, severity in self.SECURITY_HEADERS.items():
             if header not in headers:
-                findings.append(
-                    build_finding(
-                        self.target,
-                        "missing_security_header",
-                        f"The security header '{header}' is missing.",
-                        severity,
-                        f"Implement the '{header}' header to enhance web security.",
-                        "webscan",
-                    )
-                )
+                findings.append(build_finding(
+                    self.target, "missing_security_header",
+                    f"The security header '{header}' is missing.",
+                    severity, f"Implement the '{header}' header to enhance web security.",
+                    "webscan"
+                ))
         return findings
 
     def _check_cookies(self, cookies: Any) -> List[Dict[str, Any]]:
         findings = []
         for name, cookie in cookies.items():
-            if not cookie.get("secure"):
-                findings.append(
-                    build_finding(
-                        self.target,
-                        "cookie_missing_secure_flag",
-                        f"Cookie '{name}' is missing the 'Secure' flag.",
-                        "Medium",
-                        "Set the 'Secure' attribute on all sensitive cookies.",
-                        "webscan",
-                    )
-                )
-            if not cookie.get("httponly"):
-                findings.append(
-                    build_finding(
-                        self.target,
-                        "cookie_missing_httponly_flag",
-                        f"Cookie '{name}' is missing the 'HttpOnly' flag.",
-                        "Medium",
-                        "Set the 'HttpOnly' attribute to prevent XSS-based cookie theft.",
-                        "webscan",
-                    )
-                )
+            if not cookie.get('secure'):
+                findings.append(build_finding(
+                    self.target, "cookie_missing_secure_flag",
+                    f"Cookie '{name}' is missing the 'Secure' flag.",
+                    "Medium", "Set the 'Secure' attribute on all sensitive cookies.",
+                    "webscan"
+                ))
+            if not cookie.get('httponly'):
+                findings.append(build_finding(
+                    self.target, "cookie_missing_httponly_flag",
+                    f"Cookie '{name}' is missing the 'HttpOnly' flag.",
+                    "Medium", "Set the 'HttpOnly' attribute to prevent XSS-based cookie theft.",
+                    "webscan"
+                ))
         return findings
 
     def _check_server_info(self, headers: Dict[str, str]) -> List[Dict[str, Any]]:
         findings = []
         server = headers.get("Server")
         if server:
-            findings.append(
-                build_finding(
-                    self.target,
-                    "server_version_disclosure",
-                    f"Server header discloses software version: {server}",
-                    "Low",
-                    "Disable or obfuscate the 'Server' header in production.",
-                    "webscan",
-                )
-            )
+            findings.append(build_finding(
+                self.target, "server_version_disclosure",
+                f"Server header discloses software version: {server}",
+                "Low", "Disable or obfuscate the 'Server' header in production.",
+                "webscan"
+            ))
 
         powered_by = headers.get("X-Powered-By")
         if powered_by:
-            findings.append(
-                build_finding(
-                    self.target,
-                    "x_powered_by_disclosure",
-                    f"X-Powered-By header discloses technology stack: {powered_by}",
-                    "Low",
-                    "Remove the 'X-Powered-By' header.",
-                    "webscan",
-                )
-            )
+            findings.append(build_finding(
+                self.target, "x_powered_by_disclosure",
+                f"X-Powered-By header discloses technology stack: {powered_by}",
+                "Low", "Remove the 'X-Powered-By' header.",
+                "webscan"
+            ))
 
         cors = headers.get("Access-Control-Allow-Origin")
         if cors == "*":
-            findings.append(
-                build_finding(
-                    self.target,
-                    "cors_wildcard_detected",
-                    "CORS policy allows all origins (*).",
-                    "Medium",
-                    "Restrict 'Access-Control-Allow-Origin' to specific trusted domains.",
-                    "webscan",
-                )
-            )
+            findings.append(build_finding(
+                self.target, "cors_wildcard_detected",
+                "CORS policy allows all origins (*).",
+                "Medium", "Restrict 'Access-Control-Allow-Origin' to specific trusted domains.",
+                "webscan"
+            ))
 
         return findings
 
@@ -162,7 +137,10 @@ class WebscanModule(BaseModule):
 
         # 1. Check for deprecated protocols
         # We test for TLS 1.0 and 1.1 explicitly
-        deprecated_protocols = [(ssl.TLSVersion.TLSv1, "TLS 1.0", "High"), (ssl.TLSVersion.TLSv1_1, "TLS 1.1", "High")]
+        deprecated_protocols = [
+            (ssl.TLSVersion.TLSv1, "TLS 1.0", "High"),
+            (ssl.TLSVersion.TLSv1_1, "TLS 1.1", "High")
+        ]
 
         for version, name, severity in deprecated_protocols:
             ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
@@ -171,20 +149,17 @@ class WebscanModule(BaseModule):
             try:
                 # Using wait_for to ensure we don't hang on slow connections
                 reader, writer = await asyncio.wait_for(
-                    asyncio.open_connection(hostname, 443, ssl=ctx, server_hostname=hostname), timeout=3
+                    asyncio.open_connection(hostname, 443, ssl=ctx, server_hostname=hostname),
+                    timeout=3
                 )
                 writer.close()
                 await writer.wait_closed()
-                findings.append(
-                    build_finding(
-                        self.target,
-                        "deprecated_tls_protocol",
-                        f"Server supports deprecated protocol: {name}",
-                        severity,
-                        f"Disable {name} and enforce TLS 1.2 or higher.",
-                        "webscan",
-                    )
-                )
+                findings.append(build_finding(
+                    self.target, "deprecated_tls_protocol",
+                    f"Server supports deprecated protocol: {name}",
+                    severity, f"Disable {name} and enforce TLS 1.2 or higher.",
+                    "webscan"
+                ))
             except Exception:
                 # Connection failed, likely protocol not supported (good)
                 pass
@@ -193,39 +168,32 @@ class WebscanModule(BaseModule):
         ctx = ssl.create_default_context()
         try:
             reader, writer = await asyncio.wait_for(
-                asyncio.open_connection(hostname, 443, ssl=ctx, server_hostname=hostname), timeout=3
+                asyncio.open_connection(hostname, 443, ssl=ctx, server_hostname=hostname),
+                timeout=3
             )
-            ssl_obj = writer.get_extra_info("ssl_obj")
+            ssl_obj = writer.get_extra_info('ssl_obj')
             if ssl_obj:
                 cert = ssl_obj.getpeercert()
                 if cert:
-                    not_after_str = cert.get("notAfter")
+                    not_after_str = cert.get('notAfter')
                     if not_after_str:
                         # Format: 'May 10 23:59:59 2024 GMT'
-                        not_after = datetime.strptime(not_after_str, "%b %d %H:%M:%S %Y %Z")
+                        not_after = datetime.strptime(not_after_str, '%b %d %H:%M:%S %Y %Z')
                         days_to_expire = (not_after - datetime.utcnow()).days
                         if days_to_expire < 0:
-                            findings.append(
-                                build_finding(
-                                    self.target,
-                                    "tls_certificate_expired",
-                                    f"TLS certificate expired on {not_after_str}",
-                                    "Critical",
-                                    "Renew the TLS certificate immediately.",
-                                    "webscan",
-                                )
-                            )
+                            findings.append(build_finding(
+                                self.target, "tls_certificate_expired",
+                                f"TLS certificate expired on {not_after_str}",
+                                "Critical", "Renew the TLS certificate immediately.",
+                                "webscan"
+                            ))
                         elif days_to_expire < 30:
-                            findings.append(
-                                build_finding(
-                                    self.target,
-                                    "tls_certificate_expiring_soon",
-                                    f"TLS certificate expires in {days_to_expire} days ({not_after_str})",
-                                    "Medium",
-                                    "Renew the TLS certificate before it expires.",
-                                    "webscan",
-                                )
-                            )
+                            findings.append(build_finding(
+                                self.target, "tls_certificate_expiring_soon",
+                                f"TLS certificate expires in {days_to_expire} days ({not_after_str})",
+                                "Medium", "Renew the TLS certificate before it expires.",
+                                "webscan"
+                            ))
             writer.close()
             await writer.wait_closed()
         except Exception:
@@ -247,17 +215,11 @@ class WebscanModule(BaseModule):
                 try:
                     async with session.get(url, timeout=5, allow_redirects=False, **self.get_request_params()) as resp:
                         if resp.status in [200, 403, 301, 302]:
-                            findings.append(
-                                build_finding(
-                                    self.target,
-                                    "sensitive_path_exposure",
-                                    f"Sensitive path found: {path} (Status: {resp.status})",
-                                    severity,
-                                    rec,
-                                    "webscan",
-                                    extra={"path": path, "status": resp.status},
-                                )
-                            )
+                            findings.append(build_finding(
+                                self.target, "sensitive_path_exposure",
+                                f"Sensitive path found: {path} (Status: {resp.status})",
+                                severity, rec, "webscan", extra={"path": path, "status": resp.status}
+                            ))
                 except Exception:
                     pass
 
@@ -267,7 +229,6 @@ class WebscanModule(BaseModule):
 
     def render_results(self, results: List[Dict[str, Any]]):
         from redpilot.utils import ui
-
         if not results:
             self.console.print(f"[{ui.FAINT}]No web security findings.[/]")
             return

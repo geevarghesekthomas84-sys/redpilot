@@ -20,7 +20,7 @@ class Job:
     id: str
     kind: str
     target: str
-    status: str = "running"  # running | completed | failed
+    status: str = "running"            # running | completed | failed
     result: Optional[Any] = None
     error: Optional[str] = None
     bus: EventBus = field(default_factory=EventBus)
@@ -33,7 +33,8 @@ class JobManager:
     def get(self, job_id: str) -> Optional[Job]:
         return self._jobs.get(job_id)
 
-    def start(self, kind: str, target: str, run: Callable[[EventBus], Awaitable[Any]]) -> Job:
+    def start(self, kind: str, target: str,
+              run: Callable[[EventBus], Awaitable[Any]]) -> Job:
         job = Job(id=uuid.uuid4().hex, kind=kind, target=target)
         self._jobs[job.id] = job
 

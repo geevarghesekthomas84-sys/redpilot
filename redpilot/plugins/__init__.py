@@ -43,11 +43,9 @@ def register_module(name: str, cls: type) -> None:
 
 def redpilot_module(name: str) -> Callable[[type], type]:
     """Decorator form: ``@redpilot_module("myscan")`` on a BaseModule subclass."""
-
     def deco(cls: type) -> type:
         register_module(name, cls)
         return cls
-
     return deco
 
 
@@ -70,7 +68,6 @@ def discover(force: bool = False) -> None:
     _discovered = True
     try:
         from importlib.metadata import entry_points
-
         eps = entry_points()
         group = eps.select(group="redpilot.modules") if hasattr(eps, "select") else eps.get("redpilot.modules", [])
         for ep in group:
@@ -85,10 +82,6 @@ def discover(force: bool = False) -> None:
 
 
 __all__ = [
-    "PluginModule",
-    "register_module",
-    "redpilot_module",
-    "registered_modules",
-    "get_module",
-    "discover",
+    "PluginModule", "register_module", "redpilot_module",
+    "registered_modules", "get_module", "discover",
 ]

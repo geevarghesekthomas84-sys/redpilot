@@ -39,40 +39,40 @@ from redpilot.utils.scope import is_in_scope
 
 # Reference metadata for every supported binary (used by `redpilot tools`).
 TOOL_REGISTRY: Dict[str, Dict[str, str]] = {
-    "subfinder": {"role": "Passive subdomain enumeration", "url": "https://github.com/projectdiscovery/subfinder"},
-    "assetfinder": {"role": "Passive subdomain/asset discovery", "url": "https://github.com/tomnomnom/assetfinder"},
-    "dnsx": {"role": "Fast DNS resolver / toolkit", "url": "https://github.com/projectdiscovery/dnsx"},
-    "httpx": {"role": "HTTP(S) probing & fingerprinting", "url": "https://github.com/projectdiscovery/httpx"},
-    "katana": {"role": "Next-gen crawling & spidering", "url": "https://github.com/projectdiscovery/katana"},
-    "hakrawler": {"role": "Fast endpoint crawler", "url": "https://github.com/hakluke/hakrawler"},
-    "waybackurls": {"role": "Wayback Machine URL harvesting", "url": "https://github.com/tomnomnom/waybackurls"},
-    "gau": {"role": "getallurls historical URL fetch", "url": "https://github.com/lc/gau"},
-    "ffuf": {"role": "Content / directory fuzzing", "url": "https://github.com/ffuf/ffuf"},
-    "nuclei": {"role": "Template-based vulnerability scan", "url": "https://github.com/projectdiscovery/nuclei"},
+    "subfinder":   {"role": "Passive subdomain enumeration",      "url": "https://github.com/projectdiscovery/subfinder"},
+    "assetfinder": {"role": "Passive subdomain/asset discovery",  "url": "https://github.com/tomnomnom/assetfinder"},
+    "dnsx":        {"role": "Fast DNS resolver / toolkit",        "url": "https://github.com/projectdiscovery/dnsx"},
+    "httpx":       {"role": "HTTP(S) probing & fingerprinting",   "url": "https://github.com/projectdiscovery/httpx"},
+    "katana":      {"role": "Next-gen crawling & spidering",      "url": "https://github.com/projectdiscovery/katana"},
+    "hakrawler":   {"role": "Fast endpoint crawler",             "url": "https://github.com/hakluke/hakrawler"},
+    "waybackurls": {"role": "Wayback Machine URL harvesting",     "url": "https://github.com/tomnomnom/waybackurls"},
+    "gau":         {"role": "getallurls historical URL fetch",    "url": "https://github.com/lc/gau"},
+    "ffuf":        {"role": "Content / directory fuzzing",        "url": "https://github.com/ffuf/ffuf"},
+    "nuclei":      {"role": "Template-based vulnerability scan",  "url": "https://github.com/projectdiscovery/nuclei"},
 }
 
 # `go install` specifications for the Go-based tools (used by `redpilot tools --install`).
 GO_INSTALL: Dict[str, str] = {
-    "subfinder": "github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest",
-    "httpx": "github.com/projectdiscovery/httpx/cmd/httpx@latest",
-    "nuclei": "github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest",
-    "katana": "github.com/projectdiscovery/katana/cmd/katana@latest",
-    "dnsx": "github.com/projectdiscovery/dnsx/cmd/dnsx@latest",
+    "subfinder":   "github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest",
+    "httpx":       "github.com/projectdiscovery/httpx/cmd/httpx@latest",
+    "nuclei":      "github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest",
+    "katana":      "github.com/projectdiscovery/katana/cmd/katana@latest",
+    "dnsx":        "github.com/projectdiscovery/dnsx/cmd/dnsx@latest",
     "assetfinder": "github.com/tomnomnom/assetfinder@latest",
     "waybackurls": "github.com/tomnomnom/waybackurls@latest",
-    "hakrawler": "github.com/hakluke/hakrawler@latest",
-    "gau": "github.com/lc/gau/v2/cmd/gau@latest",
-    "ffuf": "github.com/ffuf/ffuf/v2@latest",
+    "hakrawler":   "github.com/hakluke/hakrawler@latest",
+    "gau":         "github.com/lc/gau/v2/cmd/gau@latest",
+    "ffuf":        "github.com/ffuf/ffuf/v2@latest",
 }
 
 # Map nuclei severities onto RedPilot severities.
 _NUCLEI_SEVERITY = {
     "critical": "Critical",
-    "high": "High",
-    "medium": "Medium",
-    "low": "Low",
-    "info": "Info",
-    "unknown": "Info",
+    "high":     "High",
+    "medium":   "Medium",
+    "low":      "Low",
+    "info":     "Info",
+    "unknown":  "Info",
 }
 
 
@@ -84,11 +84,11 @@ class ToolkitModule(BaseModule):
         findings: List[Dict[str, Any]] = []
 
         # Which stages to run (all on by default; toggled from CLI options).
-        do_subs = self.options.get("subs", True)
-        do_probe = self.options.get("probe", True)
-        do_crawl = self.options.get("crawl", True)
-        do_urls = self.options.get("urls", True)
-        do_fuzz = self.options.get("fuzz", False)  # off by default (needs wordlist)
+        do_subs   = self.options.get("subs", True)
+        do_probe  = self.options.get("probe", True)
+        do_crawl  = self.options.get("crawl", True)
+        do_urls   = self.options.get("urls", True)
+        do_fuzz   = self.options.get("fuzz", False)   # off by default (needs wordlist)
         do_nuclei = self.options.get("nuclei", True)
 
         task = progress.add_task(f"[green]Recon toolkit pipeline on {domain}...", total=100)
@@ -101,17 +101,12 @@ class ToolkitModule(BaseModule):
             hosts.update(subs)
             findings.extend(sub_findings)
             if subs:
-                findings.append(
-                    build_finding(
-                        domain,
-                        "subdomains_enumerated",
-                        f"External tools discovered {len(subs)} subdomain(s).",
-                        "Info",
-                        "Review each subdomain for unintended exposure.",
-                        "toolkit",
-                        extra={"count": len(subs), "sample": sorted(subs)[:25]},
-                    )
-                )
+                findings.append(build_finding(
+                    domain, "subdomains_enumerated",
+                    f"External tools discovered {len(subs)} subdomain(s).",
+                    "Info", "Review each subdomain for unintended exposure.",
+                    "toolkit", extra={"count": len(subs), "sample": sorted(subs)[:25]},
+                ))
         progress.update(task, completed=20)
 
         # ── Scope enforcement ─────────────────────────────────────────────
@@ -123,17 +118,12 @@ class ToolkitModule(BaseModule):
             in_scope = {h for h in hosts if is_in_scope(h, scope)}
             dropped = hosts - in_scope
             if dropped:
-                findings.append(
-                    build_finding(
-                        domain,
-                        "hosts_excluded_by_scope",
-                        f"{len(dropped)} discovered host(s) were skipped as out-of-scope.",
-                        "Info",
-                        "Add them to the engagement scope to include them in active scans.",
-                        "toolkit",
-                        extra={"count": len(dropped), "sample": sorted(dropped)[:25]},
-                    )
-                )
+                findings.append(build_finding(
+                    domain, "hosts_excluded_by_scope",
+                    f"{len(dropped)} discovered host(s) were skipped as out-of-scope.",
+                    "Info", "Add them to the engagement scope to include them in active scans.",
+                    "toolkit", extra={"count": len(dropped), "sample": sorted(dropped)[:25]},
+                ))
                 logger.info(f"toolkit: {len(dropped)} host(s) dropped by scope filter.")
             hosts = in_scope or {domain}
 
@@ -145,17 +135,12 @@ class ToolkitModule(BaseModule):
             )
             live = {line.strip() for line in dnsx_out if line.strip()}
             if live:
-                findings.append(
-                    build_finding(
-                        domain,
-                        "dns_resolved_hosts",
-                        f"dnsx resolved {len(live)} record(s) across the discovered hosts.",
-                        "Info",
-                        "Confirm ownership of every resolving asset.",
-                        "toolkit",
-                        extra={"count": len(live)},
-                    )
-                )
+                findings.append(build_finding(
+                    domain, "dns_resolved_hosts",
+                    f"dnsx resolved {len(live)} record(s) across the discovered hosts.",
+                    "Info", "Confirm ownership of every resolving asset.",
+                    "toolkit", extra={"count": len(live)},
+                ))
         progress.update(task, completed=35)
 
         # ── Stage 3: HTTP probing ─────────────────────────────────────────
@@ -184,17 +169,12 @@ class ToolkitModule(BaseModule):
         progress.update(task, completed=80)
 
         if url_corpus:
-            findings.append(
-                build_finding(
-                    domain,
-                    "url_corpus_collected",
-                    f"Collected {len(url_corpus)} unique URL(s) from crawling and archives.",
-                    "Info",
-                    "Feed interesting endpoints into targeted testing (fuzzing, injection).",
-                    "toolkit",
-                    extra={"count": len(url_corpus), "sample": sorted(url_corpus)[:25]},
-                )
-            )
+            findings.append(build_finding(
+                domain, "url_corpus_collected",
+                f"Collected {len(url_corpus)} unique URL(s) from crawling and archives.",
+                "Info", "Feed interesting endpoints into targeted testing (fuzzing, injection).",
+                "toolkit", extra={"count": len(url_corpus), "sample": sorted(url_corpus)[:25]},
+            ))
 
         # ── Stage 6: content fuzzing (opt-in) ─────────────────────────────
         if do_fuzz:
@@ -233,7 +213,10 @@ class ToolkitModule(BaseModule):
 
         if self._available("assetfinder"):
             out = await self._run_tool("assetfinder", ["assetfinder", "--subs-only", domain])
-            subs.update(s.strip().lower() for s in out if s.strip() and s.strip().endswith(domain))
+            subs.update(
+                s.strip().lower() for s in out
+                if s.strip() and s.strip().endswith(domain)
+            )
         else:
             findings.append(self._missing_tool_finding(domain, "assetfinder"))
 
@@ -267,19 +250,14 @@ class ToolkitModule(BaseModule):
             status = rec.get("status_code") or rec.get("status-code")
             title = rec.get("title", "")
             tech = rec.get("tech") or rec.get("technologies") or []
-            findings.append(
-                build_finding(
-                    url,
-                    "live_web_host",
-                    f"Live host — status {status}"
-                    + (f", title '{title}'" if title else "")
-                    + (f", tech: {', '.join(tech)}" if tech else ""),
-                    "Info",
-                    "Enumerate the application and review the technology stack for known CVEs.",
-                    "toolkit",
-                    extra={"status": status, "title": title, "tech": tech},
-                )
-            )
+            findings.append(build_finding(
+                url, "live_web_host",
+                f"Live host — status {status}"
+                + (f", title '{title}'" if title else "")
+                + (f", tech: {', '.join(tech)}" if tech else ""),
+                "Info", "Enumerate the application and review the technology stack for known CVEs.",
+                "toolkit", extra={"status": status, "title": title, "tech": tech},
+            ))
         return live_urls, findings
 
     async def _crawl(self, live_urls: List[str]) -> set:
@@ -289,13 +267,16 @@ class ToolkitModule(BaseModule):
             # katana reads a target list from stdin when given `-list -`.
             out = await self._run_tool_stdin(
                 "katana",
-                ["katana", "-silent", "-list", "-", "-jc", "-d", str(self.options.get("depth", 2))],
+                ["katana", "-silent", "-list", "-", "-jc",
+                 "-d", str(self.options.get("depth", 2))],
                 "\n".join(live_urls),
             )
             urls.update(u.strip() for u in out if u.strip())
 
         if self._available("hakrawler"):
-            out = await self._run_tool_stdin("hakrawler", ["hakrawler", "-subs", "-u"], "\n".join(live_urls))
+            out = await self._run_tool_stdin(
+                "hakrawler", ["hakrawler", "-subs", "-u"], "\n".join(live_urls)
+            )
             urls.update(u.strip() for u in out if u.strip().startswith("http"))
 
         return urls
@@ -321,16 +302,12 @@ class ToolkitModule(BaseModule):
             return [self._missing_tool_finding(domain, "ffuf")]
         if not wordlist or not os.path.isfile(wordlist):
             logger.warning("ffuf stage skipped: provide a valid --wordlist to enable content fuzzing.")
-            return [
-                build_finding(
-                    domain,
-                    "fuzzing_skipped",
-                    "Content fuzzing (ffuf) skipped — no valid wordlist supplied.",
-                    "Info",
-                    "Re-run with --fuzz --wordlist <path> to enable directory brute-forcing.",
-                    "toolkit",
-                )
-            ]
+            return [build_finding(
+                domain, "fuzzing_skipped",
+                "Content fuzzing (ffuf) skipped — no valid wordlist supplied.",
+                "Info", "Re-run with --fuzz --wordlist <path> to enable directory brute-forcing.",
+                "toolkit",
+            )]
 
         base = live_urls[0].rstrip("/")
         with tempfile.NamedTemporaryFile("r", suffix=".json", delete=False) as tmp:
@@ -338,20 +315,9 @@ class ToolkitModule(BaseModule):
         try:
             await self._run_tool(
                 "ffuf",
-                [
-                    "ffuf",
-                    "-u",
-                    f"{base}/FUZZ",
-                    "-w",
-                    wordlist,
-                    "-mc",
-                    "200,204,301,302,307,401,403",
-                    "-of",
-                    "json",
-                    "-o",
-                    out_path,
-                    "-s",
-                ],
+                ["ffuf", "-u", f"{base}/FUZZ", "-w", wordlist,
+                 "-mc", "200,204,301,302,307,401,403",
+                 "-of", "json", "-o", out_path, "-s"],
             )
             findings.extend(self._parse_ffuf(out_path, base))
         finally:
@@ -372,17 +338,12 @@ class ToolkitModule(BaseModule):
         for res in data.get("results", []):
             url = res.get("url", base)
             status = res.get("status")
-            findings.append(
-                build_finding(
-                    url,
-                    "content_discovered",
-                    f"ffuf discovered endpoint (HTTP {status}): {url}",
-                    "Low",
-                    "Review the discovered path for sensitive functionality or data exposure.",
-                    "toolkit",
-                    extra={"status": status, "length": res.get("length")},
-                )
-            )
+            findings.append(build_finding(
+                url, "content_discovered",
+                f"ffuf discovered endpoint (HTTP {status}): {url}",
+                "Low", "Review the discovered path for sensitive functionality or data exposure.",
+                "toolkit", extra={"status": status, "length": res.get("length")},
+            ))
         return findings
 
     async def _nuclei(self, domain: str, targets: List[str]) -> List[Dict[str, Any]]:
@@ -412,23 +373,20 @@ class ToolkitModule(BaseModule):
             sev = _NUCLEI_SEVERITY.get(str(info.get("severity", "info")).lower(), "Info")
             matched = rec.get("matched-at") or rec.get("host") or domain
             name = info.get("name", rec.get("template-id", "nuclei-finding"))
-            findings.append(
-                build_finding(
-                    matched,
-                    f"nuclei:{rec.get('template-id', 'unknown')}",
-                    f"{name} — {info.get('description', '')}".strip(" —"),
-                    sev,
-                    "; ".join(info.get("remediation", "").splitlines())
-                    or "Review the nuclei template reference and apply the recommended fix.",
-                    "toolkit",
-                    extra={
-                        "template_id": rec.get("template-id"),
-                        "matched_at": matched,
-                        "tags": info.get("tags", []),
-                        "reference": info.get("reference", []),
-                    },
-                )
-            )
+            findings.append(build_finding(
+                matched, f"nuclei:{rec.get('template-id', 'unknown')}",
+                f"{name} — {info.get('description', '')}".strip(" —"),
+                sev,
+                "; ".join(info.get("remediation", "").splitlines()) or
+                "Review the nuclei template reference and apply the recommended fix.",
+                "toolkit",
+                extra={
+                    "template_id": rec.get("template-id"),
+                    "matched_at": matched,
+                    "tags": info.get("tags", []),
+                    "reference": info.get("reference", []),
+                },
+            ))
         return findings
 
     # ------------------------------------------------------------------
@@ -442,11 +400,13 @@ class ToolkitModule(BaseModule):
         """Run an external tool with an argument list; return stdout lines."""
         return await self._exec(name, args, stdin_data=None, timeout=timeout)
 
-    async def _run_tool_stdin(self, name: str, args: List[str], stdin_data: str, timeout: int = 300) -> List[str]:
+    async def _run_tool_stdin(self, name: str, args: List[str], stdin_data: str,
+                              timeout: int = 300) -> List[str]:
         """Run an external tool, piping ``stdin_data`` to it; return stdout lines."""
         return await self._exec(name, args, stdin_data=stdin_data, timeout=timeout)
 
-    async def _exec(self, name: str, args: List[str], stdin_data: Optional[str], timeout: int) -> List[str]:
+    async def _exec(self, name: str, args: List[str], stdin_data: Optional[str],
+                    timeout: int) -> List[str]:
         logger.debug(f"toolkit exec: {' '.join(args)}")
         try:
             process = await asyncio.create_subprocess_exec(
@@ -486,18 +446,15 @@ class ToolkitModule(BaseModule):
     def _missing_tool_finding(self, domain: str, tool: str) -> Dict[str, Any]:
         meta = TOOL_REGISTRY.get(tool, {})
         return build_finding(
-            domain,
-            "tool_not_installed",
+            domain, "tool_not_installed",
             f"'{tool}' is not installed — {meta.get('role', 'stage')} was skipped.",
             "Info",
             f"Install {tool} to enable this stage: {meta.get('url', '')}".strip(),
-            "toolkit",
-            extra={"tool": tool},
+            "toolkit", extra={"tool": tool},
         )
 
     def render_results(self, results: List[Dict[str, Any]]):
         from redpilot.utils import ui
-
         if not results:
             self.console.print(f"[{ui.FAINT}]No findings produced by the recon toolkit.[/]")
             return
@@ -511,9 +468,7 @@ class ToolkitModule(BaseModule):
         order = {"Critical": 1, "High": 2, "Medium": 3, "Low": 4, "Info": 5}
         for r in sorted(results, key=lambda x: order.get(x["severity"], 9)):
             table.add_row(
-                r["target"][:60],
-                r["vuln_type"],
-                ui.severity_text(r["severity"]),
-                r["detail"][:90],
+                r["target"][:60], r["vuln_type"],
+                ui.severity_text(r["severity"]), r["detail"][:90],
             )
         self.console.print(table)

@@ -62,23 +62,18 @@ def test_authorization_signature_detects_tampering(tmp_path, monkeypatch):
 
 def test_authorization_expiry(tmp_path, monkeypatch):
     from datetime import datetime, timedelta
-
     monkeypatch.setenv("REDPILOT_AUTH_SIGNING_KEY", "unit-test-signing-key")
     mgr = EngagementManager(root=str(tmp_path / "eng"))
-    eng = mgr.create(
-        "Expiring", in_scope=["x.com"], authorized_by="c", expires_at=datetime.utcnow() - timedelta(days=1)
-    )
+    eng = mgr.create("Expiring", in_scope=["x.com"], authorized_by="c",
+                     expires_at=datetime.utcnow() - timedelta(days=1))
     assert not mgr.authorization_valid(eng)  # signature fine, but expired
 
 
 # ── Principal registry ───────────────────────────────────────────────────
 def test_registry_from_config():
-    cfg = {
-        "OPKEY": {"name": "op", "role": "operator", "engagements": ["acme"]},
-        "VIEWKEY": {"name": "v", "role": "viewer", "engagements": ["acme"]},
-    }
+    cfg = {"OPKEY": {"name": "op", "role": "operator", "engagements": ["acme"]},
+           "VIEWKEY": {"name": "v", "role": "viewer", "engagements": ["acme"]}}
     import redpilot.workspaces.principals as pr
-
     reg = PrincipalRegistry(pr._parse_config(json.dumps(cfg)))
     assert reg.authenticate("OPKEY").role is Role.OPERATOR
     assert reg.authenticate("VIEWKEY").role is Role.VIEWER

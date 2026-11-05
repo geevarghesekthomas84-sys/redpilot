@@ -33,13 +33,9 @@ def _looks_like_error(text: str) -> bool:
 
 
 class Orchestrator:
-    def __init__(
-        self,
-        complete_fn: Optional[CompleteFn] = None,
-        provider: str = "",
-        router: Optional[ModelRouter] = None,
-        cache: Optional[ResponseCache] = None,
-    ):
+    def __init__(self, complete_fn: Optional[CompleteFn] = None,
+                 provider: str = "", router: Optional[ModelRouter] = None,
+                 cache: Optional[ResponseCache] = None):
         self.router = router or ModelRouter()
         self.cache = cache or ResponseCache()
         self.provider = provider or self._detect_provider()
@@ -48,7 +44,6 @@ class Orchestrator:
     def _detect_provider(self) -> str:
         try:
             from redpilot.utils.ai import ai_orchestrator
-
             return ai_orchestrator.provider
         except Exception:
             return "unknown"
@@ -58,7 +53,6 @@ class Orchestrator:
 
         async def fn(system: str, prompt: str, model: Optional[str]) -> str:
             return await ai_orchestrator.complete(system, prompt, model=model)
-
         return fn
 
     async def _call(self, system: str, prompt: str, model: Optional[str]) -> str:
@@ -67,9 +61,8 @@ class Orchestrator:
             res = await res
         return res
 
-    async def complete(
-        self, task: str, system: str, prompt: str, *, budget: Optional[Budget] = None, use_cache: bool = True
-    ) -> str:
+    async def complete(self, task: str, system: str, prompt: str, *,
+                       budget: Optional[Budget] = None, use_cache: bool = True) -> str:
         chain = self.router.resolve(task)
         last = ""
         for model in chain:

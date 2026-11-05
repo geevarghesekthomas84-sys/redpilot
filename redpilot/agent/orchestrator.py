@@ -32,11 +32,11 @@ from redpilot.utils.validator import validate_url
 
 # The only modules the agent may run, by name.
 ACTIONS: Dict[str, Any] = {
-    "recon": ReconModule,
+    "recon":   ReconModule,
     "toolkit": ToolkitModule,
-    "scan": NetworkModule,
+    "scan":    NetworkModule,
     "webscan": WebscanModule,
-    "crawl": CrawlerModule,
+    "crawl":   CrawlerModule,
 }
 
 # Steps that actively touch the target (scope-gated).
@@ -95,12 +95,10 @@ class PentestAgent:
             return self._default_plan("AI planning disabled (--no-ai)")
 
         from redpilot.orchestration import default_orchestrator
-
         prompt = _PLAN_PROMPT.format(target=self.target, goal=self.goal)
         try:
             raw = await default_orchestrator().complete(
-                "plan", _AGENT_SYSTEM, prompt, budget=self.options.get("budget")
-            )
+                "plan", _AGENT_SYSTEM, prompt, budget=self.options.get("budget"))
             steps = self._parse_plan(raw)
             if steps:
                 return steps
@@ -158,35 +156,23 @@ class PentestAgent:
         if module == "recon":
             base.update({"passive": not aggressive})
         elif module == "toolkit":
-            base.update(
-                {
-                    "subs": True,
-                    "probe": True,
-                    "crawl": True,
-                    "urls": True,
-                    "nuclei": True,
-                    "fuzz": False,
-                    "depth": 2,
-                    "nuclei_severity": "critical,high,medium" if not aggressive else "critical,high,medium,low",
-                    "nuclei_dast": aggressive,
-                    "scope": self.scope,
-                }
-            )
+            base.update({
+                "subs": True, "probe": True, "crawl": True, "urls": True,
+                "nuclei": True, "fuzz": False, "depth": 2,
+                "nuclei_severity": "critical,high,medium" if not aggressive else "critical,high,medium,low",
+                "nuclei_dast": aggressive, "scope": self.scope,
+            })
         elif module == "scan":
-            base.update(
-                {
-                    "scanner": "nmap",
-                    "ports": "1-1024",
-                    "intensity": "aggressive" if aggressive else "normal",
-                }
-            )
+            base.update({
+                "scanner": "nmap", "ports": "1-1024",
+                "intensity": "aggressive" if aggressive else "normal",
+            })
         elif module == "crawl":
             base.update({"depth": 2, "max_pages": 50})
         return base
 
     async def execute(self, engine, steps: List[Dict[str, str]]) -> List[Dict[str, Any]]:
         from rich.rule import Rule
-
         for i, step in enumerate(steps, 1):
             module = step["module"]
             if self.scope_blocks(module):
@@ -195,13 +181,11 @@ class PentestAgent:
                 )
                 continue
             self.console.print()
-            self.console.print(
-                Rule(
-                    f"[bold magenta]Agent step {i}/{len(steps)} · {module.upper()}[/bold magenta]"
-                    + (f" — [dim]{step['reason']}[/dim]" if step.get("reason") else ""),
-                    style="magenta",
-                )
-            )
+            self.console.print(Rule(
+                f"[bold magenta]Agent step {i}/{len(steps)} · {module.upper()}[/bold magenta]"
+                + (f" — [dim]{step['reason']}[/dim]" if step.get("reason") else ""),
+                style="magenta",
+            ))
             try:
                 results = await engine.run_module(ACTIONS[module], self.target, self._module_options(module))
                 if results:
@@ -218,12 +202,12 @@ class PentestAgent:
         if self.options.get("no_ai") or not self.findings:
             return None
         from redpilot.orchestration import default_orchestrator
-
-        prompt = _ASSESS_PROMPT.format(findings=json.dumps([f for f in self.findings], indent=2, default=str)[:60000])
+        prompt = _ASSESS_PROMPT.format(
+            findings=json.dumps([f for f in self.findings], indent=2, default=str)[:60000]
+        )
         try:
             out = await default_orchestrator().complete(
-                "analyze", _AGENT_SYSTEM, prompt, budget=self.options.get("budget")
-            )
+                "analyze", _AGENT_SYSTEM, prompt, budget=self.options.get("budget"))
             return None if out.lstrip().startswith(("⚠️", "Error [")) else out
         except Exception as exc:
             logger.warning(f"Agent: final AI assessment failed ({exc}).")

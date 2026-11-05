@@ -18,18 +18,9 @@ class _FakeModule:
         self.target = target
 
     async def run(self, progress):
-        return [
-            {
-                "target": self.target,
-                "vuln_type": "missing_hsts",
-                "detail": "x",
-                "severity": "High",
-                "severity_order": 2,
-                "recommendation": "fix",
-                "scan_type": "webscan",
-                "discovered_at": "2026-01-01",
-            }
-        ]
+        return [{"target": self.target, "vuln_type": "missing_hsts", "detail": "x",
+                 "severity": "High", "severity_order": 2, "recommendation": "fix",
+                 "scan_type": "webscan", "discovered_at": "2026-01-01"}]
 
 
 @pytest.fixture()
@@ -57,9 +48,8 @@ def test_out_of_scope_scan_rejected(client):
 
 
 def test_scan_job_lifecycle(client):
-    r = client.post(
-        "/scans", json={"module": "webscan", "target": "https://example.com", "options": {"no_db": True}}, headers=H
-    )
+    r = client.post("/scans", json={"module": "webscan", "target": "https://example.com",
+                                    "options": {"no_db": True}}, headers=H)
     assert r.status_code == 202
     job_id = r.json()["job_id"]
     result = None
@@ -109,12 +99,10 @@ def test_dashboard_served(client):
 
 def test_metrics_open_and_records(client):
     # metrics endpoint is open (no key) and includes counters after a scan
-    r = client.post(
-        "/scans", json={"module": "webscan", "target": "https://example.com", "options": {"no_db": True}}, headers=H
-    )
+    r = client.post("/scans", json={"module": "webscan", "target": "https://example.com",
+                                    "options": {"no_db": True}}, headers=H)
     jid = r.json()["job_id"]
     import time as _t
-
     for _ in range(30):
         if client.get(f"/jobs/{jid}", headers=H).json()["status"] != "running":
             break

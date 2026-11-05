@@ -18,10 +18,10 @@ from redpilot.service.models import Finding
 
 
 class Stage(str, Enum):
-    DISCOVERY = "discovery"  # find assets/endpoints (recon, toolkit, crawl)
-    VALIDATION = "validation"  # confirm & classify (webscan, network/CVE)
+    DISCOVERY = "discovery"      # find assets/endpoints (recon, toolkit, crawl)
+    VALIDATION = "validation"    # confirm & classify (webscan, network/CVE)
     REMEDIATION = "remediation"  # attach fix guidance (no target contact)
-    REPORT = "report"  # render the deliverable
+    REPORT = "report"            # render the deliverable
 
 
 # The modules each stage is allowed to invoke. Deliberately fixed, so a stage
@@ -34,7 +34,7 @@ STAGE_MODULES: Dict[Stage, List[str]] = {
 
 class StageResult(BaseModel):
     stage: Stage
-    status: str = "completed"  # completed | failed | skipped
+    status: str = "completed"          # completed | failed | skipped
     findings: List[Finding] = Field(default_factory=list)
     summary: str = ""
     error: Optional[str] = None
@@ -45,7 +45,7 @@ class StageResult(BaseModel):
 class PipelineResult(BaseModel):
     target: str
     stages: List[StageResult] = Field(default_factory=list)
-    findings: List[Finding] = Field(default_factory=list)  # final, deduped
+    findings: List[Finding] = Field(default_factory=list)   # final, deduped
     counts: Dict[str, int] = Field(default_factory=dict)
     report_path: Optional[str] = None
 

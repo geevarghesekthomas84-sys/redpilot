@@ -6,7 +6,6 @@ from rich.progress import Progress
 from redpilot.core.engine import BaseModule
 from redpilot.utils.risk import build_finding
 
-
 class CrawlerModule(BaseModule):
     async def run(self, progress: Progress) -> List[Dict[str, Any]]:
         url = self.target if self.target.startswith("http") else f"https://{self.target}"
@@ -35,11 +34,11 @@ class CrawlerModule(BaseModule):
                         async with session.get(current_url, timeout=5, **self.get_request_params()) as resp:
                             if resp.status == 200:
                                 html = await resp.text()
-                                soup = BeautifulSoup(html, "html.parser")
+                                soup = BeautifulSoup(html, 'html.parser')
 
                                 # Extract links
-                                for a in soup.find_all("a", href=True):
-                                    link = urljoin(current_url, a["href"])
+                                for a in soup.find_all('a', href=True):
+                                    link = urljoin(current_url, a['href'])
                                     parsed_link = urlparse(link)
                                     # Stay on same domain
                                     if parsed_link.netloc == urlparse(url).netloc:
@@ -56,56 +55,41 @@ class CrawlerModule(BaseModule):
         progress.update(task, completed=max_pages)
 
         if visited:
-            findings.append(
-                build_finding(
-                    self.target,
-                    "crawl_summary",
-                    f"Successfully crawled {len(visited)} pages.",
-                    "Info",
-                    "Review discovered pages for further testing.",
-                    "crawler",
-                    extra={"pages_crawled": len(visited)},
-                )
-            )
+            findings.append(build_finding(
+                self.target, "crawl_summary",
+                f"Successfully crawled {len(visited)} pages.",
+                "Info", "Review discovered pages for further testing.",
+                "crawler", extra={"pages_crawled": len(visited)}
+            ))
 
         return findings
 
     def _analyze_page(self, url: str, html: str, soup: BeautifulSoup) -> List[Dict[str, Any]]:
         findings = []
         # Check for forms
-        forms = soup.find_all("form")
+        forms = soup.find_all('form')
         if forms:
-            findings.append(
-                build_finding(
-                    url,
-                    "form_detected",
-                    f"Detected {len(forms)} HTML forms.",
-                    "Info",
-                    "Audit forms for CSRF protection and injection vulnerabilities.",
-                    "crawler",
-                    extra={"forms_count": len(forms)},
-                )
-            )
+            findings.append(build_finding(
+                url, "form_detected",
+                f"Detected {len(forms)} HTML forms.",
+                "Info", "Audit forms for CSRF protection and injection vulnerabilities.",
+                "crawler", extra={"forms_count": len(forms)}
+            ))
 
         # Check for sensitive keywords in source
         keywords = ["password", "secret", "token", "apikey", "config", "backup"]
         for kw in keywords:
             if kw in html.lower():
-                findings.append(
-                    build_finding(
-                        url,
-                        "sensitive_keyword_in_source",
-                        f"Sensitive keyword '{kw}' found in page source.",
-                        "Low",
-                        "Verify if sensitive information is being leaked in the client-side code.",
-                        "crawler",
-                    )
-                )
+                findings.append(build_finding(
+                    url, "sensitive_keyword_in_source",
+                    f"Sensitive keyword '{kw}' found in page source.",
+                    "Low", "Verify if sensitive information is being leaked in the client-side code.",
+                    "crawler"
+                ))
         return findings
 
     def render_results(self, results: List[Dict[str, Any]]):
         from redpilot.utils import ui
-
         if not results:
             self.console.print(f"[{ui.FAINT}]No crawl findings.[/]")
             return

@@ -27,8 +27,10 @@ def _int_env(name: str, default: int) -> int:
 
 class RateLimiter:
     def __init__(self, rate_per_min: int | None = None, burst: int | None = None):
-        self.rate = rate_per_min if rate_per_min is not None else _int_env("REDPILOT_RATE_LIMIT", 120)
-        self.burst = burst if burst is not None else _int_env("REDPILOT_RATE_BURST", self.rate)
+        self.rate = (rate_per_min if rate_per_min is not None
+                     else _int_env("REDPILOT_RATE_LIMIT", 120))
+        self.burst = (burst if burst is not None
+                      else _int_env("REDPILOT_RATE_BURST", self.rate))
         self._fill = self.rate / 60.0  # tokens per second
         self._buckets: Dict[str, tuple[float, float]] = {}  # id -> (tokens, ts)
         self._lock = Lock()

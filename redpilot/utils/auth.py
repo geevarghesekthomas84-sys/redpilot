@@ -4,7 +4,6 @@ from rich.console import Console
 
 console = Console()
 
-
 class AuthManager:
     def __init__(self):
         self.config_dir = Path.home() / ".redpilot"
@@ -30,6 +29,5 @@ class AuthManager:
 
     def is_logged_in(self) -> bool:
         return bool(self.get_token())
-
 
 auth_manager = AuthManager()

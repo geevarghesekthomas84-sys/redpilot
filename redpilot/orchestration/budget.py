@@ -27,11 +27,9 @@ class Budget:
         return self.max_seconds - (time.monotonic() - self.started)
 
     def would_exceed(self, prompt_chars: int) -> bool:
-        return (
-            self.calls + 1 > self.max_calls
-            or self.chars + prompt_chars > self.max_chars
-            or self.remaining_seconds() <= 0
-        )
+        return (self.calls + 1 > self.max_calls
+                or self.chars + prompt_chars > self.max_chars
+                or self.remaining_seconds() <= 0)
 
     def consume(self, prompt_chars: int) -> None:
         if self.would_exceed(prompt_chars):

@@ -54,7 +54,6 @@ def build_server(scope_file: str = "scope.json"):
     svc = RedPilotService(scope_file=scope_file)
     try:
         from redpilot.cli.main import get_version
-
         version = get_version()
     except Exception:
         version = "0"
@@ -67,18 +66,13 @@ def build_server(scope_file: str = "scope.json"):
         functools.wraps preserves the wrapped signature so the MCP SDK still
         generates the correct input schema from the real parameters.
         """
-
         @functools.wraps(fn)
         async def wrapper(*args, **kwargs):
             try:
                 return await fn(*args, **kwargs)
             except ScopeError as exc:
-                return {
-                    "error": "out_of_scope",
-                    "message": str(exc),
-                    "hint": "Call scope_add with an authorized target first.",
-                }
-
+                return {"error": "out_of_scope", "message": str(exc),
+                        "hint": "Call scope_add with an authorized target first."}
         return wrapper
 
     # ── Scope & status (read / safe) ──────────────────────────────────
@@ -135,7 +129,8 @@ def build_server(scope_file: str = "scope.json"):
 
     @mcp.tool()
     @_scope_guard
-    async def agent_run(target: str, goal: str = "", dry_run: bool = True, aggressive: bool = False) -> Dict[str, Any]:
+    async def agent_run(target: str, goal: str = "", dry_run: bool = True,
+                        aggressive: bool = False) -> Dict[str, Any]:
         """Autonomous agent. dry_run=True (default) returns only the plan; set
         dry_run=False to actually run the chained assessment (in-scope targets only)."""
         r = await svc.run_agent(target, goal, dry_run=dry_run, aggressive=aggressive, surface="mcp")
@@ -145,24 +140,20 @@ def build_server(scope_file: str = "scope.json"):
     @mcp.resource("redpilot://scope")
     def scope_resource() -> str:
         import json
-
         return json.dumps(svc.scope_state().model_dump(), indent=2)
 
     @mcp.resource("redpilot://tools")
     def tools_resource() -> str:
         import json
-
         return json.dumps([t.model_dump() for t in svc.tools_status()], indent=2)
 
     # ── Prompt ────────────────────────────────────────────────────────
     @mcp.prompt()
     def assess_target(target: str) -> str:
         """Prompt template: plan and summarize an assessment of a target."""
-        return (
-            f"Plan an authorized security assessment of {target} using RedPilot's "
-            f"tools (scope_add first if needed), then run them and summarize the "
-            f"highest-risk findings with concrete remediation."
-        )
+        return (f"Plan an authorized security assessment of {target} using RedPilot's "
+                f"tools (scope_add first if needed), then run them and summarize the "
+                f"highest-risk findings with concrete remediation.")
 
     return mcp
 

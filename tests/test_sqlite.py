@@ -6,15 +6,9 @@ from redpilot.database.sqlite import SQLiteDB
 
 def _finding(vuln_type="missing_hsts", detail="x", sev="High", order=2):
     return {
-        "target": "example.com",
-        "vuln_type": vuln_type,
-        "detail": detail,
-        "severity": sev,
-        "severity_order": order,
-        "recommendation": "fix",
-        "scan_type": "webscan",
-        "discovered_at": "2026-01-01",
-        "created_at": "2026-01-01",
+        "target": "example.com", "vuln_type": vuln_type, "detail": detail,
+        "severity": sev, "severity_order": order, "recommendation": "fix",
+        "scan_type": "webscan", "discovered_at": "2026-01-01", "created_at": "2026-01-01",
     }
 
 

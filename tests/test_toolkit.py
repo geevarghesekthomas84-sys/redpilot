@@ -10,16 +10,8 @@ def _make(target="example.com", options=None):
 
 def test_registry_has_all_ten_tools():
     expected = {
-        "subfinder",
-        "assetfinder",
-        "dnsx",
-        "httpx",
-        "katana",
-        "hakrawler",
-        "waybackurls",
-        "gau",
-        "ffuf",
-        "nuclei",
+        "subfinder", "assetfinder", "dnsx", "httpx", "katana",
+        "hakrawler", "waybackurls", "gau", "ffuf", "nuclei",
     }
     assert set(TOOL_REGISTRY) == expected
     for meta in TOOL_REGISTRY.values():
@@ -42,16 +34,12 @@ def test_missing_tool_finding_shape():
 
 def test_parse_ffuf(tmp_path):
     out = tmp_path / "ffuf.json"
-    out.write_text(
-        json.dumps(
-            {
-                "results": [
-                    {"url": "https://example.com/admin", "status": 200, "length": 512},
-                    {"url": "https://example.com/backup", "status": 403, "length": 12},
-                ]
-            }
-        )
-    )
+    out.write_text(json.dumps({
+        "results": [
+            {"url": "https://example.com/admin", "status": 200, "length": 512},
+            {"url": "https://example.com/backup", "status": 403, "length": 12},
+        ]
+    }))
     findings = _make()._parse_ffuf(str(out), "https://example.com")
     assert len(findings) == 2
     assert findings[0]["vuln_type"] == "content_discovered"
@@ -68,7 +56,8 @@ def test_probe_http_parses_json(monkeypatch):
     monkeypatch.setattr(mod, "_available", lambda tool: True)
 
     lines = [
-        json.dumps({"url": "https://example.com", "status_code": 200, "title": "Home", "tech": ["nginx"]}),
+        json.dumps({"url": "https://example.com", "status_code": 200,
+                    "title": "Home", "tech": ["nginx"]}),
         json.dumps({"url": "https://api.example.com", "status_code": 401}),
         "not-json-should-be-ignored",
     ]
@@ -97,20 +86,17 @@ def test_nuclei_parses_jsonl_and_maps_severity(monkeypatch):
     monkeypatch.setattr(mod, "_available", lambda tool: True)
 
     lines = [
-        json.dumps(
-            {
-                "template-id": "cve-2021-1234",
-                "matched-at": "https://example.com/x",
-                "info": {"name": "Test CVE", "severity": "critical", "description": "boom", "tags": ["cve"]},
-            }
-        ),
-        json.dumps(
-            {
-                "template-id": "tech-detect",
-                "host": "https://example.com",
-                "info": {"name": "Nginx", "severity": "info"},
-            }
-        ),
+        json.dumps({
+            "template-id": "cve-2021-1234",
+            "matched-at": "https://example.com/x",
+            "info": {"name": "Test CVE", "severity": "critical",
+                     "description": "boom", "tags": ["cve"]},
+        }),
+        json.dumps({
+            "template-id": "tech-detect",
+            "host": "https://example.com",
+            "info": {"name": "Nginx", "severity": "info"},
+        }),
         "",
     ]
 
