@@ -5,3 +5,7 @@
 ## 2025-02-23 - Batch Database Write Operations to prevent N+1 queries
 **Learning:** Writing multiple database records iteratively using a for-loop (N+1 query problem) incurs significant database I/O latency, particularly when scaling to large payloads. The codebase's original `upsert_vulnerability` method exhibited this bottleneck in both MongoDB and SQLite backends when processing many scan findings.
 **Action:** When inserting or updating multiple database records simultaneously in this codebase, always leverage batch mechanisms: use PyMongo's `bulk_write` with `UpdateOne` for MongoDB, and batch operations within a single transaction in Python's `sqlite3` driver (`con.commit()` only at the end).
+
+## 2024-05-14 - SQLite Bulk Upserts with JSON Merging
+**Learning:** Using `executemany` alongside `INSERT ... ON CONFLICT DO UPDATE` significantly speeds up bulk record upserts by replacing loop-based `SELECT`/`INSERT` logic. When upserting rows that contain JSON blobs (like `data`), you can use SQLite's native `json_set` function within the `UPDATE SET` clause (e.g., `data=json_set(excluded.data, '$.created_at', vulnerabilities.created_at)`) to merge specific fields from existing records, preventing data loss.
+**Action:** Always prefer single-query batch upserts via `executemany` for multiple database writes. When dealing with JSON columns in SQLite, leverage `json_set` during conflict resolution to merge and preserve necessary nested fields cleanly.
