@@ -23,8 +23,9 @@
   input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid var(--amber);outline-offset:2px;}
   input::placeholder{color:var(--faint)}
   button{cursor:pointer;border-color:#3a4a33}
+  button:disabled{opacity:0.5;cursor:not-allowed;}
   button.primary{background:#1a1403;border-color:var(--amber);color:var(--amber)}
-  button:hover{border-color:var(--amber)}
+  button:hover:not(:disabled){border-color:var(--amber)}
   main{display:grid;grid-template-columns:320px 1fr;gap:16px;padding:16px;max-width:1200px;margin:0 auto}
   @media(max-width:820px){main{grid-template-columns:1fr}}
   .panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px}
@@ -148,14 +149,23 @@ $("#module").onchange = ()=>{ $("#dryWrap").style.display = $("#module").value==
 $("#module").onchange();
 
 $("#addScope").onclick = async ()=>{
+  const btn = $("#addScope");
+  const origText = btn.textContent;
   const t=$("#target").value.trim(); if(!t)return;
+  btn.disabled = true;
+  btn.textContent = "adding...";
   try{ await api("/scope",{method:"POST",body:JSON.stringify({value:t})}); logln("+ scope: "+t); refresh(); }
   catch(e){ logln("! "+e.message); }
+  finally { btn.disabled = false; btn.textContent = origText; }
 };
 
 $("#go").onclick = async ()=>{
+  const btn = $("#go");
+  const origText = btn.textContent;
   const module=$("#module").value, target=$("#target").value.trim();
   if(!target){ logln("! enter a target"); return; }
+  btn.disabled = true;
+  btn.textContent = "starting...";
   $("#log").textContent="—"; renderFindings([]);
   try{
     let job;
@@ -170,6 +180,7 @@ $("#go").onclick = async ()=>{
     $("#jobline").textContent = "job "+job.job_id+" · "+job.status;
     streamJob(job.job_id);
   }catch(e){ logln("! "+e.message); }
+  finally { btn.disabled = false; btn.textContent = origText; }
 };
 
 function streamJob(id){
