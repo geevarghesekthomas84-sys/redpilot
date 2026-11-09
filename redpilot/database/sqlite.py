@@ -219,6 +219,8 @@ class SQLiteDB:
         def _run():
             con = self._con()
             try:
+                # ⚡ Bolt Optimization: Batch upserts using executemany with ON CONFLICT to prevent N+1 queries
+                rows = []
                 for vuln_dict in vulnerabilities:
                     record = dict(vuln_dict)
                     record["scan_id"] = scan_id
@@ -228,25 +230,22 @@ class SQLiteDB:
                     vuln_type = record.get("vuln_type", "")
                     sev_order = record.get("severity_order", 99)
 
-                    existing = con.execute(
-                        "SELECT id, created_at FROM vulnerabilities "
-                        "WHERE scan_id=? AND vuln_type=? AND target=?",
-                        (scan_id, vuln_type, target),
-                    ).fetchone()
+                    rows.append((
+                        _new_id(), scan_id, target, vuln_type, sev_order,
+                        record["created_at"], now, json.dumps(record, default=str)
+                    ))
 
-                    if existing:
-                        record["created_at"] = existing["created_at"]
-                        con.execute(
-                            "UPDATE vulnerabilities SET severity_order=?, updated_at=?, data=? WHERE id=?",
-                            (sev_order, now, json.dumps(record, default=str), existing["id"]),
-                        )
-                    else:
-                        con.execute(
-                            "INSERT INTO vulnerabilities (id, scan_id, target, vuln_type, "
-                            "severity_order, created_at, updated_at, data) VALUES (?,?,?,?,?,?,?,?)",
-                            (_new_id(), scan_id, target, vuln_type, sev_order,
-                             record["created_at"], now, json.dumps(record, default=str)),
-                        )
+                con.executemany(
+                    """
+                    INSERT INTO vulnerabilities (id, scan_id, target, vuln_type, severity_order, created_at, updated_at, data)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    ON CONFLICT(scan_id, vuln_type, target) DO UPDATE SET
+                        severity_order=excluded.severity_order,
+                        updated_at=excluded.updated_at,
+                        data=json_set(excluded.data, '$.created_at', vulnerabilities.created_at)
+                    """,
+                    rows
+                )
                 con.commit()
             finally:
                 con.close()
